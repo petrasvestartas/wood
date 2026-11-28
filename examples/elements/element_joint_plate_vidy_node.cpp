@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Double-layer Théâtre de Vidy folded crease node: assembled cutaway and exploded 4-plate view.
@@ -60,5 +60,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_vidy_node --parallel 6 && ./build/element_joint_plate_vidy_node && ../bash/publish-scene.sh --target element_joint_plate_vidy_node
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

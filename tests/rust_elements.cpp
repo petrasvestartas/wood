@@ -7,7 +7,7 @@
 #include "element_face_planar.pb.h"
 #include "element_node_support.pb.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The session wood/rust writes, one element per class: FacePlanarElement, EdgeStraightElement, two Columns, NodeBlockElement, EdgeVariableElement, NodeSupportElement.
@@ -40,14 +40,14 @@ static bool same_brep(const BRep& a, const BRep& b, double tolerance) {
 static size_t cylinders(const BRep& brep) {
     size_t count = 0;
     for (const BRepFace& face : brep.m_faces)
-        count += brep.m_surfaces[face.surface_index].is_rational();
+        count += brep.m_surfaces[face.surface_index].nurbs().is_rational();
     return count;
 }
 
 /// Element i of the file comes back as T, its payload unchanged by C++ and its Rust BRep the C++ BRep.
 template <typename T, typename Payload>
 static void reads_back(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
-    const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
+    const laika_proto::Element& stored = file.objects().elements(static_cast<int>(i));
     const std::shared_ptr<T> typed = session.get_element<T>(stored.guid());
     check(typed != nullptr, stored.name() + " does not load as its class");
     check(
@@ -73,7 +73,7 @@ static void reads_back(const WoodSession& session, const wood_proto::WoodSession
 
 /// A Column the viewer wrote loads as an edge with the same solid.
 static void reads_column(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
-    const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
+    const laika_proto::Element& stored = file.objects().elements(static_cast<int>(i));
     const std::shared_ptr<EdgeStraightElement> typed = session.get_element<EdgeStraightElement>(stored.guid());
     check(typed != nullptr, stored.name() + " does not load as an edge");
     check(

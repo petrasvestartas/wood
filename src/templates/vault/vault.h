@@ -4,7 +4,7 @@
 #include "src/templates/vault/vault_guide.h"
 #include "wood_profile.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 /// Masonry and timber vault templates.
 namespace wood_vault {

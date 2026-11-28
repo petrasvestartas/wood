@@ -6,7 +6,7 @@
 #include "wood_joint_cut_step.h"
 #include "wood_joint_move.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_proto {
 class JointElement;

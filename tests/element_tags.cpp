@@ -3,7 +3,7 @@
 #include "element_column.pb.h"
 #include "element.pb.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Every tracked scene and the tags wood no longer writes: Session reads them for good, as the classes they became.
@@ -117,7 +117,7 @@ int main() {
     const Line slanted = Line::from_points({100.0, 100.0, 0.0}, {400.0, 100.0, 3000.0});
     check(leaning.mutable_axis()->ParseFromString(slanted.pb_dumps()), "the axis writes");
     check(leaning.mutable_section()->ParseFromString(foot.pb_dumps()), "the section writes");
-    session_proto::Element saved;
+    laika_proto::Element saved;
     check(saved.ParseFromString(Element("leaning").pb_dumps()), "the element writes");
     saved.set_element_type("Column");
     saved.set_element_data(leaning.SerializeAsString());

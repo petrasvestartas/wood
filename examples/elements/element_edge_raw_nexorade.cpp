@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Six-log raw-wood reciprocal nexorade assembled rotationally via conical cross-lap joints and pins (PhD Fig. 5.60 C, Fig. 9.16 & Fig. A.9).
@@ -138,5 +138,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_raw_nexorade --parallel 6 && ./build/element_edge_raw_nexorade && ../bash/publish-scene.sh --target element_edge_raw_nexorade
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Quarter 0 of the square floor's guide: its plan, and every member's plan quad, face planes and parabolas under the member's name.
@@ -34,5 +34,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_floor_1_floorguide --parallel 6 && ./build/templates_floor_1_floorguide && ../bash/publish-scene.sh --target templates_floor_1_floorguide
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

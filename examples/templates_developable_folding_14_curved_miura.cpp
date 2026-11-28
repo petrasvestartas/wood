@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/developable_folding/curved_miura.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_developable_folding;
 
@@ -44,5 +44,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_developable_folding_14_curved_miura --parallel 6 && ./build/templates_developable_folding_14_curved_miura && ../bash/publish-scene.sh --target templates_developable_folding_14_curved_miura
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

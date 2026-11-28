@@ -2,7 +2,7 @@
 #include "src/templates/module/framed_panel.h"
 #include "src/templates/module/module_contact.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_module {

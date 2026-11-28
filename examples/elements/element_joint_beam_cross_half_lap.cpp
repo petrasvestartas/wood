@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// cross_half_lap on beams: the milled half-lap, on a pair crossing at 60 degrees.
@@ -45,5 +45,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_cross_half_lap --parallel 6 && ./build/element_joint_beam_cross_half_lap && ../bash/publish-scene.sh --target element_joint_beam_cross_half_lap
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

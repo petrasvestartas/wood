@@ -82,7 +82,7 @@ const zoom = Number(process.env.SHOT_ZOOM ?? 1);
 const scale = Number(process.env.SHOT_SCALE ?? 1);
 await send("Emulation.setDeviceMetricsOverride", { width: Math.round(1600 / zoom), height: Math.round(1000 / zoom), deviceScaleFactor: zoom * scale, mobile: false });
 const query = [local_query, commands.length ? "cmd=" + encodeURIComponent(["View Names", ...commands].join(";")) : "", process.env.SHOT_QUERY ?? ""].filter(Boolean).join("&");
-await send("Page.navigate", { url: "https://petrasvestartas.github.io/session/" + (query ? "?" + query : "") });
+await send("Page.navigate", { url: "https://petrasvestartas.github.io/laika/" + (query ? "?" + query : "") });
 // the scene is in when the viewer logs it, up to two minutes under load; the commands then typed into the command line once more, since
 // under load the scene can arrive after the ones in the URL ran and a Fit on nothing leaves the camera off the scene; then a moment for the shading
 for (let i = 0; i < 600 && !logs.some((line) => /^scene '/.test(line)); i++) await sleep(200);

@@ -5,7 +5,7 @@
 #include "wood_assembly_module.h"
 #include "wood_solid_body.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

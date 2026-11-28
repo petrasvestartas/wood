@@ -62,19 +62,19 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // .session_proto.Line axis = 1;
+      // .laika_proto.Line axis = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 3, 0,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.axis_)}},
-      // .session_proto.Polyline section = 2;
+      // .laika_proto.Polyline section = 2;
       {::_pbi::TcParser::FastMtS1,
        {18, 4, 1,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.section_)}},
-      // repeated .session_proto.Plane cuts = 3;
+      // repeated .laika_proto.Plane cuts = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 0, 2,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.cuts_)}},
-      // repeated .session_proto.Polyline profile = 4;
+      // repeated .laika_proto.Polyline profile = 4;
       {::_pbi::TcParser::FastMtR1,
        {34, 1, 3,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_)}},
@@ -90,13 +90,13 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
     }}, {{
       65535, 65535
     }}, {{
-      // .session_proto.Line axis = 1;
+      // .laika_proto.Line axis = 1;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.axis_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Polyline section = 2;
+      // .laika_proto.Polyline section = 2;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.section_), _Internal::kHasBitsOffset + 4, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Plane cuts = 3;
+      // repeated .laika_proto.Plane cuts = 3;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.cuts_), _Internal::kHasBitsOffset + 0, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline profile = 4;
+      // repeated .laika_proto.Polyline profile = 4;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double rotation = 5;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
@@ -107,24 +107,24 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
@@ -302,16 +302,16 @@ const char descriptor_table_protodef_element_5fcolumn_2eproto[] ABSL_ATTRIBUTE_S
     "\n\024element_column.proto\022\nwood_proto\032\037inte"
     "raction_feature_solid.proto\032\037interaction"
     "_feature_plane.proto\032\nline.proto\032\013plane."
-    "proto\032\016polyline.proto\"\324\002\n\006Column\022;\n\016soli"
+    "proto\032\016polyline.proto\"\314\002\n\006Column\022;\n\016soli"
     "d_features\030\006 \003(\0132#.wood_proto.Interactio"
     "nFeatureSolid\022;\n\016plane_features\030\n \003(\0132#."
-    "wood_proto.InteractionFeaturePlane\022!\n\004ax"
-    "is\030\001 \001(\0132\023.session_proto.Line\022(\n\007section"
-    "\030\002 \001(\0132\027.session_proto.Polyline\022\"\n\004cuts\030"
-    "\003 \003(\0132\024.session_proto.Plane\022(\n\007profile\030\004"
-    " \003(\0132\027.session_proto.Polyline\022\020\n\010rotatio"
-    "n\030\005 \001(\001J\004\010\007\020\010J\004\010\010\020\tJ\004\010\t\020\nR\004headR\013head_he"
-    "ightb\006proto3"
+    "wood_proto.InteractionFeaturePlane\022\037\n\004ax"
+    "is\030\001 \001(\0132\021.laika_proto.Line\022&\n\007section\030\002"
+    " \001(\0132\025.laika_proto.Polyline\022 \n\004cuts\030\003 \003("
+    "\0132\022.laika_proto.Plane\022&\n\007profile\030\004 \003(\0132\025"
+    ".laika_proto.Polyline\022\020\n\010rotation\030\005 \001(\001J"
+    "\004\010\007\020\010J\004\010\010\020\tJ\004\010\t\020\nR\004headR\013head_heightb\006pr"
+    "oto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fcolumn_2eproto_deps[5] = {
@@ -325,7 +325,7 @@ static ::absl::once_flag descriptor_table_element_5fcolumn_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fcolumn_2eproto = {
     false,
     false,
-    492,
+    484,
     descriptor_table_protodef_element_5fcolumn_2eproto,
     "element_column.proto",
     &descriptor_table_element_5fcolumn_2eproto_once,
@@ -569,21 +569,21 @@ PROTOBUF_NOINLINE void Column::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // .session_proto.Line axis = 1;
+  // .laika_proto.Line axis = 1;
   if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.axis_, this_._impl_.axis_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.Polyline section = 2;
+  // .laika_proto.Polyline section = 2;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.section_, this_._impl_.section_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.Plane cuts = 3;
+  // repeated .laika_proto.Plane cuts = 3;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_cuts_size());
@@ -595,7 +595,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline profile = 4;
+  // repeated .laika_proto.Polyline profile = 4;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_profile_size());
@@ -664,14 +664,14 @@ PROTOBUF_NOINLINE void Column::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
-    // repeated .session_proto.Plane cuts = 3;
+    // repeated .laika_proto.Plane cuts = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_cuts_size();
       for (const auto& msg : this_._internal_cuts()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline profile = 4;
+    // repeated .laika_proto.Polyline profile = 4;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_profile_size();
       for (const auto& msg : this_._internal_profile()) {
@@ -685,12 +685,12 @@ PROTOBUF_NOINLINE void Column::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // .session_proto.Line axis = 1;
+    // .laika_proto.Line axis = 1;
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.axis_);
     }
-    // .session_proto.Polyline section = 2;
+    // .laika_proto.Polyline section = 2;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.section_);

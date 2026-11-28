@@ -2,7 +2,7 @@
 #include "wood_element_geometry.h"
 #include "src/templates/frame/frame.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_frame;
 

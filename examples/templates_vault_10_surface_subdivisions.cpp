@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vault/surface_vault.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 struct SurfaceCase {
@@ -79,5 +79,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vault_10_surface_subdivisions --parallel 6 && ./build/templates_vault_10_surface_subdivisions && ../bash/publish-scene.sh --target templates_vault_10_surface_subdivisions
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

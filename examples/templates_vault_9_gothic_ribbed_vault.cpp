@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vault/gothic_ribbed_vault.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 struct GothicBay {
@@ -86,5 +86,5 @@ examples/templates_vault_9_gothic_ribbed_vault.cpp
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

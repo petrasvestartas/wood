@@ -17,17 +17,17 @@ import tempfile
 from PIL import Image, ImageChops
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
-PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
-RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+PYTHON = WOOD.parent / "laika/laika_py/.venv/bin/python"
+RENDERER = WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 
-# One frame per entry of the plan: where every part stands and which are coloured, written by session_py.
+# One frame per entry of the plan: where every part stands and which are coloured, written by laika_py.
 FRAMES = r"""
 import json, sys
-from session_py.session import Session
-from session_py.line import Line, Arrowhead
-from session_py.point import Point
-from session_py.xform import Xform
-from session_py.color import Color
+from laika_py.session import Session
+from laika_py.line import Line, Arrowhead
+from laika_py.point import Point
+from laika_py.xform import Xform
+from laika_py.color import Color
 scene_path, plan_path, out = sys.argv[1], sys.argv[2], sys.argv[3]
 plan = json.load(open(plan_path))
 frames = []

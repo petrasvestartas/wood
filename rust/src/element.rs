@@ -1,6 +1,6 @@
 use prost::Message;
-use session_rust::element::ElementFeature;
-use session_rust::{BRep, Element, Mesh, Plane, Polyline};
+use laika_rs::element::ElementFeature;
+use laika_rs::{BRep, Element, Mesh, Plane, Polyline};
 
 /// A feature of one polyline named by its type, as C++ polyline_feature; -1 is the whole element.
 pub fn polyline_feature(

@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vault/cross_vault.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The cross vault of the defaults, its voussoirs in contact.
@@ -38,5 +38,5 @@ examples/templates_vault_6_cross_vault.cpp
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

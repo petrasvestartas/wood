@@ -225,44 +225,44 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeVariableElement final : public 
     kPlaneFeaturesFieldNumber = 5,
     kAxisFieldNumber = 1,
   };
-  // repeated .session_proto.Polyline sections = 2;
+  // repeated .laika_proto.Polyline sections = 2;
   [[nodiscard]] int sections_size() const;
   private:
   int _internal_sections_size() const;
 
   public:
   void clear_sections() ;
-  [[nodiscard]] const ::session_proto::Polyline& sections(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_sections(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_sections();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& sections(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_sections(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_sections();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   sections() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_sections();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_sections() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_sections();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_sections() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_sections();
 
   public:
-  // repeated .session_proto.Plane cuts = 3;
+  // repeated .laika_proto.Plane cuts = 3;
   [[nodiscard]] int cuts_size() const;
   private:
   int _internal_cuts_size() const;
 
   public:
   void clear_cuts() ;
-  [[nodiscard]] const ::session_proto::Plane& cuts(int index) const;
-  [[nodiscard]] ::session_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
-  ::session_proto::Plane* PROTOBUF_NONNULL add_cuts();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+  [[nodiscard]] const ::laika_proto::Plane& cuts(int index) const;
+  [[nodiscard]] ::laika_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
+  ::laika_proto::Plane* PROTOBUF_NONNULL add_cuts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>&
   cuts() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
   mutable_cuts();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& _internal_cuts() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>& _internal_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
 
   public:
   // repeated .wood_proto.InteractionFeatureSolid solid_features = 4;
@@ -305,19 +305,19 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeVariableElement final : public 
   ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL _internal_mutable_plane_features();
 
   public:
-  // .session_proto.Line axis = 1;
+  // .laika_proto.Line axis = 1;
   [[nodiscard]] bool has_axis() const;
   void clear_axis() ;
-  [[nodiscard]] const ::session_proto::Line& axis() const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NULLABLE release_axis();
-  ::session_proto::Line* PROTOBUF_NONNULL mutable_axis();
-  void set_allocated_axis(::session_proto::Line* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_axis(::session_proto::Line* PROTOBUF_NULLABLE value);
-  ::session_proto::Line* PROTOBUF_NULLABLE unsafe_arena_release_axis();
+  [[nodiscard]] const ::laika_proto::Line& axis() const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NULLABLE release_axis();
+  ::laika_proto::Line* PROTOBUF_NONNULL mutable_axis();
+  void set_allocated_axis(::laika_proto::Line* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_axis(::laika_proto::Line* PROTOBUF_NULLABLE value);
+  ::laika_proto::Line* PROTOBUF_NULLABLE unsafe_arena_release_axis();
 
   private:
-  const ::session_proto::Line& _internal_axis() const;
-  ::session_proto::Line* PROTOBUF_NONNULL _internal_mutable_axis();
+  const ::laika_proto::Line& _internal_axis() const;
+  ::laika_proto::Line* PROTOBUF_NONNULL _internal_mutable_axis();
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.EdgeVariableElement)
@@ -353,11 +353,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeVariableElement final : public 
         const EdgeVariableElement& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > sections_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > sections_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Plane > cuts_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
-    ::session_proto::Line* PROTOBUF_NULLABLE axis_;
+    ::laika_proto::Line* PROTOBUF_NULLABLE axis_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -380,28 +380,28 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeVariableElement final : public 
 
 // EdgeVariableElement
 
-// .session_proto.Line axis = 1;
+// .laika_proto.Line axis = 1;
 inline bool EdgeVariableElement::has_axis() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.axis_ != nullptr);
   return value;
 }
-inline const ::session_proto::Line& EdgeVariableElement::_internal_axis() const {
+inline const ::laika_proto::Line& EdgeVariableElement::_internal_axis() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Line* p = _impl_.axis_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Line>(&::session_proto::Line_globals_);
+  const ::laika_proto::Line* p = _impl_.axis_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Line>(&::laika_proto::Line_globals_);
 }
-inline const ::session_proto::Line& EdgeVariableElement::axis() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Line& EdgeVariableElement::axis() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeVariableElement.axis)
   return _internal_axis();
 }
 inline void EdgeVariableElement::unsafe_arena_set_allocated_axis(
-    ::session_proto::Line* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.axis_);
   }
-  _impl_.axis_ = reinterpret_cast<::session_proto::Line*>(value);
+  _impl_.axis_ = reinterpret_cast<::laika_proto::Line*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
@@ -409,11 +409,11 @@ inline void EdgeVariableElement::unsafe_arena_set_allocated_axis(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.EdgeVariableElement.axis)
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE EdgeVariableElement::release_axis() {
+inline ::laika_proto::Line* PROTOBUF_NULLABLE EdgeVariableElement::release_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Line* released = _impl_.axis_;
+  ::laika_proto::Line* released = _impl_.axis_;
   _impl_.axis_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -428,31 +428,31 @@ inline ::session_proto::Line* PROTOBUF_NULLABLE EdgeVariableElement::release_axi
   }
   return released;
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE EdgeVariableElement::unsafe_arena_release_axis() {
+inline ::laika_proto::Line* PROTOBUF_NULLABLE EdgeVariableElement::unsafe_arena_release_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.EdgeVariableElement.axis)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Line* temp = _impl_.axis_;
+  ::laika_proto::Line* temp = _impl_.axis_;
   _impl_.axis_ = nullptr;
   return temp;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL EdgeVariableElement::_internal_mutable_axis() {
+inline ::laika_proto::Line* PROTOBUF_NONNULL EdgeVariableElement::_internal_mutable_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.axis_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Line>(GetArena());
-    _impl_.axis_ = reinterpret_cast<::session_proto::Line*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Line>(GetArena());
+    _impl_.axis_ = reinterpret_cast<::laika_proto::Line*>(p);
   }
   return _impl_.axis_;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL EdgeVariableElement::mutable_axis()
+inline ::laika_proto::Line* PROTOBUF_NONNULL EdgeVariableElement::mutable_axis()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Line* _msg = _internal_mutable_axis();
+  ::laika_proto::Line* _msg = _internal_mutable_axis();
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeVariableElement.axis)
   return _msg;
 }
-inline void EdgeVariableElement::set_allocated_axis(::session_proto::Line* PROTOBUF_NULLABLE value) {
+inline void EdgeVariableElement::set_allocated_axis(::laika_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -469,105 +469,105 @@ inline void EdgeVariableElement::set_allocated_axis(::session_proto::Line* PROTO
     ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
-  _impl_.axis_ = reinterpret_cast<::session_proto::Line*>(value);
+  _impl_.axis_ = reinterpret_cast<::laika_proto::Line*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.EdgeVariableElement.axis)
 }
 
-// repeated .session_proto.Polyline sections = 2;
+// repeated .laika_proto.Polyline sections = 2;
 inline int EdgeVariableElement::_internal_sections_size() const {
   return _internal_sections().size();
 }
 inline int EdgeVariableElement::sections_size() const {
   return _internal_sections_size();
 }
-inline const ::session_proto::Polyline& EdgeVariableElement::sections(int index) const
+inline const ::laika_proto::Polyline& EdgeVariableElement::sections(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeVariableElement.sections)
   return _internal_sections().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL EdgeVariableElement::mutable_sections(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL EdgeVariableElement::mutable_sections(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeVariableElement.sections)
   return _internal_mutable_sections()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL EdgeVariableElement::add_sections()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL EdgeVariableElement::add_sections()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_sections()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.EdgeVariableElement.sections)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& EdgeVariableElement::sections() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& EdgeVariableElement::sections() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.EdgeVariableElement.sections)
   return _internal_sections();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 EdgeVariableElement::mutable_sections() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.EdgeVariableElement.sections)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_sections();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 EdgeVariableElement::_internal_sections() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.sections_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 EdgeVariableElement::_internal_mutable_sections() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.sections_;
 }
 
-// repeated .session_proto.Plane cuts = 3;
+// repeated .laika_proto.Plane cuts = 3;
 inline int EdgeVariableElement::_internal_cuts_size() const {
   return _internal_cuts().size();
 }
 inline int EdgeVariableElement::cuts_size() const {
   return _internal_cuts_size();
 }
-inline const ::session_proto::Plane& EdgeVariableElement::cuts(int index) const
+inline const ::laika_proto::Plane& EdgeVariableElement::cuts(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeVariableElement.cuts)
   return _internal_cuts().Get(index);
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL EdgeVariableElement::mutable_cuts(int index)
+inline ::laika_proto::Plane* PROTOBUF_NONNULL EdgeVariableElement::mutable_cuts(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeVariableElement.cuts)
   return _internal_mutable_cuts()->Mutable(index);
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL EdgeVariableElement::add_cuts()
+inline ::laika_proto::Plane* PROTOBUF_NONNULL EdgeVariableElement::add_cuts()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Plane* _add =
+  ::laika_proto::Plane* _add =
       _internal_mutable_cuts()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.EdgeVariableElement.cuts)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& EdgeVariableElement::cuts() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>& EdgeVariableElement::cuts() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.EdgeVariableElement.cuts)
   return _internal_cuts();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
 EdgeVariableElement::mutable_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.EdgeVariableElement.cuts)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_cuts();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>&
 EdgeVariableElement::_internal_cuts() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.cuts_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
 EdgeVariableElement::_internal_mutable_cuts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.cuts_;

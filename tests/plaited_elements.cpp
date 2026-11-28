@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/plaited/plaited.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace {
@@ -80,7 +80,7 @@ void check_stereotomy(
 size_t count_bores(const BRep& brep) {
 
     size_t bores = 0;
-    for (const NurbsSurface& surface : brep.m_surfaces)
+    for (const NurbsSurface& surface : nurbs(brep.m_surfaces))
         bores += surface.is_rational() ? 1 : 0;
     return bores;
 }

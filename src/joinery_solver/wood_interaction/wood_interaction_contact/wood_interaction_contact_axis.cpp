@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_interaction_contact_axis.h"
 #include "interaction_contact_axis.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

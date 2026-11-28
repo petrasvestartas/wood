@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/module_building.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A wet room set into each of two closed modules.
@@ -34,5 +34,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_14_wet_room --parallel 6 && ./build/templates_module_14_wet_room && ../bash/publish-scene.sh --target templates_module_14_wet_room
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

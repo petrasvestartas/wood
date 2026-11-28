@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/developable_folding/crease_quadrants.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_developable_folding;
 
@@ -39,5 +39,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_developable_folding_4_crease_quadrants --parallel 6 && ./build/templates_developable_folding_4_crease_quadrants && ../bash/publish-scene.sh --target templates_developable_folding_4_crease_quadrants
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

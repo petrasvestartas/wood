@@ -5,7 +5,7 @@
 /// The documentation film of the floor: every chapter writes its frames, one scene and its notes each, that docs/floor/render.py renders into docs/templates/floor.
 namespace movie {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_floor;
 

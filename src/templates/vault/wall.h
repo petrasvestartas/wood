@@ -1,7 +1,7 @@
 #pragma once
 #include "src/templates/vault/vault.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_vault {

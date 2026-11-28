@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 const std::string DATASET{config::Dataset::inplane_hexshell};
@@ -87,5 +87,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 2_contacts --parallel 6 && ./build/2_contacts && ../bash/publish-scene.sh --target 2_contacts
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
+https://petrasvestartas.github.io/laika/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
 */

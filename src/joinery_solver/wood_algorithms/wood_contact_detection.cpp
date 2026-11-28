@@ -8,7 +8,7 @@
 #include "wood_element_face_curved.h"
 #include "../src/clipper2/clipper.h"
 #include "closest.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 constexpr bool TRACE = false;

@@ -16,13 +16,13 @@ import sys
 from PIL import Image, ImageDraw
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
-PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
+PYTHON = WOOD.parent / "laika/laika_py/.venv/bin/python"
 
-# Each element's faces (an outer loop then its holes) and edges, in world coordinates, written by session_py; an element no
+# Each element's faces (an outer loop then its holes) and edges, in world coordinates, written by laika_py; an element no
 # joint cut is a plain mesh, its polygons the faces.
 FACES = r"""
 import json, sys
-from session_py.session import Session
+from laika_py.session import Session
 scene = Session.pb_load(sys.argv[1])
 names = set(sys.argv[2:])
 out = {}

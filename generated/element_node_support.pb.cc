@@ -62,7 +62,7 @@ constexpr NodeSupportElement::ParseTableT_ NodeSupportElement::InternalGenerateP
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // .session_proto.Plane plane = 1;
+      // .laika_proto.Plane plane = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(NodeSupportElement, _impl_.plane_)}},
@@ -162,7 +162,7 @@ constexpr NodeSupportElement::ParseTableT_ NodeSupportElement::InternalGenerateP
     }}, {{
       65535, 65535
     }}, {{
-      // .session_proto.Plane plane = 1;
+      // .laika_proto.Plane plane = 1;
       {PROTOBUF_FIELD_OFFSET(NodeSupportElement, _impl_.plane_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // double height = 2;
       {PROTOBUF_FIELD_OFFSET(NodeSupportElement, _impl_.height_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
@@ -209,9 +209,9 @@ constexpr NodeSupportElement::ParseTableT_ NodeSupportElement::InternalGenerateP
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
     }},
     {{
@@ -406,23 +406,22 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_element_5fnode_5fsupport_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\032element_node_support.proto\022\nwood_proto"
-    "\032\013plane.proto\"\351\004\n\022NodeSupportElement\022#\n\005"
-    "plane\030\001 \001(\0132\024.session_proto.Plane\022\016\n\006hei"
-    "ght\030\002 \001(\001\022\033\n\023head_plate_diameter\030\003 \001(\001\022\034"
-    "\n\024head_plate_thickness\030\004 \001(\001\022\031\n\021head_pla"
-    "te_recess\030\005 \001(\001\022\027\n\017base_plate_size\030\006 \001(\001"
-    "\022\034\n\024base_plate_thickness\030\007 \001(\001\022 \n\030base_p"
-    "late_hole_diameter\030\010 \001(\001\022\037\n\027base_plate_h"
-    "ole_spacing\030\t \001(\001\022#\n\033adjustment_nut_acro"
-    "ss_flats\030\n \001(\001\022\032\n\022adjustment_nut_top\030\013 \001"
-    "(\001\022\024\n\014rod_diameter\030\014 \001(\001\022!\n\031coupling_nut"
-    "_across_flats\030\r \001(\001\022\033\n\023coupling_nut_heig"
-    "ht\030\016 \001(\001\022\021\n\tpin_count\030\017 \001(\005\022\024\n\014pin_diame"
-    "ter\030\020 \001(\001\022\022\n\npin_length\030\021 \001(\001\022\021\n\tpin_ang"
-    "le\030\022 \001(\001\022\033\n\023pin_circle_diameter\030\023 \001(\001\022\027\n"
-    "\017anchor_diameter\030\024 \001(\001\022\030\n\020anchor_embedme"
-    "nt\030\025 \001(\001\022\027\n\017chord_tolerance\030\026 \001(\001b\006proto"
-    "3"
+    "\032\013plane.proto\"\347\004\n\022NodeSupportElement\022!\n\005"
+    "plane\030\001 \001(\0132\022.laika_proto.Plane\022\016\n\006heigh"
+    "t\030\002 \001(\001\022\033\n\023head_plate_diameter\030\003 \001(\001\022\034\n\024"
+    "head_plate_thickness\030\004 \001(\001\022\031\n\021head_plate"
+    "_recess\030\005 \001(\001\022\027\n\017base_plate_size\030\006 \001(\001\022\034"
+    "\n\024base_plate_thickness\030\007 \001(\001\022 \n\030base_pla"
+    "te_hole_diameter\030\010 \001(\001\022\037\n\027base_plate_hol"
+    "e_spacing\030\t \001(\001\022#\n\033adjustment_nut_across"
+    "_flats\030\n \001(\001\022\032\n\022adjustment_nut_top\030\013 \001(\001"
+    "\022\024\n\014rod_diameter\030\014 \001(\001\022!\n\031coupling_nut_a"
+    "cross_flats\030\r \001(\001\022\033\n\023coupling_nut_height"
+    "\030\016 \001(\001\022\021\n\tpin_count\030\017 \001(\005\022\024\n\014pin_diamete"
+    "r\030\020 \001(\001\022\022\n\npin_length\030\021 \001(\001\022\021\n\tpin_angle"
+    "\030\022 \001(\001\022\033\n\023pin_circle_diameter\030\023 \001(\001\022\027\n\017a"
+    "nchor_diameter\030\024 \001(\001\022\030\n\020anchor_embedment"
+    "\030\025 \001(\001\022\027\n\017chord_tolerance\030\026 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fnode_5fsupport_2eproto_deps[1] = {
@@ -432,7 +431,7 @@ static ::absl::once_flag descriptor_table_element_5fnode_5fsupport_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fnode_5fsupport_2eproto = {
     false,
     false,
-    681,
+    679,
     descriptor_table_protodef_element_5fnode_5fsupport_2eproto,
     "element_node_support.proto",
     &descriptor_table_element_5fnode_5fsupport_2eproto_once,
@@ -606,7 +605,7 @@ PROTOBUF_NOINLINE void NodeSupportElement::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // .session_proto.Plane plane = 1;
+  // .laika_proto.Plane plane = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.plane_, this_._impl_.plane_->GetCachedSize(), target,
@@ -826,7 +825,7 @@ PROTOBUF_NOINLINE void NodeSupportElement::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
-    // .session_proto.Plane plane = 1;
+    // .laika_proto.Plane plane = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.plane_);

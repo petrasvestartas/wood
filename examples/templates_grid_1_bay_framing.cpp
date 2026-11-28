@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/grid/grid.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_grid;
 
@@ -41,5 +41,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_grid_1_bay_framing --parallel 6 && ./build/templates_grid_1_bay_framing && ../bash/publish-scene.sh --target templates_grid_1_bay_framing
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

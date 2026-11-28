@@ -1,7 +1,7 @@
 mod common;
 
 use common::*;
-use session_rust::{Element, Session};
+use laika_rs::{Element, Session};
 use wood::{EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement, WoodElement};
 
 const GOLDEN: &str = "tests/data/rust_elements.pb";

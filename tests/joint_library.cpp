@@ -5,7 +5,7 @@
 #include <set>
 #include <numbers>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -790,7 +790,7 @@ static size_t cylinders(const BRep& brep) {
 
     size_t count = 0;
     for (const BRepFace& face : brep.m_faces)
-        count += brep.m_surfaces[face.surface_index].is_rational();
+        count += brep.m_surfaces[face.surface_index].nurbs().is_rational();
 
     return count;
 }
@@ -1329,15 +1329,15 @@ static void check_drills(const Built& built, Row& row) {
 /// C13.
 static void check_written(const Built& built, Row& row) {
 
-    session_proto::Session proto;
+    laika_proto::Session proto;
     if (!proto.ParseFromString(built.scene->pb_dumps())) {
         fail(row, "C13", "the written session does not parse");
         return;
     }
 
     for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
-        const session_proto::Element* written = nullptr;
-        for (const session_proto::Element& element : proto.objects().elements())
+        const laika_proto::Element* written = nullptr;
+        for (const laika_proto::Element& element : proto.objects().elements())
             if (element.guid() == plate->guid())
                 written = &element;
         if (!written) {

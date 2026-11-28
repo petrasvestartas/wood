@@ -326,7 +326,7 @@ Expected gains are from the profile above.
 ### Take
 
 1. **Ericson segment-segment closest points** from `capsule_capsule.cpp:84-160`, in the kernel's
-   `Intersection::line_line_parameters` when `intersect_segments` is set (`session_cpp/src/intersection.cpp:394-397`,
+   `Intersection::line_line_parameters` when `intersect_segments` is set (`laika_cpp/src/intersection.cpp:394-397`,
    and its Python and Rust twins). Today both parameters are clamped independently; when one falls outside
    its segment the other is not re-solved. Checked numerically: beam A from (0, 0, 0) to (3000, 0, 0), beam B
    from (3200, -1500, 100) to (3600, 1500, 100) gives t1 = 0.5 and a gap of 412.3 mm; the true closest
@@ -393,8 +393,8 @@ One item: Ericson segment-segment closest points (item 1). Item 2 only if the le
 
 ### Segment-segment closest points
 
-- Files: the kernel's `Intersection::line_line_parameters` in `session_cpp/src/intersection.cpp`,
-  `session_py` and `session_rust`, with one new minitest in each (the two-beam case above, plus parallel,
+- Files: the kernel's `Intersection::line_line_parameters` in `laika_cpp/src/intersection.cpp`,
+  `session_py` and `laika_rs`, with one new minitest in each (the two-beam case above, plus parallel,
   degenerate and crossing segments). Coordinate with kernel-full-build, which is in the same kernel. Adapted
   from Coal's BSD-2 code, so the function keeps a one-line attribution.
 - Fix it in place rather than adding a second function: every caller that asks for segment clamping wants

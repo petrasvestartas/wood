@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "wood_element_node.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

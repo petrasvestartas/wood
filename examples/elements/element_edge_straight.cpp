@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A beam: a rectangular profile swept along a straight axis.
@@ -34,5 +34,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_straight --parallel 6 && ./build/element_edge_straight && ../bash/publish-scene.sh --target element_edge_straight
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

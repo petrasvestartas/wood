@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The square bay with its columns, every connector and the assembly pins.
@@ -33,5 +33,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_floor_7_contacts_cantilevers --parallel 6 && ./build/templates_floor_7_contacts_cantilevers && ../bash/publish-scene.sh --target templates_floor_7_contacts_cantilevers
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

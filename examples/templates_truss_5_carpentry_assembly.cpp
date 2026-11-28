@@ -2,7 +2,7 @@
 #include "src/templates/truss/carpentry_truss.h"
 #include "wood_assembly_sequence.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A king post truss of carpentry joints, its assembly found by taking it apart.
@@ -30,5 +30,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_truss_5_carpentry_assembly --parallel 6 && ./build/templates_truss_5_carpentry_assembly && ../bash/publish-scene.sh --target templates_truss_5_carpentry_assembly
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

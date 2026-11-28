@@ -5,13 +5,13 @@
 
 namespace wood_frame {
 
-using session_cpp::Line;
-using session_cpp::Mesh;
-using session_cpp::Plane;
-using session_cpp::Point;
-using session_cpp::Polyline;
-using session_cpp::Vector;
-using session_cpp::Xform;
+using laika_cpp::Line;
+using laika_cpp::Mesh;
+using laika_cpp::Plane;
+using laika_cpp::Point;
+using laika_cpp::Polyline;
+using laika_cpp::Vector;
+using laika_cpp::Xform;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Guide Primitives

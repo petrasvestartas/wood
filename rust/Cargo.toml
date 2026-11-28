@@ -2,12 +2,12 @@
 name = "wood"
 version = "0.1.0"
 edition = "2021"
-description = "Wood's element classes over the session kernel Element: typed payloads and plain solids."
+description = "Wood's element classes over the laika kernel Element: typed payloads and plain solids."
 
 [dependencies]
-# The kernel beside wood, as the superproject lays them out (wood/ and session/session_rust/); a CI that
+# The kernel beside wood, as the superproject lays them out (wood/ and laika/laika_rs/); a CI that
 # builds this crate clones the two side by side. No mini-tests: the viewer's wasm takes this too.
-session_rust = { path = "../../session/session_rust", default-features = false }
+laika_rs = { path = "../../laika/laika_rs", default-features = false }
 prost = "0.14"
 
 [build-dependencies]

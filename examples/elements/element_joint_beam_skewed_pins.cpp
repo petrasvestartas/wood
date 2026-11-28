@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Two pins leaning 45 degrees, driven through a joist's top into the beam its end stands on.
@@ -40,5 +40,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_skewed_pins --parallel 6 && ./build/element_joint_beam_skewed_pins && ../bash/publish-scene.sh --target element_joint_beam_skewed_pins
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

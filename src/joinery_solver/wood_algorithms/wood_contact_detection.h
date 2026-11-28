@@ -9,7 +9,7 @@
 #include "wood_interaction_contact_axis.h"
 #include "wood_interaction_contact_cross.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

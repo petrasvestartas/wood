@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A beam with a hole through its width: a drill is a joint, what it does an interaction.
@@ -48,5 +48,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_straight_holes --parallel 6 && ./build/element_edge_straight_holes && ../bash/publish-scene.sh --target element_edge_straight_holes
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

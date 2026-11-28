@@ -3,7 +3,7 @@
 #include "wood_element_geometry.h"
 #include "boolean_polyline.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_grid {
 

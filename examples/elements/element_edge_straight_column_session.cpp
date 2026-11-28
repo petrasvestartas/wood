@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The floor's column as a session: its elements and the features they put on it.
@@ -37,5 +37,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_straight_column_session --parallel 6 && ./build/element_edge_straight_column_session && ../bash/publish-scene.sh --target element_edge_straight_column_session
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

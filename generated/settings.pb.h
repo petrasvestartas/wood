@@ -227,44 +227,44 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CustomJoint final : public ::google
     kFemaleFieldNumber = 3,
     kFamilyFieldNumber = 1,
   };
-  // repeated .session_proto.Polyline male = 2;
+  // repeated .laika_proto.Polyline male = 2;
   [[nodiscard]] int male_size() const;
   private:
   int _internal_male_size() const;
 
   public:
   void clear_male() ;
-  [[nodiscard]] const ::session_proto::Polyline& male(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_male(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_male();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& male(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_male(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_male();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   male() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_male();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_male() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_male();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_male() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_male();
 
   public:
-  // repeated .session_proto.Polyline female = 3;
+  // repeated .laika_proto.Polyline female = 3;
   [[nodiscard]] int female_size() const;
   private:
   int _internal_female_size() const;
 
   public:
   void clear_female() ;
-  [[nodiscard]] const ::session_proto::Polyline& female(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_female(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_female();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& female(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_female(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_female();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   female() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_female();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_female() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_female();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_female() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_female();
 
   public:
   // string family = 1;
@@ -315,8 +315,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED CustomJoint final : public ::google
         const CustomJoint& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > male_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > female_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > male_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > female_;
     ::google::protobuf::internal::ArenaStringPtr family_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -843,101 +843,101 @@ inline void CustomJoint::set_allocated_family(::std::string* PROTOBUF_NULLABLE v
   // @@protoc_insertion_point(field_set_allocated:wood_proto.CustomJoint.family)
 }
 
-// repeated .session_proto.Polyline male = 2;
+// repeated .laika_proto.Polyline male = 2;
 inline int CustomJoint::_internal_male_size() const {
   return _internal_male().size();
 }
 inline int CustomJoint::male_size() const {
   return _internal_male_size();
 }
-inline const ::session_proto::Polyline& CustomJoint::male(int index) const
+inline const ::laika_proto::Polyline& CustomJoint::male(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.CustomJoint.male)
   return _internal_male().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL CustomJoint::mutable_male(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL CustomJoint::mutable_male(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.CustomJoint.male)
   return _internal_mutable_male()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL CustomJoint::add_male()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL CustomJoint::add_male()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_male()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.CustomJoint.male)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& CustomJoint::male() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& CustomJoint::male() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.CustomJoint.male)
   return _internal_male();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 CustomJoint::mutable_male() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.CustomJoint.male)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_male();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 CustomJoint::_internal_male() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.male_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 CustomJoint::_internal_mutable_male() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.male_;
 }
 
-// repeated .session_proto.Polyline female = 3;
+// repeated .laika_proto.Polyline female = 3;
 inline int CustomJoint::_internal_female_size() const {
   return _internal_female().size();
 }
 inline int CustomJoint::female_size() const {
   return _internal_female_size();
 }
-inline const ::session_proto::Polyline& CustomJoint::female(int index) const
+inline const ::laika_proto::Polyline& CustomJoint::female(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.CustomJoint.female)
   return _internal_female().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL CustomJoint::mutable_female(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL CustomJoint::mutable_female(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.CustomJoint.female)
   return _internal_mutable_female()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL CustomJoint::add_female()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL CustomJoint::add_female()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_female()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.CustomJoint.female)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& CustomJoint::female() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& CustomJoint::female() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.CustomJoint.female)
   return _internal_female();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 CustomJoint::mutable_female() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.CustomJoint.female)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_female();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 CustomJoint::_internal_female() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.female_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 CustomJoint::_internal_mutable_female() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.female_;

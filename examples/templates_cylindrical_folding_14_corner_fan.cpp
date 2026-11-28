@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/cylindrical_folding/corner_fan.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_cylindrical_folding;
 
@@ -36,5 +36,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_cylindrical_folding_14_corner_fan --parallel 6 && ./build/templates_cylindrical_folding_14_corner_fan && ../bash/publish-scene.sh --target templates_cylindrical_folding_14_corner_fan
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

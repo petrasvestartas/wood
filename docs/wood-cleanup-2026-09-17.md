@@ -8,7 +8,7 @@ minitests of all three languages.
 
 ## Elements
 
-parity : `Plate`, `Column`, `Block` derive directly from `session_cpp::Element`
+parity : `Plate`, `Column`, `Block` derive directly from `laika_cpp::Element`
 (`wood_element_plate.h`, `wood_element_column.h`, `wood_element_block.h`) and register factories,
 so `Session::pb_load` returns them typed; `WoodSession::pb_load` is that and nothing else.
 `TaggedElement`, the `WoodGeometry` variant, `WoodSession::elements`, `to_element` /
@@ -44,7 +44,7 @@ ran : sweep identical.
 
 ## Polyline
 
-parity : kernel additions in session_cpp, session_py and session_rust, tested in each:
+parity : kernel additions in laika_cpp, session_py and laika_rs, tested in each:
 `Vector::average_normal(Polyline)`, `Mesh::from_polylines(std::vector<Polyline>)`,
 `Plane::squared_distance(Point)` (Python and Rust siblings `average_normal_polyline`,
 `from_polylines_polyline`, `squared_distance`). Wood reads polylines through their own API;
@@ -84,7 +84,7 @@ length extension into `apply_unit_scale`; a unit-scale joint spans the plate thi
 design and the dataset values would collapse it. The kernel's yaml reader dropped the minus of
 a negative list item (`- -20` read as `20`), so every negative extension in the ymls had been
 applied with the wrong sign since the ymls replaced the C++ test bodies; fixed in
-`session_cpp/src/yaml/yaml.cpp` (session commit 0cdb2bda).
+`laika_cpp/src/yaml/yaml.cpp` (session commit 0cdb2bda).
 
 ran : with the yaml sign fixed the sweep differs from the baseline in 19 datasets, all of
 them carrying a negative extension: `cross_ibois_pavilion`, `hexboxes`,

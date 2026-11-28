@@ -2,7 +2,7 @@
 #include "wood_joint_library.h"
 #include <fmt/ranges.h>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The outlines of a tile's pairs as JSON: each pair its two outlines, each outline its points.
@@ -55,5 +55,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_library_tiles --parallel 6 && ./build/element_joint_beam_library_tiles
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

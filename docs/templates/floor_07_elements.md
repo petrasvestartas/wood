@@ -69,7 +69,7 @@ Code: `Floor::Floor`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/m
 
 `quarter_group(q)` returns the session's group `quarter_q`, found by its name or made the first time, and every member of quarter q goes in a group under it.
 
-Code: `Floor::quarter_group`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Session::group_named`, [session_cpp session.cpp:1145-1155](https://github.com/petrasvestartas/session_cpp/blob/22aba8a5262db321692f89d27f73c334772c9c5d/src/session.cpp#L1145-L1155).
+Code: `Floor::quarter_group`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Session::group_named`, [laika_cpp session.cpp:1145-1155](https://github.com/petrasvestartas/laika_cpp/blob/22aba8a5262db321692f89d27f73c334772c9c5d/src/session.cpp#L1145-L1155).
 
 ## 204. The lift to the floor
 

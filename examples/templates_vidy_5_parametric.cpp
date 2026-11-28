@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace {
@@ -128,5 +128,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vidy_5_parametric --parallel 6 && ./build/templates_vidy_5_parametric && ../bash/publish-scene.sh --target templates_vidy_5_parametric
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

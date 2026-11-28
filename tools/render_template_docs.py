@@ -13,11 +13,11 @@ import crop_viewer_shot  # noqa: E402
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 WINDOWS = os.name == "nt"
-# the session_py environment that reads and writes scenes; WOOD_PYTHON names another when wood is not checked out beside session
+# the laika_py environment that reads and writes scenes; WOOD_PYTHON names another when wood is not checked out beside session
 PYTHON = pathlib.Path(os.environ["WOOD_PYTHON"]) if "WOOD_PYTHON" in os.environ else WOOD.parent / (
-    "session/session_py/.venv/Scripts/python.exe"
+    "laika/laika_py/.venv/Scripts/python.exe"
     if WINDOWS
-    else "session/session_py/.venv/bin/python"
+    else "laika/laika_py/.venv/bin/python"
 )
 IMAGES = WOOD / "docs" / "images" / "templates"
 BUILD = pathlib.Path(
@@ -27,8 +27,8 @@ LOCK = pathlib.Path(tempfile.gettempdir()) / "wood_live_pb.lock"
 
 BRANCH = r"""
 import sys
-from session_py.session import Session
-from session_py.xform import Xform
+from laika_py.session import Session
+from laika_py.xform import Xform
 scene = Session.pb_load(sys.argv[1])
 names = sys.argv[2].split("+")
 branch = scene if names[0] == "all" else scene.get_branch(names[0])

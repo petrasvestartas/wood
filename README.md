@@ -1,6 +1,6 @@
 # Wood
 
-Wood is a timber joinery solver: the members are given, it finds where they touch and cuts the joints. It comes from the doctoral thesis [Design-to-Fabrication Workflow for Raw-Sawn-Timber using Joinery Solver](https://infoscience.epfl.ch/record/288650) (EPFL, 2021) and is a C++ library on the [`session_cpp`](https://github.com/petrasvestartas/session_cpp) kernel.
+Wood is a timber joinery solver: the members are given, it finds where they touch and cuts the joints. It comes from the doctoral thesis [Design-to-Fabrication Workflow for Raw-Sawn-Timber using Joinery Solver](https://infoscience.epfl.ch/record/288650) (EPFL, 2021) and is a C++ library on the [`laika_cpp`](https://github.com/petrasvestartas/laika_cpp) kernel.
 
 ![](docs/images/diagrams/wood_architecture.webp)
 

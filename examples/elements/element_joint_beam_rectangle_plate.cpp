@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A steel plate let into a column and a rib, pinned through all three.
@@ -50,5 +50,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_rectangle_plate --parallel 6 && ./build/element_joint_beam_rectangle_plate && ../bash/publish-scene.sh --target element_joint_beam_rectangle_plate
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

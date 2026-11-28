@@ -1,7 +1,7 @@
 # Kernel planar boolean profile
 
 Plan step 8, "planar faces against planar faces take a direct polyhedral path". Measured
-2026-11-06 on session_cpp branch `planar-boolean` (commit on top of `dad16e63`), Windows,
+2026-11-06 on laika_cpp branch `planar-boolean` (commit on top of `dad16e63`), Windows,
 MSVC Release.
 
 ## How it was measured
@@ -80,8 +80,8 @@ Scoped timers inside the phases, on the planar floor booleans before any change:
 - Coordinates move by at most 9.1e-13 mm (one or two units in the last place at 4000 mm). The
   closed-form line seeds land Newton on a neighbouring rounding-level root; every other change
   returns bit-identical results, which was checked call by call during development.
-- session_cpp minitests on the rebased commit: 1554 of 1555 pass. The one failure is
-  `FileObj::Read Bunny`, whose data file is not in a standalone session_cpp worktree. The rhino
+- laika_cpp minitests on the rebased commit: 1554 of 1555 pass. The one failure is
+  `FileObj::Read Bunny`, whose data file is not in a standalone laika_cpp worktree. The rhino
   exact-volume gate (`Rhino ... Original Oracle`, 1e-7) and every fixture test pass unchanged.
 - Five new minitests in `BRep Planar Boolean`: two boxes, box minus rotated box, prism through
   plate, coplanar faces, touching faces, against analytic volumes or the suite's polygon

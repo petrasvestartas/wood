@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

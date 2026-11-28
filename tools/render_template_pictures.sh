@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every picture of the template pages, a screenshot of the session_viewer cropped through render_template_docs.py from the built examples: the
+# Every picture of the template pages, a screenshot of the laika_viewer cropped through render_template_docs.py from the built examples: the
 # recipe, so the pages can be regenerated whole after any change. Each line names the example and the groups it shoots; tools/check_element_pages.py
 # reads these lines to prove every picture on a page is made here.
 #

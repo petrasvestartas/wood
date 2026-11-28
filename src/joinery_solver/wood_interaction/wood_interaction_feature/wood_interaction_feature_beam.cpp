@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_interaction_feature_beam.h"
 #include "interaction_feature_beam.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

@@ -4,7 +4,7 @@
 #include "wood_element_edge_straight.h"
 #include "wood_joint_category.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

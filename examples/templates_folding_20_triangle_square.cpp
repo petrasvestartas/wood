@@ -2,7 +2,7 @@
 #include "src/templates/folding/triangle_fold.h"
 #include "src/templates/template_chamfer.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_folding;
 
@@ -31,5 +31,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_folding_20_triangle_square --parallel 6 && ./build/templates_folding_20_triangle_square && ../bash/publish-scene.sh --target templates_folding_20_triangle_square
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

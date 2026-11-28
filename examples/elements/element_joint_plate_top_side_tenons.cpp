@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// top_side_tenons.
@@ -50,5 +50,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_top_side_tenons --parallel 6 && ./build/element_joint_plate_top_side_tenons && ../bash/publish-scene.sh --target element_joint_plate_top_side_tenons
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

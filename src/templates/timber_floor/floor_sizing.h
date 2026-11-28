@@ -1,7 +1,7 @@
 #pragma once
 #include "src/templates/timber_floor/timber_floor_guide.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_timber_floor {

@@ -7,13 +7,13 @@ pub struct InteractionFeatureSolid {
     pub source: ::prost::alloc::string::String,
     /// The closed solid; empty for a feature of drills alone
     #[prost(message, optional, tag = "2")]
-    pub mesh: ::core::option::Option<::session_rust::proto::Mesh>,
+    pub mesh: ::core::option::Option<::laika_rs::proto::Mesh>,
     /// A profile feature's closed loops, extruded along extrusion
     #[prost(message, repeated, tag = "3")]
-    pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub profile: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// The profile's extrusion
     #[prost(message, optional, tag = "4")]
-    pub extrusion: ::core::option::Option<::session_rust::proto::Vector>,
+    pub extrusion: ::core::option::Option<::laika_rs::proto::Vector>,
     /// SolidOperation: 0 intersect, 1 add, 2 subtract
     #[prost(int32, tag = "5")]
     pub operation: i32,
@@ -22,7 +22,7 @@ pub struct InteractionFeatureSolid {
     pub tolerance: f64,
     /// Round holes kept as axes, exact in the BRep
     #[prost(message, repeated, tag = "7")]
-    pub drills: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    pub drills: ::prost::alloc::vec::Vec<::laika_rs::proto::Line>,
     /// Radius of the drills
     #[prost(double, tag = "8")]
     pub drill_radius: f64,
@@ -31,7 +31,7 @@ pub struct InteractionFeatureSolid {
     pub drill_tolerance: f64,
     /// Round posts it keeps where it takes the wood around them, exact in the BRep
     #[prost(message, repeated, tag = "10")]
-    pub posts: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    pub posts: ::prost::alloc::vec::Vec<::laika_rs::proto::Line>,
     /// Radius of the posts
     #[prost(double, tag = "11")]
     pub post_radius: f64,
@@ -44,7 +44,7 @@ pub struct InteractionFeaturePlane {
     pub source: ::prost::alloc::string::String,
     /// The cutting plane; the element keeps the side its normal points to
     #[prost(message, optional, tag = "2")]
-    pub plane: ::core::option::Option<::session_rust::proto::Plane>,
+    pub plane: ::core::option::Option<::laika_rs::proto::Plane>,
 }
 /// Read only: scenes saved before Column merged into EdgeStraightElement. The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -56,16 +56,16 @@ pub struct Column {
     pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
     /// Centreline, base to head
     #[prost(message, optional, tag = "1")]
-    pub axis: ::core::option::Option<::session_rust::proto::Line>,
+    pub axis: ::core::option::Option<::laika_rs::proto::Line>,
     /// Closed cross-section about the axis base
     #[prost(message, optional, tag = "2")]
-    pub section: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub section: ::core::option::Option<::laika_rs::proto::Polyline>,
     /// Planes the solid is cut by, each keeping the side its normal points to
     #[prost(message, repeated, tag = "3")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub cuts: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
     /// Section loops in the profile frame the section was placed from; empty when the section was given
     #[prost(message, repeated, tag = "4")]
-    pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub profile: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Degrees the profile x axis turns from world x about the axis
     #[prost(double, tag = "5")]
     pub rotation: f64,
@@ -80,22 +80,22 @@ pub struct EdgeStraightElement {
     pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
     /// Centreline, one segment per span
     #[prost(message, optional, tag = "1")]
-    pub axis: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub axis: ::core::option::Option<::laika_rs::proto::Polyline>,
     /// Section half-width per segment
     #[prost(double, repeated, tag = "2")]
     pub radii: ::prost::alloc::vec::Vec<f64>,
     /// Section up direction per segment
     #[prost(message, repeated, tag = "3")]
-    pub directions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
+    pub directions: ::prost::alloc::vec::Vec<::laika_rs::proto::Vector>,
     /// 0 crossing only, 1 side-to-end and end-to-end, -1 any
     #[prost(int32, tag = "4")]
     pub allowed_type: i32,
     /// Planes the solid is cut by, each keeping the side its normal points to
     #[prost(message, repeated, tag = "5")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub cuts: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
     /// Section loops in the profile frame, loop 0 the outline, then holes; empty takes the square of the radius
     #[prost(message, repeated, tag = "6")]
-    pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub profile: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// A round edge's radius, its BRep the exact cylinder; zero for any other section
     #[prost(double, tag = "10")]
     pub round_radius: f64,
@@ -111,16 +111,16 @@ pub struct EdgeRawElement {
     pub base: ::core::option::Option<EdgeStraightElement>,
     /// Unprocessed closed mesh in stock coordinates
     #[prost(message, optional, tag = "2")]
-    pub raw_mesh: ::core::option::Option<::session_rust::proto::Mesh>,
+    pub raw_mesh: ::core::option::Option<::laika_rs::proto::Mesh>,
     /// Unprocessed scanned point cloud in stock coordinates
     #[prost(message, optional, tag = "3")]
-    pub raw_pointcloud: ::core::option::Option<::session_rust::proto::PointCloud>,
+    pub raw_pointcloud: ::core::option::Option<::laika_rs::proto::PointCloud>,
     /// Stock-to-world placement matrix of the attached raw data
     #[prost(message, optional, tag = "4")]
-    pub raw_xform: ::core::option::Option<::session_rust::proto::Xform>,
+    pub raw_xform: ::core::option::Option<::laika_rs::proto::Xform>,
     /// Secondary skeleton axes in stock coordinates (tree forks)
     #[prost(message, repeated, tag = "5")]
-    pub branch_axes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub branch_axes: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// True when the solid is the placed raw mesh rather than the low-poly proxy
     #[prost(bool, tag = "6")]
     pub use_raw_mesh: bool,
@@ -133,13 +133,13 @@ pub struct EdgeRawElement {
 pub struct EdgeVariableElement {
     /// Straight reference line from the first section to the last
     #[prost(message, optional, tag = "1")]
-    pub axis: ::core::option::Option<::session_rust::proto::Line>,
+    pub axis: ::core::option::Option<::laika_rs::proto::Line>,
     /// Closed rings with one point count, one per station in axis order
     #[prost(message, repeated, tag = "2")]
-    pub sections: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub sections: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Planes the solid is cut by, each keeping the side its normal points to
     #[prost(message, repeated, tag = "3")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub cuts: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
     /// Solids and drills the joints cut out of it, in the beam's frame
     #[prost(message, repeated, tag = "4")]
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
@@ -154,10 +154,10 @@ pub struct FacePlanarElement {
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
     /// Bottom outline
     #[prost(message, optional, tag = "1")]
-    pub bottom: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub bottom: ::core::option::Option<::laika_rs::proto::Polyline>,
     /// Top outline
     #[prost(message, optional, tag = "2")]
-    pub top: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub top: ::core::option::Option<::laika_rs::proto::Polyline>,
     /// True when the constructor reversed both outlines
     #[prost(bool, tag = "3")]
     pub reversed: bool,
@@ -165,15 +165,15 @@ pub struct FacePlanarElement {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JointElement {
     #[prost(message, repeated, tag = "1")]
-    pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub loops: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     #[prost(message, repeated, tag = "2")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub cuts: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
     #[prost(string, repeated, tag = "3")]
     pub targets: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(message, repeated, tag = "4")]
-    pub connections: ::prost::alloc::vec::Vec<::session_rust::proto::Interaction>,
+    pub connections: ::prost::alloc::vec::Vec<::laika_rs::proto::Interaction>,
     #[prost(message, optional, tag = "5")]
-    pub beam_feature: ::core::option::Option<::session_rust::proto::Interaction>,
+    pub beam_feature: ::core::option::Option<::laika_rs::proto::Interaction>,
     #[prost(int32, tag = "6")]
     pub variant: i32,
     #[prost(double, tag = "7")]
@@ -189,18 +189,18 @@ pub struct JointElement {
     #[prost(double, tag = "12")]
     pub chord_tolerance: f64,
     #[prost(message, repeated, tag = "13")]
-    pub cutter_profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub cutter_profile: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     #[prost(message, optional, tag = "14")]
-    pub cutter_extrusion: ::core::option::Option<::session_rust::proto::Vector>,
+    pub cutter_extrusion: ::core::option::Option<::laika_rs::proto::Vector>,
     #[prost(message, repeated, tag = "15")]
-    pub drill_lines: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    pub drill_lines: ::prost::alloc::vec::Vec<::laika_rs::proto::Line>,
     #[prost(int32, optional, tag = "16")]
     pub operation: ::core::option::Option<i32>,
     #[prost(message, optional, tag = "17")]
     pub plate_parameters: ::core::option::Option<JointPlateParameters>,
     /// A connector's own solids as bottom, top loop pairs
     #[prost(message, repeated, tag = "18")]
-    pub parts: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub parts: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// A connector's cutters, one entry per target in targets order
     #[prost(message, repeated, tag = "19")]
     pub cutters: ::prost::alloc::vec::Vec<JointCutter>,
@@ -218,7 +218,7 @@ pub struct JointElement {
     pub cut_size: f64,
     /// A connector's direction each target slides off it, in targets order
     #[prost(message, repeated, tag = "24")]
-    pub insertions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
+    pub insertions: ::prost::alloc::vec::Vec<::laika_rs::proto::Vector>,
     /// The catalogue design it is made as, by its compendium name; empty for an older joint
     #[prost(string, tag = "26")]
     pub design: ::prost::alloc::string::String,
@@ -246,22 +246,22 @@ pub struct JointCutStep {
     pub target: u32,
     /// The saw or chisel planes
     #[prost(message, repeated, tag = "3")]
-    pub planes: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub planes: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
     /// The wood it takes away; empty for a kerf
     #[prost(message, optional, tag = "4")]
-    pub removal: ::core::option::Option<::session_rust::proto::Mesh>,
+    pub removal: ::core::option::Option<::laika_rs::proto::Mesh>,
 }
 /// The directions one target of a joint can be inserted along.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JointInsertion {
     #[prost(message, repeated, tag = "1")]
-    pub directions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
+    pub directions: ::prost::alloc::vec::Vec<::laika_rs::proto::Vector>,
 }
 /// The solids a connector cuts out of one target, as bottom, top loop pairs.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JointCutter {
     #[prost(message, repeated, tag = "1")]
-    pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub loops: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct JointPlateParameters {
@@ -290,15 +290,15 @@ pub struct JointPlateParameters {
     #[prost(bool, tag = "12")]
     pub merge_with_joint: bool,
     #[prost(message, repeated, tag = "13")]
-    pub male: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub male: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     #[prost(message, repeated, tag = "14")]
-    pub female: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub female: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
 }
 /// The state of a NodeBlockElement beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NodeBlockElement {
     #[prost(message, optional, tag = "4")]
-    pub source_mesh: ::core::option::Option<::session_rust::proto::Mesh>,
+    pub source_mesh: ::core::option::Option<::laika_rs::proto::Mesh>,
     #[prost(message, repeated, tag = "3")]
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
     /// The planes other elements cut it by
@@ -306,17 +306,17 @@ pub struct NodeBlockElement {
     pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
     /// Bottom loop, top loop, then their holes paired in order
     #[prost(message, repeated, tag = "1")]
-    pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub loops: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Planes the solid is cut by, each keeping the side its normal points to
     #[prost(message, repeated, tag = "2")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    pub cuts: ::prost::alloc::vec::Vec<::laika_rs::proto::Plane>,
 }
 /// The state of a NodeSupportElement beyond the kernel Element: its placement and every dimension of the column base.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NodeSupportElement {
     /// Base plate underside centre, z up the column, x along a base plate side
     #[prost(message, optional, tag = "1")]
-    pub plane: ::core::option::Option<::session_rust::proto::Plane>,
+    pub plane: ::core::option::Option<::laika_rs::proto::Plane>,
     /// Base plate underside to head plate top
     #[prost(double, tag = "2")]
     pub height: f64,
@@ -369,7 +369,7 @@ pub struct NodeSupportElement {
 pub struct InteractionContactAxis {
     /// From the closest point on the first element to the closest point on the second
     #[prost(message, optional, tag = "1")]
-    pub segment: ::core::option::Option<::session_rust::proto::Line>,
+    pub segment: ::core::option::Option<::laika_rs::proto::Line>,
     /// Parameter of the closest point along segment_a, 0..1
     #[prost(double, tag = "2")]
     pub t_a: f64,
@@ -400,21 +400,21 @@ pub struct InteractionContactCross {
     pub faces_b: ::prost::alloc::vec::Vec<i32>,
     /// Closed quad on the mid-plane
     #[prost(message, optional, tag = "3")]
-    pub polygon: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub polygon: ::core::option::Option<::laika_rs::proto::Polyline>,
     /// The two perpendicular centrelines of polygon, 2 entries
     #[prost(message, repeated, tag = "4")]
-    pub lines: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub lines: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// The two parallel quads bounding the joint volume, 2 entries
     #[prost(message, repeated, tag = "5")]
-    pub volumes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub volumes: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
 }
 /// The state of an InteractionContactFace beyond the kernel Interaction: two coplanar faces in contact and the region they share.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InteractionContactFace {
     #[prost(message, repeated, tag = "5")]
-    pub lines: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    pub lines: ::prost::alloc::vec::Vec<::laika_rs::proto::Line>,
     #[prost(message, repeated, tag = "6")]
-    pub volumes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub volumes: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Face index on the edge's first element
     #[prost(int32, tag = "1")]
     pub face_a: i32,
@@ -426,7 +426,7 @@ pub struct InteractionContactFace {
     pub r#type: i32,
     /// Boolean intersection of the two face outlines, closed, in face_a's plane
     #[prost(message, optional, tag = "4")]
-    pub polygon: ::core::option::Option<::session_rust::proto::Polyline>,
+    pub polygon: ::core::option::Option<::laika_rs::proto::Polyline>,
 }
 /// The state of an InteractionFeatureBeam beyond the kernel Interaction: the four volume rectangles cut where two axes meet.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -436,19 +436,19 @@ pub struct InteractionFeatureBeam {
     pub end_type: i32,
     /// 4 rectangles: 2 on the first beam, 2 on the second
     #[prost(message, repeated, tag = "2")]
-    pub volumes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub volumes: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// The normal of the two axes where they meet
     #[prost(message, optional, tag = "4")]
-    pub normal: ::core::option::Option<::session_rust::proto::Vector>,
+    pub normal: ::core::option::Option<::laika_rs::proto::Vector>,
     /// Each beam's axis direction there, the first beam's then the second's
     #[prost(message, repeated, tag = "5")]
-    pub axes: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
+    pub axes: ::prost::alloc::vec::Vec<::laika_rs::proto::Vector>,
 }
 /// One face's outlines, so a per-face list can repeat.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PolylineList {
     #[prost(message, repeated, tag = "1")]
-    pub items: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub items: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
 }
 /// One list of ints, so a per-face list can repeat.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -472,9 +472,7 @@ pub struct InteractionFeaturePlate {
     pub contact: ::core::option::Option<InteractionContactFace>,
     /// 2 entries: what the male host and the female host carry
     #[prost(message, repeated, tag = "24")]
-    pub element_features: ::prost::alloc::vec::Vec<
-        ::session_rust::proto::ElementFeature,
-    >,
+    pub element_features: ::prost::alloc::vec::Vec<::laika_rs::proto::ElementFeature>,
     /// Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top
     #[prost(int32, tag = "1")]
     pub joint_type: i32,
@@ -483,10 +481,10 @@ pub struct InteractionFeaturePlate {
     pub cross_faces: ::prost::alloc::vec::Vec<i32>,
     /// The two alignment lines, one per element
     #[prost(message, repeated, tag = "4")]
-    pub joint_lines: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    pub joint_lines: ::prost::alloc::vec::Vec<::laika_rs::proto::Line>,
     /// 4 volume rectangles, an empty polyline where the solver set none
     #[prost(message, repeated, tag = "5")]
-    pub joint_volumes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub joint_volumes: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Male cut outlines: \[0\] bottom face, \[1\] top face
     #[prost(message, repeated, tag = "6")]
     pub male_outlines: ::prost::alloc::vec::Vec<PolylineList>,
@@ -544,10 +542,10 @@ pub struct CustomJoint {
     pub family: ::prost::alloc::string::String,
     /// Male outline pairs
     #[prost(message, repeated, tag = "2")]
-    pub male: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub male: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
     /// Female outline pairs
     #[prost(message, repeated, tag = "3")]
-    pub female: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    pub female: ::prost::alloc::vec::Vec<::laika_rs::proto::Polyline>,
 }
 /// Every tunable of the solver, as the dataset yml sets it; written with the scene so a file records what produced it.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -604,7 +602,7 @@ pub struct Settings {
     #[prost(double, tag = "17")]
     pub joint_depth_scale: f64,
 }
-/// A wood scene on the wire: fields 1..9 are session_proto.Session field for field, so any
+/// A wood scene on the wire: fields 1..9 are laika_proto.Session field for field, so any
 /// Session reader opens the file, the interactions included, and drops the settings as an unknown field.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WoodSession {
@@ -616,25 +614,25 @@ pub struct WoodSession {
     pub guid: ::prost::alloc::string::String,
     /// Collection of all geometry objects
     #[prost(message, optional, tag = "3")]
-    pub objects: ::core::option::Option<::session_rust::proto::Objects>,
+    pub objects: ::core::option::Option<::laika_rs::proto::Objects>,
     /// Tree hierarchy structure
     #[prost(message, optional, tag = "4")]
-    pub tree: ::core::option::Option<::session_rust::proto::Tree>,
+    pub tree: ::core::option::Option<::laika_rs::proto::Tree>,
     /// Graph relationships
     #[prost(message, optional, tag = "5")]
-    pub graph: ::core::option::Option<::session_rust::proto::Graph>,
+    pub graph: ::core::option::Option<::laika_rs::proto::Graph>,
     /// Simplified BVH representation
     #[prost(message, repeated, tag = "6")]
-    pub bvh_boxes: ::prost::alloc::vec::Vec<::session_rust::proto::BoundingBox>,
+    pub bvh_boxes: ::prost::alloc::vec::Vec<::laika_rs::proto::BoundingBox>,
     /// Local transforms in Session::order() sequence
     #[prost(message, repeated, tag = "7")]
-    pub xforms: ::prost::alloc::vec::Vec<::session_rust::proto::XformEntry>,
+    pub xforms: ::prost::alloc::vec::Vec<::laika_rs::proto::XformEntry>,
     /// Shared element definitions the instances place, each in its own frame
     #[prost(message, optional, tag = "8")]
-    pub definitions: ::core::option::Option<::session_rust::proto::Objects>,
+    pub definitions: ::core::option::Option<::laika_rs::proto::Objects>,
     /// Interactions per graph edge, in edge-guid order; wood types in interaction_data
     #[prost(message, repeated, tag = "9")]
-    pub interactions: ::prost::alloc::vec::Vec<::session_rust::proto::InteractionEntry>,
+    pub interactions: ::prost::alloc::vec::Vec<::laika_rs::proto::InteractionEntry>,
     /// The solver settings the scene was solved with
     #[prost(message, optional, tag = "101")]
     pub settings: ::core::option::Option<Settings>,

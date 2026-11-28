@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// keyed_box: two plates face to face, held by a box through a mortise in both and locked by two wedge keys.
@@ -48,5 +48,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_keyed_box --parallel 6 && ./build/element_joint_beam_keyed_box && ../bash/publish-scene.sh --target element_joint_beam_keyed_box
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A block cut by a plane.
@@ -46,5 +46,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_node_block_cut_plane --parallel 6 && ./build/element_node_block_cut_plane && ../bash/publish-scene.sh --target element_node_block_cut_plane
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

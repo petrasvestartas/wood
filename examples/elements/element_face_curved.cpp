@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The points of a quarter arc in the xz plane, radius r about the origin, at y.
@@ -54,5 +54,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_face_curved --parallel 6 && ./build/element_face_curved && ../bash/publish-scene.sh --target element_face_curved
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

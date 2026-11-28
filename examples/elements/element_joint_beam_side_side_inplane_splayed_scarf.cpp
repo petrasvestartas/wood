@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// side_side_inplane_splayed_scarf on beams: an end-to-end splice of two extended beams.
@@ -43,5 +43,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_side_side_inplane_splayed_scarf --parallel 6 && ./build/element_joint_beam_side_side_inplane_splayed_scarf && ../bash/publish-scene.sh --target element_joint_beam_side_side_inplane_splayed_scarf
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

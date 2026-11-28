@@ -5,7 +5,7 @@
 #include "wood_interaction_feature_solid.h"
 #include "wood_interaction_feature_plane.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

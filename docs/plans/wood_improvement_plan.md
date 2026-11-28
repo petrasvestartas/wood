@@ -52,7 +52,7 @@ Ranked by how much it cost this week.
    wanted. Pages carried hand-copied `main()` blocks that drifted from the files.
 7. **Repo hygiene.** `generated/` and `wood_proto.rs` are committed and CI builds from them,
    while a rule said never to commit `wood_proto.rs`. protoc is pinned to a version not on the
-   machine. `session_cpp` shows 168 modified files that are line-ending noise, so `git status` is
+   machine. `laika_cpp` shows 168 modified files that are line-ending noise, so `git status` is
    useless there. Two agents from different vendors edit the same working tree.
 8. **The viewer knew wood.** Six creation commands compiled the viewer against `wood/rust`, so
    session CI cloned wood `main` and every wood rename needed a paired session push. The user
@@ -112,7 +112,7 @@ Each step has a gate. A step is done when its gate passes in CI, not on one mach
 
 ### Step 6: repo hygiene (half a day)
 
-- `.gitattributes` fixing line endings for `session_cpp` and wood; `generated/` and
+- `.gitattributes` fixing line endings for `laika_cpp` and wood; `generated/` and
   `wood_proto.rs` produced in CI from `src/proto` with the pinned protoc, and the never-commit
   rule retired or enforced, not both.
 - One working tree per agent: a vendor that edits the shared tree gets its own worktree.
@@ -243,7 +243,7 @@ parameters, 77 call sites passing literal bools.
 
 From a read-only review of `main` on 2026-11-05: `git grep` and reading, nothing built or run.
 Everything is verified unless it is under "Suspected". Paths are under `wood/` unless they name
-`session_cpp`.
+`laika_cpp`.
 
 ### What is good
 
@@ -344,7 +344,7 @@ Everything is verified unless it is under "Suspected". Paths are under `wood/` u
    (`wood_element_edge_curved.cpp:1032`) whose every step calls `front_envelope`, which
    root-finds every cut plane by an 8-step scan and up to 64 false-position steps (`:861-910`);
    `bisect_front` and `bisect_back` are near copies; the kernel has `Intersection::curve_plane`
-   (`session_cpp/src/intersection.h:206`). The floor guide scans 85 degrees either side in 0.5
+   (`laika_cpp/src/intersection.h:206`). The floor guide scans 85 degrees either side in 0.5
    degree steps (`floor_guide.cpp:665`), then bisects up to 200 times (`:738`), and finds the rib
    start by secant (`:487`). The vault samples its surface edges and interpolates them again
    (`vault.cpp:665-673`). Size M each.
@@ -352,7 +352,7 @@ Everything is verified unless it is under "Suspected". Paths are under `wood/` u
 8. **Kernel math written again in wood.** Newell's normal three times:
    `compute_newell` (`wood_element_geometry.cpp:58`), `rust/src/geometry.rs:15`,
    `src/templates/template_chamfer.h:12`, beside the kernel's `Polyline::newell_normal`
-   (`session_cpp/src/polyline.h:441`) and `Vector::average_normal` (`vector.h:218`).
+   (`laika_cpp/src/polyline.h:441`) and `Vector::average_normal` (`vector.h:218`).
    `compute_volume` (`wood_element_geometry.cpp:136`) against `Mesh::volume` (`mesh.h:872`); a
    static `signed_distance` (`wood_element_geometry.cpp:429`) against `Plane::signed_distance`;
    `cgal_base1` (`:74`); `drill_mesh` beside `Primitives::cylinder_mesh`. Clipper2 is compiled by
@@ -366,7 +366,7 @@ Everything is verified unless it is under "Suspected". Paths are under `wood/` u
    `brep_drill`, `rust_elements`, `element_tags`, `main_session_round_trip`
    (`CMakeLists.txt:311-327` against `.github/workflows/wood-test.yml`); `grid_massing` runs in CI
    and is no ctest target. CI never runs `ctest`, never builds or tests `wood/rust` and runs no
-   template example. It fetches `session_cpp` at unpinned `main` (`CMakeLists.txt:49-53`), so it
+   template example. It fetches `laika_cpp` at unpinned `main` (`CMakeLists.txt:49-53`), so it
    tests another kernel than the superproject pins. `CMAKE_BUILD_TYPE` is forced to Release
    (`CMakeLists.txt:5`), so the `-g` and ASan run the CI comment plans cannot happen. The Manifold
    patches are string `REPLACE`s that do nothing, silently, when upstream changes

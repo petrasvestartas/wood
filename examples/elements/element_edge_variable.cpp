@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A variable beam like the floor's outer rib: rectangles along a straight axis, their depth a parabola.
@@ -43,5 +43,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_variable --parallel 6 && ./build/element_edge_variable && ../bash/publish-scene.sh --target element_edge_variable
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

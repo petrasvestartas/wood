@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitered seam.
@@ -54,5 +54,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_side_side_inplane_hilti --parallel 6 && ./build/element_joint_plate_side_side_inplane_hilti && ../bash/publish-scene.sh --target element_joint_plate_side_side_inplane_hilti
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

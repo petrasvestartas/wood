@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/plaited/plaited.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 const double SHELL_SPAN = 4200.0;
@@ -74,5 +74,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_plaited_4_hotwire_blocks --parallel 6 && ./build/templates_plaited_4_hotwire_blocks && ../bash/publish-scene.sh --target templates_plaited_4_hotwire_blocks
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

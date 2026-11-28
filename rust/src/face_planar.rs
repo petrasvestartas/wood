@@ -1,8 +1,8 @@
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{brep_between_loops, compute_newell, frame_along};
 use crate::proto;
-use session_rust::element::ElementFeature;
-use session_rust::{BRep, Mesh, Plane, Polyline};
+use laika_rs::element::ElementFeature;
+use laika_rs::{BRep, Mesh, Plane, Polyline};
 
 /// A timber plate: a bottom and a top outline of one point count, as wood's FacePlanarElement.
 #[derive(Clone, Debug)]

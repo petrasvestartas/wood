@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 const std::string DATASET{config::Dataset::cross_corners};
@@ -46,5 +46,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 9_cross_joints --parallel 6 && ./build/9_cross_joints && ../bash/publish-scene.sh --target 9_cross_joints
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

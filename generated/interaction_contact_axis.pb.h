@@ -223,19 +223,19 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactAxis final : publ
     kPolylineBFieldNumber = 6,
     kSegmentBFieldNumber = 7,
   };
-  // .session_proto.Line segment = 1;
+  // .laika_proto.Line segment = 1;
   [[nodiscard]] bool has_segment() const;
   void clear_segment() ;
-  [[nodiscard]] const ::session_proto::Line& segment() const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NULLABLE release_segment();
-  ::session_proto::Line* PROTOBUF_NONNULL mutable_segment();
-  void set_allocated_segment(::session_proto::Line* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_segment(::session_proto::Line* PROTOBUF_NULLABLE value);
-  ::session_proto::Line* PROTOBUF_NULLABLE unsafe_arena_release_segment();
+  [[nodiscard]] const ::laika_proto::Line& segment() const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NULLABLE release_segment();
+  ::laika_proto::Line* PROTOBUF_NONNULL mutable_segment();
+  void set_allocated_segment(::laika_proto::Line* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_segment(::laika_proto::Line* PROTOBUF_NULLABLE value);
+  ::laika_proto::Line* PROTOBUF_NULLABLE unsafe_arena_release_segment();
 
   private:
-  const ::session_proto::Line& _internal_segment() const;
-  ::session_proto::Line* PROTOBUF_NONNULL _internal_mutable_segment();
+  const ::laika_proto::Line& _internal_segment() const;
+  ::laika_proto::Line* PROTOBUF_NONNULL _internal_mutable_segment();
 
   public:
   // double t_a = 2;
@@ -331,7 +331,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactAxis final : publ
         const InteractionContactAxis& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::session_proto::Line* PROTOBUF_NULLABLE segment_;
+    ::laika_proto::Line* PROTOBUF_NULLABLE segment_;
     double t_a_;
     double t_b_;
     ::int32_t polyline_a_;
@@ -360,28 +360,28 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactAxis final : publ
 
 // InteractionContactAxis
 
-// .session_proto.Line segment = 1;
+// .laika_proto.Line segment = 1;
 inline bool InteractionContactAxis::has_segment() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
   PROTOBUF_ASSUME(!value || _impl_.segment_ != nullptr);
   return value;
 }
-inline const ::session_proto::Line& InteractionContactAxis::_internal_segment() const {
+inline const ::laika_proto::Line& InteractionContactAxis::_internal_segment() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Line* p = _impl_.segment_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Line>(&::session_proto::Line_globals_);
+  const ::laika_proto::Line* p = _impl_.segment_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Line>(&::laika_proto::Line_globals_);
 }
-inline const ::session_proto::Line& InteractionContactAxis::segment() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Line& InteractionContactAxis::segment() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.segment)
   return _internal_segment();
 }
 inline void InteractionContactAxis::unsafe_arena_set_allocated_segment(
-    ::session_proto::Line* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.segment_);
   }
-  _impl_.segment_ = reinterpret_cast<::session_proto::Line*>(value);
+  _impl_.segment_ = reinterpret_cast<::laika_proto::Line*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
@@ -389,11 +389,11 @@ inline void InteractionContactAxis::unsafe_arena_set_allocated_segment(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactAxis.segment)
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::release_segment() {
+inline ::laika_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::release_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Line* released = _impl_.segment_;
+  ::laika_proto::Line* released = _impl_.segment_;
   _impl_.segment_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -408,31 +408,31 @@ inline ::session_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::release_
   }
   return released;
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::unsafe_arena_release_segment() {
+inline ::laika_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::unsafe_arena_release_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionContactAxis.segment)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Line* temp = _impl_.segment_;
+  ::laika_proto::Line* temp = _impl_.segment_;
   _impl_.segment_ = nullptr;
   return temp;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::_internal_mutable_segment() {
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::_internal_mutable_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.segment_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Line>(GetArena());
-    _impl_.segment_ = reinterpret_cast<::session_proto::Line*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Line>(GetArena());
+    _impl_.segment_ = reinterpret_cast<::laika_proto::Line*>(p);
   }
   return _impl_.segment_;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::mutable_segment()
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::mutable_segment()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Line* _msg = _internal_mutable_segment();
+  ::laika_proto::Line* _msg = _internal_mutable_segment();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactAxis.segment)
   return _msg;
 }
-inline void InteractionContactAxis::set_allocated_segment(::session_proto::Line* PROTOBUF_NULLABLE value) {
+inline void InteractionContactAxis::set_allocated_segment(::laika_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -449,7 +449,7 @@ inline void InteractionContactAxis::set_allocated_segment(::session_proto::Line*
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
 
-  _impl_.segment_ = reinterpret_cast<::session_proto::Line*>(value);
+  _impl_.segment_ = reinterpret_cast<::laika_proto::Line*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionContactAxis.segment)
 }
 

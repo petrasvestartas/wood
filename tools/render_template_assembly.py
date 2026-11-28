@@ -33,11 +33,11 @@ RENDER = (2400, 1600)  # Every pass, before it is cropped and scaled.
 # slide back, the moving ones in the strong colour, the rest see-through in one pass and grey in the other.
 SCENES = r"""
 import json, sys
-from session_py.session import Session
-from session_py.xform import Xform
-from session_py.color import Color
-from session_py.line import Line
-from session_py.point import Point
+from laika_py.session import Session
+from laika_py.xform import Xform
+from laika_py.color import Color
+from laika_py.line import Line
+from laika_py.point import Point
 scene_path, module_path, out, strong, apart_most, frames_most = sys.argv[1:7]
 strong = json.loads(strong)
 module = json.load(open(module_path))

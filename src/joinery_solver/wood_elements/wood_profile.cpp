@@ -3,7 +3,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 /// A closed loop from plan corners.
 static Polyline loop(std::vector<Point> points) {

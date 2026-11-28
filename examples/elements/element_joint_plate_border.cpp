@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// border, the boundary family: a joint on one plate's side face alone, its four slices standing outside the face.
@@ -49,5 +49,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_border --parallel 6 && ./build/element_joint_plate_border && ../bash/publish-scene.sh --target element_joint_plate_border
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

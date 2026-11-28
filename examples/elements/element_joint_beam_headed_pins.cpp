@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Headed pins through a beam into the end of another, in each PinLayout.
@@ -54,5 +54,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_headed_pins --parallel 6 && ./build/element_joint_beam_headed_pins && ../bash/publish-scene.sh --target element_joint_beam_headed_pins
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

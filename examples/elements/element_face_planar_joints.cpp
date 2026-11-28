@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The plates of annen_box_pair joined by points and lines, as the plugin's dots and lines set them.
@@ -95,5 +95,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_face_planar_joints --parallel 6 && ./build/element_face_planar_joints && ../bash/publish-scene.sh --target element_face_planar_joints
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

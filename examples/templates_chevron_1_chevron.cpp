@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/chevron/chevron.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The chevron shell on the first Annen surface: the surface, the mesh, its strips and planes, four plates per face.
@@ -34,5 +34,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_chevron_1_chevron --parallel 6 && ./build/templates_chevron_1_chevron && ../bash/publish-scene.sh --target templates_chevron_1_chevron
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

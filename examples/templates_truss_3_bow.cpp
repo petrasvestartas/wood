@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/truss/truss.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Every roof truss and bridge frame of Bow's tables (1873), stored as graphs and built by the one Truss template,
@@ -37,5 +37,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_truss_3_bow --parallel 6 && ./build/templates_truss_3_bow && ../bash/publish-scene.sh --target templates_truss_3_bow
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

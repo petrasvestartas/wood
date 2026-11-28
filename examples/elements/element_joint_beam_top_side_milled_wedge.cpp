@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees.
@@ -45,5 +45,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_top_side_milled_wedge --parallel 6 && ./build/element_joint_beam_top_side_milled_wedge && ../bash/publish-scene.sh --target element_joint_beam_top_side_milled_wedge
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

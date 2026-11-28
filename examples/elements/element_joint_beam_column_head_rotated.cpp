@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A horizontal 100 x 185 beam ending at the column head from angle degrees in plan.
@@ -81,5 +81,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_column_head_rotated --parallel 6 && ./build/element_joint_beam_column_head_rotated && ../bash/publish-scene.sh --target element_joint_beam_column_head_rotated
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

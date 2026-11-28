@@ -22,19 +22,19 @@ import render_template_docs as docs  # noqa: E402
 # of the viewer crate (examples/selftest) gives and the browser tool does not (it fits every shot to what it holds).
 WOOD = docs.WOOD
 RENDERER = (
-    WOOD.parent / "session/session_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
+    WOOD.parent / "laika/laika_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
     if docs.WINDOWS
-    else WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+    else WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 )
 if not RENDERER.exists():
-    RENDERER = WOOD.parent / "session/session_viewer/target/course-runtime" / RENDERER.name
+    RENDERER = WOOD.parent / "laika/laika_viewer/target/course-runtime" / RENDERER.name
 
 FRAMES = r"""
 import json, sys
-from session_py.session import Session
-from session_py.line import Line
-from session_py.point import Point
-from session_py.xform import Xform
+from laika_py.session import Session
+from laika_py.line import Line
+from laika_py.point import Point
+from laika_py.xform import Xform
 scene = Session.pb_load(sys.argv[1])
 plan = json.load(open(sys.argv[2]))
 out = sys.argv[3]
@@ -76,7 +76,7 @@ for n, i in enumerate(order):
         behind = max(abs(sum((corner[k] - centre[k]) * v[k] for k in range(3))) for corner in [[plan["boxes"][i]["low" if bit else "high"][k] for k, bit in enumerate(bits)] for bits in ((0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1))])
         arrow = Line.from_points(Point(*[centre[k] - v[k] * (d + behind + 400.0) for k in range(3)]), Point(*[centre[k] - v[k] * (d + behind) for k in range(3)]))
         arrow.width = 6.0
-        from session_py.color import Color
+        from laika_py.color import Color
         arrow.linecolor = Color(206, 16, 66, 255)
         frame.add_line(arrow, None)
         # the frame's bounds held by two short lines at the corners

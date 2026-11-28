@@ -1,4 +1,4 @@
-use session_rust::{
+use laika_rs::{
     BRep, BRepOrientation, BRepRef, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point, Polyline,
     Primitives, Tolerance, Vector, Xform,
 };

@@ -91,7 +91,7 @@ exact for any member length.
 
 | Stage | Wood | compas_model `main` |
 |---|---|---|
-| Face broad phase | `adjacency_search` (`wood_contact_detection.cpp:320-380`): an OBB per element inflated by `settings.distance` (absolute), its AABB, a linear BVH (Karras 2012, 30-bit Morton codes, `session_cpp/src/spatial_bvh.cpp:312-343`), one stack query per element (`:192-219`), keep `i < j`, then OBB separating axes | Python median-split BVH, relative 1.2 inflation, breadth-first with `pop(0)` |
+| Face broad phase | `adjacency_search` (`wood_contact_detection.cpp:320-380`): an OBB per element inflated by `settings.distance` (absolute), its AABB, a linear BVH (Karras 2012, 30-bit Morton codes, `laika_cpp/src/spatial_bvh.cpp:312-343`), one stack query per element (`:192-219`), keep `i < j`, then OBB separating axes | Python median-split BVH, relative 1.2 inflation, breadth-first with `pop(0)` |
 | Face narrow phase | `face_contacts_for_pair` (`:482-574`): every face pair, `faces_coplanar` (`:382-401`, two dot products and two distances) before any clipping, then Clipper2 `Intersect` (`:403-450`) | Every opposite-normal face pair runs an SVD fit and a projection before coplanarity is rejected; then shapely |
 | Beam axes | `closest_pairs` (`:924-966`): every segment of every beam against every segment of every later beam; no spatial index | No axis contacts |
 | Collision | None at model level | Stubs |

@@ -2,7 +2,7 @@
 
 #include "wood_element_joint_beam.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

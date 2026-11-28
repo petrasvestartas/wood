@@ -13,7 +13,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 JointBeamElement::JointBeamElement() {
     name = "JointBeamElement";
@@ -3868,7 +3868,7 @@ void JointBeamElement::read_proto(const wood_proto::JointElement& proto) {
     drill_overshoot = proto.drill_overshoot();
     pre_drill = proto.pre_drill();
 
-    for (const session_proto::Vector& insertion : proto.insertions())
+    for (const laika_proto::Vector& insertion : proto.insertions())
         insertions.push_back(Vector::pb_loads(insertion.SerializeAsString()));
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())

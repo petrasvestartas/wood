@@ -5,7 +5,7 @@
 | Tool | Minimum | Notes |
 | --- | --- | --- |
 | C++ Compiler | C++23 | GCC 13+, Clang 17+, or MSVC 19.38+ (Visual Studio 2022) |
-| CMake | 3.22+ | `FetchContent` pulls `session_cpp` (`session_core`) and `manifold` (`v3.5.4`) |
+| CMake | 3.22+ | `FetchContent` pulls `laika_cpp` (`laika_core`) and `manifold` (`v3.5.4`) |
 | Git | 2.30+ | Used by CMake `FetchContent` |
 | Doxygen | 1.15.0 (optional) | Required only for `cmake --build build --target docs` |
 

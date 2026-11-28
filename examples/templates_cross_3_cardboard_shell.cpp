@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The corrugated cardboard shell of the VDA pavilion: the dataset's plates and connectors with their cross joints.
@@ -28,5 +28,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_cross_3_cardboard_shell --parallel 6 && ./build/templates_cross_3_cardboard_shell && ../bash/publish-scene.sh --target templates_cross_3_cardboard_shell
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -51,5 +51,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 12_solid_features --parallel 6 && ./build/12_solid_features && ../bash/publish-scene.sh --target 12_solid_features
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

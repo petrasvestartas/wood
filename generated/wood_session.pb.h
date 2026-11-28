@@ -673,64 +673,64 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
     kAdjacencyFieldNumber = 102,
     kThreeValenceFieldNumber = 103,
   };
-  // repeated .session_proto.BoundingBox bvh_boxes = 6;
+  // repeated .laika_proto.BoundingBox bvh_boxes = 6;
   [[nodiscard]] int bvh_boxes_size() const;
   private:
   int _internal_bvh_boxes_size() const;
 
   public:
   void clear_bvh_boxes() ;
-  [[nodiscard]] const ::session_proto::BoundingBox& bvh_boxes(int index) const;
-  [[nodiscard]] ::session_proto::BoundingBox* PROTOBUF_NONNULL mutable_bvh_boxes(int index);
-  ::session_proto::BoundingBox* PROTOBUF_NONNULL add_bvh_boxes();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>&
+  [[nodiscard]] const ::laika_proto::BoundingBox& bvh_boxes(int index) const;
+  [[nodiscard]] ::laika_proto::BoundingBox* PROTOBUF_NONNULL mutable_bvh_boxes(int index);
+  ::laika_proto::BoundingBox* PROTOBUF_NONNULL add_bvh_boxes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>&
   bvh_boxes() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>* PROTOBUF_NONNULL
   mutable_bvh_boxes();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>& _internal_bvh_boxes() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>* PROTOBUF_NONNULL _internal_mutable_bvh_boxes();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>& _internal_bvh_boxes() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>* PROTOBUF_NONNULL _internal_mutable_bvh_boxes();
 
   public:
-  // repeated .session_proto.XformEntry xforms = 7;
+  // repeated .laika_proto.XformEntry xforms = 7;
   [[nodiscard]] int xforms_size() const;
   private:
   int _internal_xforms_size() const;
 
   public:
   void clear_xforms() ;
-  [[nodiscard]] const ::session_proto::XformEntry& xforms(int index) const;
-  [[nodiscard]] ::session_proto::XformEntry* PROTOBUF_NONNULL mutable_xforms(int index);
-  ::session_proto::XformEntry* PROTOBUF_NONNULL add_xforms();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>&
+  [[nodiscard]] const ::laika_proto::XformEntry& xforms(int index) const;
+  [[nodiscard]] ::laika_proto::XformEntry* PROTOBUF_NONNULL mutable_xforms(int index);
+  ::laika_proto::XformEntry* PROTOBUF_NONNULL add_xforms();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>&
   xforms() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>* PROTOBUF_NONNULL
   mutable_xforms();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>& _internal_xforms() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>* PROTOBUF_NONNULL _internal_mutable_xforms();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>& _internal_xforms() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>* PROTOBUF_NONNULL _internal_mutable_xforms();
 
   public:
-  // repeated .session_proto.InteractionEntry interactions = 9;
+  // repeated .laika_proto.InteractionEntry interactions = 9;
   [[nodiscard]] int interactions_size() const;
   private:
   int _internal_interactions_size() const;
 
   public:
   void clear_interactions() ;
-  [[nodiscard]] const ::session_proto::InteractionEntry& interactions(int index) const;
-  [[nodiscard]] ::session_proto::InteractionEntry* PROTOBUF_NONNULL mutable_interactions(int index);
-  ::session_proto::InteractionEntry* PROTOBUF_NONNULL add_interactions();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>&
+  [[nodiscard]] const ::laika_proto::InteractionEntry& interactions(int index) const;
+  [[nodiscard]] ::laika_proto::InteractionEntry* PROTOBUF_NONNULL mutable_interactions(int index);
+  ::laika_proto::InteractionEntry* PROTOBUF_NONNULL add_interactions();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>&
   interactions() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>* PROTOBUF_NONNULL
   mutable_interactions();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>& _internal_interactions() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL _internal_mutable_interactions();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>& _internal_interactions() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>* PROTOBUF_NONNULL _internal_mutable_interactions();
 
   public:
   // string name = 1;
@@ -763,64 +763,64 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
   ::std::string* PROTOBUF_NONNULL _internal_mutable_guid();
 
   public:
-  // .session_proto.Objects objects = 3;
+  // .laika_proto.Objects objects = 3;
   [[nodiscard]] bool has_objects() const;
   void clear_objects() ;
-  [[nodiscard]] const ::session_proto::Objects& objects() const;
-  [[nodiscard]] ::session_proto::Objects* PROTOBUF_NULLABLE release_objects();
-  ::session_proto::Objects* PROTOBUF_NONNULL mutable_objects();
-  void set_allocated_objects(::session_proto::Objects* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_objects(::session_proto::Objects* PROTOBUF_NULLABLE value);
-  ::session_proto::Objects* PROTOBUF_NULLABLE unsafe_arena_release_objects();
+  [[nodiscard]] const ::laika_proto::Objects& objects() const;
+  [[nodiscard]] ::laika_proto::Objects* PROTOBUF_NULLABLE release_objects();
+  ::laika_proto::Objects* PROTOBUF_NONNULL mutable_objects();
+  void set_allocated_objects(::laika_proto::Objects* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_objects(::laika_proto::Objects* PROTOBUF_NULLABLE value);
+  ::laika_proto::Objects* PROTOBUF_NULLABLE unsafe_arena_release_objects();
 
   private:
-  const ::session_proto::Objects& _internal_objects() const;
-  ::session_proto::Objects* PROTOBUF_NONNULL _internal_mutable_objects();
+  const ::laika_proto::Objects& _internal_objects() const;
+  ::laika_proto::Objects* PROTOBUF_NONNULL _internal_mutable_objects();
 
   public:
-  // .session_proto.Tree tree = 4;
+  // .laika_proto.Tree tree = 4;
   [[nodiscard]] bool has_tree() const;
   void clear_tree() ;
-  [[nodiscard]] const ::session_proto::Tree& tree() const;
-  [[nodiscard]] ::session_proto::Tree* PROTOBUF_NULLABLE release_tree();
-  ::session_proto::Tree* PROTOBUF_NONNULL mutable_tree();
-  void set_allocated_tree(::session_proto::Tree* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_tree(::session_proto::Tree* PROTOBUF_NULLABLE value);
-  ::session_proto::Tree* PROTOBUF_NULLABLE unsafe_arena_release_tree();
+  [[nodiscard]] const ::laika_proto::Tree& tree() const;
+  [[nodiscard]] ::laika_proto::Tree* PROTOBUF_NULLABLE release_tree();
+  ::laika_proto::Tree* PROTOBUF_NONNULL mutable_tree();
+  void set_allocated_tree(::laika_proto::Tree* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_tree(::laika_proto::Tree* PROTOBUF_NULLABLE value);
+  ::laika_proto::Tree* PROTOBUF_NULLABLE unsafe_arena_release_tree();
 
   private:
-  const ::session_proto::Tree& _internal_tree() const;
-  ::session_proto::Tree* PROTOBUF_NONNULL _internal_mutable_tree();
+  const ::laika_proto::Tree& _internal_tree() const;
+  ::laika_proto::Tree* PROTOBUF_NONNULL _internal_mutable_tree();
 
   public:
-  // .session_proto.Graph graph = 5;
+  // .laika_proto.Graph graph = 5;
   [[nodiscard]] bool has_graph() const;
   void clear_graph() ;
-  [[nodiscard]] const ::session_proto::Graph& graph() const;
-  [[nodiscard]] ::session_proto::Graph* PROTOBUF_NULLABLE release_graph();
-  ::session_proto::Graph* PROTOBUF_NONNULL mutable_graph();
-  void set_allocated_graph(::session_proto::Graph* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_graph(::session_proto::Graph* PROTOBUF_NULLABLE value);
-  ::session_proto::Graph* PROTOBUF_NULLABLE unsafe_arena_release_graph();
+  [[nodiscard]] const ::laika_proto::Graph& graph() const;
+  [[nodiscard]] ::laika_proto::Graph* PROTOBUF_NULLABLE release_graph();
+  ::laika_proto::Graph* PROTOBUF_NONNULL mutable_graph();
+  void set_allocated_graph(::laika_proto::Graph* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_graph(::laika_proto::Graph* PROTOBUF_NULLABLE value);
+  ::laika_proto::Graph* PROTOBUF_NULLABLE unsafe_arena_release_graph();
 
   private:
-  const ::session_proto::Graph& _internal_graph() const;
-  ::session_proto::Graph* PROTOBUF_NONNULL _internal_mutable_graph();
+  const ::laika_proto::Graph& _internal_graph() const;
+  ::laika_proto::Graph* PROTOBUF_NONNULL _internal_mutable_graph();
 
   public:
-  // .session_proto.Objects definitions = 8;
+  // .laika_proto.Objects definitions = 8;
   [[nodiscard]] bool has_definitions() const;
   void clear_definitions() ;
-  [[nodiscard]] const ::session_proto::Objects& definitions() const;
-  [[nodiscard]] ::session_proto::Objects* PROTOBUF_NULLABLE release_definitions();
-  ::session_proto::Objects* PROTOBUF_NONNULL mutable_definitions();
-  void set_allocated_definitions(::session_proto::Objects* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_definitions(::session_proto::Objects* PROTOBUF_NULLABLE value);
-  ::session_proto::Objects* PROTOBUF_NULLABLE unsafe_arena_release_definitions();
+  [[nodiscard]] const ::laika_proto::Objects& definitions() const;
+  [[nodiscard]] ::laika_proto::Objects* PROTOBUF_NULLABLE release_definitions();
+  ::laika_proto::Objects* PROTOBUF_NONNULL mutable_definitions();
+  void set_allocated_definitions(::laika_proto::Objects* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_definitions(::laika_proto::Objects* PROTOBUF_NULLABLE value);
+  ::laika_proto::Objects* PROTOBUF_NULLABLE unsafe_arena_release_definitions();
 
   private:
-  const ::session_proto::Objects& _internal_definitions() const;
-  ::session_proto::Objects* PROTOBUF_NONNULL _internal_mutable_definitions();
+  const ::laika_proto::Objects& _internal_definitions() const;
+  ::laika_proto::Objects* PROTOBUF_NONNULL _internal_mutable_definitions();
 
   public:
   // .wood_proto.Settings settings = 101;
@@ -911,15 +911,15 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
         const WoodSession& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::BoundingBox > bvh_boxes_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::XformEntry > xforms_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::InteractionEntry > interactions_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::BoundingBox > bvh_boxes_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::XformEntry > xforms_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::InteractionEntry > interactions_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::google::protobuf::internal::ArenaStringPtr guid_;
-    ::session_proto::Objects* PROTOBUF_NULLABLE objects_;
-    ::session_proto::Tree* PROTOBUF_NULLABLE tree_;
-    ::session_proto::Graph* PROTOBUF_NULLABLE graph_;
-    ::session_proto::Objects* PROTOBUF_NULLABLE definitions_;
+    ::laika_proto::Objects* PROTOBUF_NULLABLE objects_;
+    ::laika_proto::Tree* PROTOBUF_NULLABLE tree_;
+    ::laika_proto::Graph* PROTOBUF_NULLABLE graph_;
+    ::laika_proto::Objects* PROTOBUF_NULLABLE definitions_;
     ::wood_proto::Settings* PROTOBUF_NULLABLE settings_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PlatePair > adjacency_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PlateGroup > three_valence_;
@@ -1073,28 +1073,28 @@ inline void WoodSession::set_allocated_guid(::std::string* PROTOBUF_NULLABLE val
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.guid)
 }
 
-// .session_proto.Objects objects = 3;
+// .laika_proto.Objects objects = 3;
 inline bool WoodSession::has_objects() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
   PROTOBUF_ASSUME(!value || _impl_.objects_ != nullptr);
   return value;
 }
-inline const ::session_proto::Objects& WoodSession::_internal_objects() const {
+inline const ::laika_proto::Objects& WoodSession::_internal_objects() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Objects* p = _impl_.objects_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Objects>(&::session_proto::Objects_globals_);
+  const ::laika_proto::Objects* p = _impl_.objects_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Objects>(&::laika_proto::Objects_globals_);
 }
-inline const ::session_proto::Objects& WoodSession::objects() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Objects& WoodSession::objects() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.objects)
   return _internal_objects();
 }
 inline void WoodSession::unsafe_arena_set_allocated_objects(
-    ::session_proto::Objects* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Objects* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.objects_);
   }
-  _impl_.objects_ = reinterpret_cast<::session_proto::Objects*>(value);
+  _impl_.objects_ = reinterpret_cast<::laika_proto::Objects*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
@@ -1102,11 +1102,11 @@ inline void WoodSession::unsafe_arena_set_allocated_objects(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.objects)
 }
-inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_objects() {
+inline ::laika_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_objects() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Objects* released = _impl_.objects_;
+  ::laika_proto::Objects* released = _impl_.objects_;
   _impl_.objects_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1121,31 +1121,31 @@ inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_objects(
   }
   return released;
 }
-inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_objects() {
+inline ::laika_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_objects() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.objects)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Objects* temp = _impl_.objects_;
+  ::laika_proto::Objects* temp = _impl_.objects_;
   _impl_.objects_ = nullptr;
   return temp;
 }
-inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable_objects() {
+inline ::laika_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable_objects() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.objects_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Objects>(GetArena());
-    _impl_.objects_ = reinterpret_cast<::session_proto::Objects*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Objects>(GetArena());
+    _impl_.objects_ = reinterpret_cast<::laika_proto::Objects*>(p);
   }
   return _impl_.objects_;
 }
-inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_objects()
+inline ::laika_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_objects()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Objects* _msg = _internal_mutable_objects();
+  ::laika_proto::Objects* _msg = _internal_mutable_objects();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.objects)
   return _msg;
 }
-inline void WoodSession::set_allocated_objects(::session_proto::Objects* PROTOBUF_NULLABLE value) {
+inline void WoodSession::set_allocated_objects(::laika_proto::Objects* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1162,32 +1162,32 @@ inline void WoodSession::set_allocated_objects(::session_proto::Objects* PROTOBU
     ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
 
-  _impl_.objects_ = reinterpret_cast<::session_proto::Objects*>(value);
+  _impl_.objects_ = reinterpret_cast<::laika_proto::Objects*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.objects)
 }
 
-// .session_proto.Tree tree = 4;
+// .laika_proto.Tree tree = 4;
 inline bool WoodSession::has_tree() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000040U);
   PROTOBUF_ASSUME(!value || _impl_.tree_ != nullptr);
   return value;
 }
-inline const ::session_proto::Tree& WoodSession::_internal_tree() const {
+inline const ::laika_proto::Tree& WoodSession::_internal_tree() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Tree* p = _impl_.tree_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Tree>(&::session_proto::Tree_globals_);
+  const ::laika_proto::Tree* p = _impl_.tree_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Tree>(&::laika_proto::Tree_globals_);
 }
-inline const ::session_proto::Tree& WoodSession::tree() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Tree& WoodSession::tree() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.tree)
   return _internal_tree();
 }
 inline void WoodSession::unsafe_arena_set_allocated_tree(
-    ::session_proto::Tree* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Tree* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.tree_);
   }
-  _impl_.tree_ = reinterpret_cast<::session_proto::Tree*>(value);
+  _impl_.tree_ = reinterpret_cast<::laika_proto::Tree*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   } else {
@@ -1195,11 +1195,11 @@ inline void WoodSession::unsafe_arena_set_allocated_tree(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.tree)
 }
-inline ::session_proto::Tree* PROTOBUF_NULLABLE WoodSession::release_tree() {
+inline ::laika_proto::Tree* PROTOBUF_NULLABLE WoodSession::release_tree() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
-  ::session_proto::Tree* released = _impl_.tree_;
+  ::laika_proto::Tree* released = _impl_.tree_;
   _impl_.tree_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1214,31 +1214,31 @@ inline ::session_proto::Tree* PROTOBUF_NULLABLE WoodSession::release_tree() {
   }
   return released;
 }
-inline ::session_proto::Tree* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_tree() {
+inline ::laika_proto::Tree* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_tree() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.tree)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
-  ::session_proto::Tree* temp = _impl_.tree_;
+  ::laika_proto::Tree* temp = _impl_.tree_;
   _impl_.tree_ = nullptr;
   return temp;
 }
-inline ::session_proto::Tree* PROTOBUF_NONNULL WoodSession::_internal_mutable_tree() {
+inline ::laika_proto::Tree* PROTOBUF_NONNULL WoodSession::_internal_mutable_tree() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.tree_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Tree>(GetArena());
-    _impl_.tree_ = reinterpret_cast<::session_proto::Tree*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Tree>(GetArena());
+    _impl_.tree_ = reinterpret_cast<::laika_proto::Tree*>(p);
   }
   return _impl_.tree_;
 }
-inline ::session_proto::Tree* PROTOBUF_NONNULL WoodSession::mutable_tree()
+inline ::laika_proto::Tree* PROTOBUF_NONNULL WoodSession::mutable_tree()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000040U);
-  ::session_proto::Tree* _msg = _internal_mutable_tree();
+  ::laika_proto::Tree* _msg = _internal_mutable_tree();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.tree)
   return _msg;
 }
-inline void WoodSession::set_allocated_tree(::session_proto::Tree* PROTOBUF_NULLABLE value) {
+inline void WoodSession::set_allocated_tree(::laika_proto::Tree* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1255,32 +1255,32 @@ inline void WoodSession::set_allocated_tree(::session_proto::Tree* PROTOBUF_NULL
     ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   }
 
-  _impl_.tree_ = reinterpret_cast<::session_proto::Tree*>(value);
+  _impl_.tree_ = reinterpret_cast<::laika_proto::Tree*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.tree)
 }
 
-// .session_proto.Graph graph = 5;
+// .laika_proto.Graph graph = 5;
 inline bool WoodSession::has_graph() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000080U);
   PROTOBUF_ASSUME(!value || _impl_.graph_ != nullptr);
   return value;
 }
-inline const ::session_proto::Graph& WoodSession::_internal_graph() const {
+inline const ::laika_proto::Graph& WoodSession::_internal_graph() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Graph* p = _impl_.graph_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Graph>(&::session_proto::Graph_globals_);
+  const ::laika_proto::Graph* p = _impl_.graph_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Graph>(&::laika_proto::Graph_globals_);
 }
-inline const ::session_proto::Graph& WoodSession::graph() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Graph& WoodSession::graph() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.graph)
   return _internal_graph();
 }
 inline void WoodSession::unsafe_arena_set_allocated_graph(
-    ::session_proto::Graph* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Graph* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.graph_);
   }
-  _impl_.graph_ = reinterpret_cast<::session_proto::Graph*>(value);
+  _impl_.graph_ = reinterpret_cast<::laika_proto::Graph*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   } else {
@@ -1288,11 +1288,11 @@ inline void WoodSession::unsafe_arena_set_allocated_graph(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.graph)
 }
-inline ::session_proto::Graph* PROTOBUF_NULLABLE WoodSession::release_graph() {
+inline ::laika_proto::Graph* PROTOBUF_NULLABLE WoodSession::release_graph() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
-  ::session_proto::Graph* released = _impl_.graph_;
+  ::laika_proto::Graph* released = _impl_.graph_;
   _impl_.graph_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1307,31 +1307,31 @@ inline ::session_proto::Graph* PROTOBUF_NULLABLE WoodSession::release_graph() {
   }
   return released;
 }
-inline ::session_proto::Graph* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_graph() {
+inline ::laika_proto::Graph* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_graph() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.graph)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
-  ::session_proto::Graph* temp = _impl_.graph_;
+  ::laika_proto::Graph* temp = _impl_.graph_;
   _impl_.graph_ = nullptr;
   return temp;
 }
-inline ::session_proto::Graph* PROTOBUF_NONNULL WoodSession::_internal_mutable_graph() {
+inline ::laika_proto::Graph* PROTOBUF_NONNULL WoodSession::_internal_mutable_graph() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.graph_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Graph>(GetArena());
-    _impl_.graph_ = reinterpret_cast<::session_proto::Graph*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Graph>(GetArena());
+    _impl_.graph_ = reinterpret_cast<::laika_proto::Graph*>(p);
   }
   return _impl_.graph_;
 }
-inline ::session_proto::Graph* PROTOBUF_NONNULL WoodSession::mutable_graph()
+inline ::laika_proto::Graph* PROTOBUF_NONNULL WoodSession::mutable_graph()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000080U);
-  ::session_proto::Graph* _msg = _internal_mutable_graph();
+  ::laika_proto::Graph* _msg = _internal_mutable_graph();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.graph)
   return _msg;
 }
-inline void WoodSession::set_allocated_graph(::session_proto::Graph* PROTOBUF_NULLABLE value) {
+inline void WoodSession::set_allocated_graph(::laika_proto::Graph* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1348,132 +1348,132 @@ inline void WoodSession::set_allocated_graph(::session_proto::Graph* PROTOBUF_NU
     ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   }
 
-  _impl_.graph_ = reinterpret_cast<::session_proto::Graph*>(value);
+  _impl_.graph_ = reinterpret_cast<::laika_proto::Graph*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.graph)
 }
 
-// repeated .session_proto.BoundingBox bvh_boxes = 6;
+// repeated .laika_proto.BoundingBox bvh_boxes = 6;
 inline int WoodSession::_internal_bvh_boxes_size() const {
   return _internal_bvh_boxes().size();
 }
 inline int WoodSession::bvh_boxes_size() const {
   return _internal_bvh_boxes_size();
 }
-inline const ::session_proto::BoundingBox& WoodSession::bvh_boxes(int index) const
+inline const ::laika_proto::BoundingBox& WoodSession::bvh_boxes(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.bvh_boxes)
   return _internal_bvh_boxes().Get(index);
 }
-inline ::session_proto::BoundingBox* PROTOBUF_NONNULL WoodSession::mutable_bvh_boxes(int index)
+inline ::laika_proto::BoundingBox* PROTOBUF_NONNULL WoodSession::mutable_bvh_boxes(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.bvh_boxes)
   return _internal_mutable_bvh_boxes()->Mutable(index);
 }
-inline ::session_proto::BoundingBox* PROTOBUF_NONNULL WoodSession::add_bvh_boxes()
+inline ::laika_proto::BoundingBox* PROTOBUF_NONNULL WoodSession::add_bvh_boxes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::BoundingBox* _add =
+  ::laika_proto::BoundingBox* _add =
       _internal_mutable_bvh_boxes()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.WoodSession.bvh_boxes)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>& WoodSession::bvh_boxes() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>& WoodSession::bvh_boxes() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.WoodSession.bvh_boxes)
   return _internal_bvh_boxes();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>* PROTOBUF_NONNULL
 WoodSession::mutable_bvh_boxes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.bvh_boxes)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_bvh_boxes();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>&
 WoodSession::_internal_bvh_boxes() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.bvh_boxes_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::BoundingBox>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::BoundingBox>* PROTOBUF_NONNULL
 WoodSession::_internal_mutable_bvh_boxes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.bvh_boxes_;
 }
 
-// repeated .session_proto.XformEntry xforms = 7;
+// repeated .laika_proto.XformEntry xforms = 7;
 inline int WoodSession::_internal_xforms_size() const {
   return _internal_xforms().size();
 }
 inline int WoodSession::xforms_size() const {
   return _internal_xforms_size();
 }
-inline const ::session_proto::XformEntry& WoodSession::xforms(int index) const
+inline const ::laika_proto::XformEntry& WoodSession::xforms(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.xforms)
   return _internal_xforms().Get(index);
 }
-inline ::session_proto::XformEntry* PROTOBUF_NONNULL WoodSession::mutable_xforms(int index)
+inline ::laika_proto::XformEntry* PROTOBUF_NONNULL WoodSession::mutable_xforms(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.xforms)
   return _internal_mutable_xforms()->Mutable(index);
 }
-inline ::session_proto::XformEntry* PROTOBUF_NONNULL WoodSession::add_xforms()
+inline ::laika_proto::XformEntry* PROTOBUF_NONNULL WoodSession::add_xforms()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::XformEntry* _add =
+  ::laika_proto::XformEntry* _add =
       _internal_mutable_xforms()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.WoodSession.xforms)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>& WoodSession::xforms() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>& WoodSession::xforms() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.WoodSession.xforms)
   return _internal_xforms();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>* PROTOBUF_NONNULL
 WoodSession::mutable_xforms() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.xforms)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_xforms();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>&
 WoodSession::_internal_xforms() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.xforms_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::XformEntry>* PROTOBUF_NONNULL
 WoodSession::_internal_mutable_xforms() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.xforms_;
 }
 
-// .session_proto.Objects definitions = 8;
+// .laika_proto.Objects definitions = 8;
 inline bool WoodSession::has_definitions() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000100U);
   PROTOBUF_ASSUME(!value || _impl_.definitions_ != nullptr);
   return value;
 }
-inline const ::session_proto::Objects& WoodSession::_internal_definitions() const {
+inline const ::laika_proto::Objects& WoodSession::_internal_definitions() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Objects* p = _impl_.definitions_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Objects>(&::session_proto::Objects_globals_);
+  const ::laika_proto::Objects* p = _impl_.definitions_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Objects>(&::laika_proto::Objects_globals_);
 }
-inline const ::session_proto::Objects& WoodSession::definitions() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Objects& WoodSession::definitions() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.definitions)
   return _internal_definitions();
 }
 inline void WoodSession::unsafe_arena_set_allocated_definitions(
-    ::session_proto::Objects* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Objects* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.definitions_);
   }
-  _impl_.definitions_ = reinterpret_cast<::session_proto::Objects*>(value);
+  _impl_.definitions_ = reinterpret_cast<::laika_proto::Objects*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   } else {
@@ -1481,11 +1481,11 @@ inline void WoodSession::unsafe_arena_set_allocated_definitions(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.definitions)
 }
-inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_definitions() {
+inline ::laika_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
-  ::session_proto::Objects* released = _impl_.definitions_;
+  ::laika_proto::Objects* released = _impl_.definitions_;
   _impl_.definitions_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -1500,31 +1500,31 @@ inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_definiti
   }
   return released;
 }
-inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_definitions() {
+inline ::laika_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_release_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.definitions)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
-  ::session_proto::Objects* temp = _impl_.definitions_;
+  ::laika_proto::Objects* temp = _impl_.definitions_;
   _impl_.definitions_ = nullptr;
   return temp;
 }
-inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable_definitions() {
+inline ::laika_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.definitions_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Objects>(GetArena());
-    _impl_.definitions_ = reinterpret_cast<::session_proto::Objects*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Objects>(GetArena());
+    _impl_.definitions_ = reinterpret_cast<::laika_proto::Objects*>(p);
   }
   return _impl_.definitions_;
 }
-inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_definitions()
+inline ::laika_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_definitions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000100U);
-  ::session_proto::Objects* _msg = _internal_mutable_definitions();
+  ::laika_proto::Objects* _msg = _internal_mutable_definitions();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.definitions)
   return _msg;
 }
-inline void WoodSession::set_allocated_definitions(::session_proto::Objects* PROTOBUF_NULLABLE value) {
+inline void WoodSession::set_allocated_definitions(::laika_proto::Objects* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -1541,55 +1541,55 @@ inline void WoodSession::set_allocated_definitions(::session_proto::Objects* PRO
     ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   }
 
-  _impl_.definitions_ = reinterpret_cast<::session_proto::Objects*>(value);
+  _impl_.definitions_ = reinterpret_cast<::laika_proto::Objects*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.definitions)
 }
 
-// repeated .session_proto.InteractionEntry interactions = 9;
+// repeated .laika_proto.InteractionEntry interactions = 9;
 inline int WoodSession::_internal_interactions_size() const {
   return _internal_interactions().size();
 }
 inline int WoodSession::interactions_size() const {
   return _internal_interactions_size();
 }
-inline const ::session_proto::InteractionEntry& WoodSession::interactions(int index) const
+inline const ::laika_proto::InteractionEntry& WoodSession::interactions(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.interactions)
   return _internal_interactions().Get(index);
 }
-inline ::session_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::mutable_interactions(int index)
+inline ::laika_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::mutable_interactions(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.interactions)
   return _internal_mutable_interactions()->Mutable(index);
 }
-inline ::session_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::add_interactions()
+inline ::laika_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::add_interactions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::InteractionEntry* _add =
+  ::laika_proto::InteractionEntry* _add =
       _internal_mutable_interactions()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_add:wood_proto.WoodSession.interactions)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>& WoodSession::interactions() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>& WoodSession::interactions() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.WoodSession.interactions)
   return _internal_interactions();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>* PROTOBUF_NONNULL
 WoodSession::mutable_interactions() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.interactions)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_interactions();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>&
 WoodSession::_internal_interactions() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.interactions_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::InteractionEntry>* PROTOBUF_NONNULL
 WoodSession::_internal_mutable_interactions() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.interactions_;

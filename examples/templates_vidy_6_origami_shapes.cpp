@@ -3,7 +3,7 @@
 #include "src/templates/folding/prismatic_fold.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_folding;
 
@@ -53,5 +53,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vidy_6_origami_shapes --parallel 6 && ./build/templates_vidy_6_origami_shapes && ../bash/publish-scene.sh --target templates_vidy_6_origami_shapes
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -2,7 +2,7 @@
 #include "src/templates/developable_folding/developable_folding_guide.h"
 #include "src/templates/development.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_developable_folding {

@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/truss/truss.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Every design of the TrussGuide library, its overload with the default parameters, built by the Truss template, each
@@ -99,5 +99,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_truss_2_library --parallel 6 && ./build/templates_truss_2_library && ../bash/publish-scene.sh --target templates_truss_2_library
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

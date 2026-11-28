@@ -4,7 +4,7 @@
 #include "wood_feature_detection.h"
 #include "wood_merge_modifier.h"
 #include "wood_three_valence.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace {
 using namespace wood_session;

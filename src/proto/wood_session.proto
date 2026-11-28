@@ -9,18 +9,18 @@ import "boundingbox.proto";
 import "session.proto";
 import "settings.proto";
 
-// A wood scene on the wire: fields 1..9 are session_proto.Session field for field, so any
+// A wood scene on the wire: fields 1..9 are laika_proto.Session field for field, so any
 // Session reader opens the file, the interactions included, and drops the settings as an unknown field.
 message WoodSession {
   string name = 1;                                 // Session name
   string guid = 2;                                 // Unique identifier
-  session_proto.Objects objects = 3;               // Collection of all geometry objects
-  session_proto.Tree tree = 4;                     // Tree hierarchy structure
-  session_proto.Graph graph = 5;                   // Graph relationships
-  repeated session_proto.BoundingBox bvh_boxes = 6;  // Simplified BVH representation
-  repeated session_proto.XformEntry xforms = 7;    // Local transforms in Session::order() sequence
-  session_proto.Objects definitions = 8;           // Shared element definitions the instances place, each in its own frame
-  repeated session_proto.InteractionEntry interactions = 9;  // Interactions per graph edge, in edge-guid order; wood types in interaction_data
+  laika_proto.Objects objects = 3;               // Collection of all geometry objects
+  laika_proto.Tree tree = 4;                     // Tree hierarchy structure
+  laika_proto.Graph graph = 5;                   // Graph relationships
+  repeated laika_proto.BoundingBox bvh_boxes = 6;  // Simplified BVH representation
+  repeated laika_proto.XformEntry xforms = 7;    // Local transforms in Session::order() sequence
+  laika_proto.Objects definitions = 8;           // Shared element definitions the instances place, each in its own frame
+  repeated laika_proto.InteractionEntry interactions = 9;  // Interactions per graph edge, in edge-guid order; wood types in interaction_data
   reserved 100;                                    // was: wood_proto.Interaction per edge, before the kernel held interactions
   Settings settings = 101;                         // The solver settings the scene was solved with
   repeated PlatePair adjacency = 102;              // Plate pairs by position the solver classifies; empty lets it search

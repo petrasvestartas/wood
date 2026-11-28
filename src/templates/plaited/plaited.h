@@ -2,7 +2,7 @@
 #include "src/templates/plaited/plaited_guide.h"
 #include "src/templates/reciprocal/reciprocal_boundary.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_plaited {

@@ -31,7 +31,7 @@ def draw_scenes(folder: pathlib.Path, scenes: list) -> None:
 # The scene without its lines, planes and polylines (a template's drawn guide), the interactions' features dropped: wood alone.
 STRIP = r"""
 import sys
-from session_py.session import Session
+from laika_py.session import Session
 scene = Session.pb_load(sys.argv[1])
 for edge in list(scene.interactions):
     scene.interactions[edge] = []

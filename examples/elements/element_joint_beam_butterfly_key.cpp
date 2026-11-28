@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A butterfly key inlaid in the top of two beams end to end.
@@ -43,5 +43,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_butterfly_key --parallel 6 && ./build/element_joint_beam_butterfly_key && ../bash/publish-scene.sh --target element_joint_beam_butterfly_key
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

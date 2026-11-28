@@ -230,64 +230,64 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
     kPostRadiusFieldNumber = 11,
     kOperationFieldNumber = 5,
   };
-  // repeated .session_proto.Polyline profile = 3;
+  // repeated .laika_proto.Polyline profile = 3;
   [[nodiscard]] int profile_size() const;
   private:
   int _internal_profile_size() const;
 
   public:
   void clear_profile() ;
-  [[nodiscard]] const ::session_proto::Polyline& profile(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_profile(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_profile();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& profile(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_profile(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_profile();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   profile() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_profile();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_profile() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_profile() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
 
   public:
-  // repeated .session_proto.Line drills = 7;
+  // repeated .laika_proto.Line drills = 7;
   [[nodiscard]] int drills_size() const;
   private:
   int _internal_drills_size() const;
 
   public:
   void clear_drills() ;
-  [[nodiscard]] const ::session_proto::Line& drills(int index) const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_drills(int index);
-  ::session_proto::Line* PROTOBUF_NONNULL add_drills();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  [[nodiscard]] const ::laika_proto::Line& drills(int index) const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NONNULL mutable_drills(int index);
+  ::laika_proto::Line* PROTOBUF_NONNULL add_drills();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
   drills() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
   mutable_drills();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_drills() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_drills();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& _internal_drills() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL _internal_mutable_drills();
 
   public:
-  // repeated .session_proto.Line posts = 10;
+  // repeated .laika_proto.Line posts = 10;
   [[nodiscard]] int posts_size() const;
   private:
   int _internal_posts_size() const;
 
   public:
   void clear_posts() ;
-  [[nodiscard]] const ::session_proto::Line& posts(int index) const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_posts(int index);
-  ::session_proto::Line* PROTOBUF_NONNULL add_posts();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  [[nodiscard]] const ::laika_proto::Line& posts(int index) const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NONNULL mutable_posts(int index);
+  ::laika_proto::Line* PROTOBUF_NONNULL add_posts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
   posts() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
   mutable_posts();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_posts() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_posts();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& _internal_posts() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL _internal_mutable_posts();
 
   public:
   // string source = 1;
@@ -305,34 +305,34 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
   ::std::string* PROTOBUF_NONNULL _internal_mutable_source();
 
   public:
-  // .session_proto.Mesh mesh = 2;
+  // .laika_proto.Mesh mesh = 2;
   [[nodiscard]] bool has_mesh() const;
   void clear_mesh() ;
-  [[nodiscard]] const ::session_proto::Mesh& mesh() const;
-  [[nodiscard]] ::session_proto::Mesh* PROTOBUF_NULLABLE release_mesh();
-  ::session_proto::Mesh* PROTOBUF_NONNULL mutable_mesh();
-  void set_allocated_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  ::session_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_mesh();
+  [[nodiscard]] const ::laika_proto::Mesh& mesh() const;
+  [[nodiscard]] ::laika_proto::Mesh* PROTOBUF_NULLABLE release_mesh();
+  ::laika_proto::Mesh* PROTOBUF_NONNULL mutable_mesh();
+  void set_allocated_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  ::laika_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_mesh();
 
   private:
-  const ::session_proto::Mesh& _internal_mesh() const;
-  ::session_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_mesh();
+  const ::laika_proto::Mesh& _internal_mesh() const;
+  ::laika_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_mesh();
 
   public:
-  // .session_proto.Vector extrusion = 4;
+  // .laika_proto.Vector extrusion = 4;
   [[nodiscard]] bool has_extrusion() const;
   void clear_extrusion() ;
-  [[nodiscard]] const ::session_proto::Vector& extrusion() const;
-  [[nodiscard]] ::session_proto::Vector* PROTOBUF_NULLABLE release_extrusion();
-  ::session_proto::Vector* PROTOBUF_NONNULL mutable_extrusion();
-  void set_allocated_extrusion(::session_proto::Vector* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_extrusion(::session_proto::Vector* PROTOBUF_NULLABLE value);
-  ::session_proto::Vector* PROTOBUF_NULLABLE unsafe_arena_release_extrusion();
+  [[nodiscard]] const ::laika_proto::Vector& extrusion() const;
+  [[nodiscard]] ::laika_proto::Vector* PROTOBUF_NULLABLE release_extrusion();
+  ::laika_proto::Vector* PROTOBUF_NONNULL mutable_extrusion();
+  void set_allocated_extrusion(::laika_proto::Vector* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_extrusion(::laika_proto::Vector* PROTOBUF_NULLABLE value);
+  ::laika_proto::Vector* PROTOBUF_NULLABLE unsafe_arena_release_extrusion();
 
   private:
-  const ::session_proto::Vector& _internal_extrusion() const;
-  ::session_proto::Vector* PROTOBUF_NONNULL _internal_mutable_extrusion();
+  const ::laika_proto::Vector& _internal_extrusion() const;
+  ::laika_proto::Vector* PROTOBUF_NONNULL _internal_mutable_extrusion();
 
   public:
   // double tolerance = 6;
@@ -418,12 +418,12 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
         const InteractionFeatureSolid& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > drills_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > posts_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > profile_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Line > drills_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Line > posts_;
     ::google::protobuf::internal::ArenaStringPtr source_;
-    ::session_proto::Mesh* PROTOBUF_NULLABLE mesh_;
-    ::session_proto::Vector* PROTOBUF_NULLABLE extrusion_;
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE mesh_;
+    ::laika_proto::Vector* PROTOBUF_NULLABLE extrusion_;
     double tolerance_;
     double drill_radius_;
     double drill_tolerance_;
@@ -515,28 +515,28 @@ inline void InteractionFeatureSolid::set_allocated_source(::std::string* PROTOBU
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeatureSolid.source)
 }
 
-// .session_proto.Mesh mesh = 2;
+// .laika_proto.Mesh mesh = 2;
 inline bool InteractionFeatureSolid::has_mesh() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.mesh_ != nullptr);
   return value;
 }
-inline const ::session_proto::Mesh& InteractionFeatureSolid::_internal_mesh() const {
+inline const ::laika_proto::Mesh& InteractionFeatureSolid::_internal_mesh() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Mesh* p = _impl_.mesh_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Mesh>(&::session_proto::Mesh_globals_);
+  const ::laika_proto::Mesh* p = _impl_.mesh_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Mesh>(&::laika_proto::Mesh_globals_);
 }
-inline const ::session_proto::Mesh& InteractionFeatureSolid::mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Mesh& InteractionFeatureSolid::mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.mesh)
   return _internal_mesh();
 }
 inline void InteractionFeatureSolid::unsafe_arena_set_allocated_mesh(
-    ::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.mesh_);
   }
-  _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
@@ -544,11 +544,11 @@ inline void InteractionFeatureSolid::unsafe_arena_set_allocated_mesh(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeatureSolid.mesh)
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::release_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::release_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* released = _impl_.mesh_;
+  ::laika_proto::Mesh* released = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -563,31 +563,31 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::release
   }
   return released;
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::unsafe_arena_release_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::unsafe_arena_release_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureSolid.mesh)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* temp = _impl_.mesh_;
+  ::laika_proto::Mesh* temp = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   return temp;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::_internal_mutable_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::_internal_mutable_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.mesh_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Mesh>(GetArena());
-    _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Mesh>(GetArena());
+    _impl_.mesh_ = reinterpret_cast<::laika_proto::Mesh*>(p);
   }
   return _impl_.mesh_;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_mesh()
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* _msg = _internal_mutable_mesh();
+  ::laika_proto::Mesh* _msg = _internal_mutable_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.mesh)
   return _msg;
 }
-inline void InteractionFeatureSolid::set_allocated_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+inline void InteractionFeatureSolid::set_allocated_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -604,82 +604,82 @@ inline void InteractionFeatureSolid::set_allocated_mesh(::session_proto::Mesh* P
     ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
-  _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeatureSolid.mesh)
 }
 
-// repeated .session_proto.Polyline profile = 3;
+// repeated .laika_proto.Polyline profile = 3;
 inline int InteractionFeatureSolid::_internal_profile_size() const {
   return _internal_profile().size();
 }
 inline int InteractionFeatureSolid::profile_size() const {
   return _internal_profile_size();
 }
-inline const ::session_proto::Polyline& InteractionFeatureSolid::profile(int index) const
+inline const ::laika_proto::Polyline& InteractionFeatureSolid::profile(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.profile)
   return _internal_profile().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_profile(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_profile(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.profile)
   return _internal_mutable_profile()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionFeatureSolid::add_profile()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionFeatureSolid::add_profile()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_profile()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeatureSolid.profile)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionFeatureSolid::profile() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& InteractionFeatureSolid::profile() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeatureSolid.profile)
   return _internal_profile();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionFeatureSolid::mutable_profile() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeatureSolid.profile)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_profile();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 InteractionFeatureSolid::_internal_profile() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.profile_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionFeatureSolid::_internal_mutable_profile() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.profile_;
 }
 
-// .session_proto.Vector extrusion = 4;
+// .laika_proto.Vector extrusion = 4;
 inline bool InteractionFeatureSolid::has_extrusion() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
   PROTOBUF_ASSUME(!value || _impl_.extrusion_ != nullptr);
   return value;
 }
-inline const ::session_proto::Vector& InteractionFeatureSolid::_internal_extrusion() const {
+inline const ::laika_proto::Vector& InteractionFeatureSolid::_internal_extrusion() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Vector* p = _impl_.extrusion_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Vector>(&::session_proto::Vector_globals_);
+  const ::laika_proto::Vector* p = _impl_.extrusion_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Vector>(&::laika_proto::Vector_globals_);
 }
-inline const ::session_proto::Vector& InteractionFeatureSolid::extrusion() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Vector& InteractionFeatureSolid::extrusion() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.extrusion)
   return _internal_extrusion();
 }
 inline void InteractionFeatureSolid::unsafe_arena_set_allocated_extrusion(
-    ::session_proto::Vector* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Vector* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.extrusion_);
   }
-  _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
+  _impl_.extrusion_ = reinterpret_cast<::laika_proto::Vector*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
@@ -687,11 +687,11 @@ inline void InteractionFeatureSolid::unsafe_arena_set_allocated_extrusion(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeatureSolid.extrusion)
 }
-inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::release_extrusion() {
+inline ::laika_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::release_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Vector* released = _impl_.extrusion_;
+  ::laika_proto::Vector* released = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -706,31 +706,31 @@ inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::relea
   }
   return released;
 }
-inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::unsafe_arena_release_extrusion() {
+inline ::laika_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::unsafe_arena_release_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureSolid.extrusion)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Vector* temp = _impl_.extrusion_;
+  ::laika_proto::Vector* temp = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   return temp;
 }
-inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::_internal_mutable_extrusion() {
+inline ::laika_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::_internal_mutable_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.extrusion_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Vector>(GetArena());
-    _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Vector>(GetArena());
+    _impl_.extrusion_ = reinterpret_cast<::laika_proto::Vector*>(p);
   }
   return _impl_.extrusion_;
 }
-inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_extrusion()
+inline ::laika_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_extrusion()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Vector* _msg = _internal_mutable_extrusion();
+  ::laika_proto::Vector* _msg = _internal_mutable_extrusion();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.extrusion)
   return _msg;
 }
-inline void InteractionFeatureSolid::set_allocated_extrusion(::session_proto::Vector* PROTOBUF_NULLABLE value) {
+inline void InteractionFeatureSolid::set_allocated_extrusion(::laika_proto::Vector* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -747,7 +747,7 @@ inline void InteractionFeatureSolid::set_allocated_extrusion(::session_proto::Ve
     ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
 
-  _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
+  _impl_.extrusion_ = reinterpret_cast<::laika_proto::Vector*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeatureSolid.extrusion)
 }
 
@@ -799,51 +799,51 @@ inline void InteractionFeatureSolid::_internal_set_tolerance(double value) {
   _impl_.tolerance_ = value;
 }
 
-// repeated .session_proto.Line drills = 7;
+// repeated .laika_proto.Line drills = 7;
 inline int InteractionFeatureSolid::_internal_drills_size() const {
   return _internal_drills().size();
 }
 inline int InteractionFeatureSolid::drills_size() const {
   return _internal_drills_size();
 }
-inline const ::session_proto::Line& InteractionFeatureSolid::drills(int index) const
+inline const ::laika_proto::Line& InteractionFeatureSolid::drills(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.drills)
   return _internal_drills().Get(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_drills(int index)
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_drills(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.drills)
   return _internal_mutable_drills()->Mutable(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::add_drills()
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::add_drills()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Line* _add =
+  ::laika_proto::Line* _add =
       _internal_mutable_drills()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeatureSolid.drills)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionFeatureSolid::drills() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& InteractionFeatureSolid::drills() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeatureSolid.drills)
   return _internal_drills();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeatureSolid::mutable_drills() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeatureSolid.drills)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_drills();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
 InteractionFeatureSolid::_internal_drills() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.drills_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeatureSolid::_internal_mutable_drills() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.drills_;
@@ -897,51 +897,51 @@ inline void InteractionFeatureSolid::_internal_set_drill_tolerance(double value)
   _impl_.drill_tolerance_ = value;
 }
 
-// repeated .session_proto.Line posts = 10;
+// repeated .laika_proto.Line posts = 10;
 inline int InteractionFeatureSolid::_internal_posts_size() const {
   return _internal_posts().size();
 }
 inline int InteractionFeatureSolid::posts_size() const {
   return _internal_posts_size();
 }
-inline const ::session_proto::Line& InteractionFeatureSolid::posts(int index) const
+inline const ::laika_proto::Line& InteractionFeatureSolid::posts(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.posts)
   return _internal_posts().Get(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_posts(int index)
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_posts(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.posts)
   return _internal_mutable_posts()->Mutable(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::add_posts()
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::add_posts()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Line* _add =
+  ::laika_proto::Line* _add =
       _internal_mutable_posts()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeatureSolid.posts)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionFeatureSolid::posts() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& InteractionFeatureSolid::posts() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeatureSolid.posts)
   return _internal_posts();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeatureSolid::mutable_posts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeatureSolid.posts)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_posts();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
 InteractionFeatureSolid::_internal_posts() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.posts_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeatureSolid::_internal_mutable_posts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.posts_;

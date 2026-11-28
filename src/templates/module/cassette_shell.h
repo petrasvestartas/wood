@@ -2,7 +2,7 @@
 #include "src/templates/module/module_contact.h"
 #include "src/templates/module/wall_guide.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_module {

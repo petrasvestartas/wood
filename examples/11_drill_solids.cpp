@@ -49,5 +49,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 11_drill_solids --parallel 6 && ./build/11_drill_solids && ../bash/publish-scene.sh --target 11_drill_solids
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

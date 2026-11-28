@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A planar glulam arch from x0 to x1, height rise at its middle, at y.
@@ -61,5 +61,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_curved_holes --parallel 6 && ./build/element_edge_curved_holes && ../bash/publish-scene.sh --target element_edge_curved_holes
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

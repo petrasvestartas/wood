@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/folding/diamond_mesh.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_folding;
 
@@ -31,5 +31,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_folding_2_diamond_mesh --parallel 6 && ./build/templates_folding_2_diamond_mesh && ../bash/publish-scene.sh --target templates_folding_2_diamond_mesh
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

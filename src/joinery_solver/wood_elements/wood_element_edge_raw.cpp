@@ -8,7 +8,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace {
 
@@ -203,14 +203,14 @@ std::shared_ptr<EdgeRawElement> EdgeRawElement::from_element(Element element) {
         if (base.has_axis())
             raw->axis = Polyline::pb_loads(base.axis().SerializeAsString());
         raw->radii.assign(base.radii().begin(), base.radii().end());
-        for (const session_proto::Vector& direction : base.directions())
+        for (const laika_proto::Vector& direction : base.directions())
             raw->directions.push_back(Vector::pb_loads(direction.SerializeAsString()));
         raw->allowed_type = base.allowed_type();
         raw->extension = base.extension();
         raw->round_radius = base.round_radius();
-        for (const session_proto::Plane& cut : base.cuts())
+        for (const laika_proto::Plane& cut : base.cuts())
             raw->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
-        for (const session_proto::Polyline& ring : base.profile())
+        for (const laika_proto::Polyline& ring : base.profile())
             raw->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
         for (const wood_proto::InteractionFeatureSolid& cut : base.solid_features())
             raw->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
@@ -226,7 +226,7 @@ std::shared_ptr<EdgeRawElement> EdgeRawElement::from_element(Element element) {
         raw->raw_pointcloud = PointCloud::from_proto(proto.raw_pointcloud());
     if (proto.has_raw_xform())
         raw->raw_xform = Xform::from_proto(proto.raw_xform());
-    for (const session_proto::Polyline& branch : proto.branch_axes())
+    for (const laika_proto::Polyline& branch : proto.branch_axes())
         raw->branch_axes.push_back(Polyline::from_proto(branch));
     raw->use_raw_mesh = proto.use_raw_mesh();
     raw->show_pointcloud = proto.show_pointcloud();

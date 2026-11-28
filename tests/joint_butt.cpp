@@ -3,7 +3,7 @@
 #include "src/templates/truss/truss.h"
 #include "wood_assembly_sequence.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════

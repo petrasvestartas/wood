@@ -17,7 +17,7 @@
 #include "src/templates/vault/surface_vault.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Throws with the message when the condition fails.

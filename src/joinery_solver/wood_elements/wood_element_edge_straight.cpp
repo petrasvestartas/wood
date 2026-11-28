@@ -7,7 +7,7 @@
 #include "wood_element_edge_variable.h"
 #include "element_edge_straight.pb.h"
 #include "element_column.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 
@@ -174,14 +174,14 @@ std::shared_ptr<EdgeStraightElement> EdgeStraightElement::from_element(Element e
     if (proto.has_axis())
         beam->axis = Polyline::pb_loads(proto.axis().SerializeAsString());
     beam->radii.assign(proto.radii().begin(), proto.radii().end());
-    for (const session_proto::Vector& direction : proto.directions())
+    for (const laika_proto::Vector& direction : proto.directions())
         beam->directions.push_back(Vector::pb_loads(direction.SerializeAsString()));
     beam->allowed_type = proto.allowed_type();
     beam->extension = proto.extension();
     beam->round_radius = proto.round_radius();
-    for (const session_proto::Plane& cut : proto.cuts())
+    for (const laika_proto::Plane& cut : proto.cuts())
         beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
-    for (const session_proto::Polyline& ring : proto.profile())
+    for (const laika_proto::Polyline& ring : proto.profile())
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
@@ -564,9 +564,9 @@ static std::shared_ptr<Element> column_from_protobuf(const std::string& data) {
                 axis = Line::pb_loads(proto.axis().SerializeAsString());
             if (proto.has_section())
                 section = Polyline::pb_loads(proto.section().SerializeAsString());
-            for (const session_proto::Plane& cut : proto.cuts())
+            for (const laika_proto::Plane& cut : proto.cuts())
                 cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
-            for (const session_proto::Polyline& ring : proto.profile())
+            for (const laika_proto::Polyline& ring : proto.profile())
                 profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
             rotation = proto.rotation();
             for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())

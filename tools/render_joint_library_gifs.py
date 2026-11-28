@@ -20,8 +20,8 @@ import tempfile
 from PIL import Image, ImageChops
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
-PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
-RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+PYTHON = WOOD.parent / "laika/laika_py/.venv/bin/python"
+RENDERER = WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 PICTURES = WOOD / "docs/images/joint_library"
 RECORDS = "".join(path.read_text() for path in sorted((WOOD / "data/joints").glob("*.yaml")))  # Every record, for its family.
 SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, so a row of the page reads as one.
@@ -32,12 +32,12 @@ SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, s
 # colour at the corners of every frame's bounds keep the camera still.
 FRAMES = r"""
 import json, re, sys
-from session_py.session import Session
-from session_py.xform import Xform
-from session_py.color import Color
-from session_py.line import Line
-from session_py.point import Point
-from session_py.vector import Vector
+from laika_py.session import Session
+from laika_py.xform import Xform
+from laika_py.color import Color
+from laika_py.line import Line
+from laika_py.point import Point
+from laika_py.vector import Vector
 scene_path, design, variant, plan_path, out = sys.argv[1:6]
 plan = json.load(open(plan_path))
 

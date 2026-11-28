@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Feather profile of eight sharp teeth on face y of the unit box.
@@ -73,5 +73,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_side_side_inplane_custom --parallel 6 && ./build/element_joint_plate_side_side_inplane_custom && ../bash/publish-scene.sh --target element_joint_plate_side_side_inplane_custom
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

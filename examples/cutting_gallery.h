@@ -2,7 +2,7 @@
 #include "wood_session.h"
 
 namespace cutting_gallery {
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 inline const Color STOCK_COLOR(0.65f, 0.65f, 0.65f);

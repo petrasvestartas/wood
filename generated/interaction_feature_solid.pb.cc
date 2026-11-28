@@ -66,15 +66,15 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
       {::_pbi::TcParser::FastUS1,
        {10, 3, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.source_)}},
-      // .session_proto.Mesh mesh = 2;
+      // .laika_proto.Mesh mesh = 2;
       {::_pbi::TcParser::FastMtS1,
        {18, 4, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.mesh_)}},
-      // repeated .session_proto.Polyline profile = 3;
+      // repeated .laika_proto.Polyline profile = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 0, 1,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.profile_)}},
-      // .session_proto.Vector extrusion = 4;
+      // .laika_proto.Vector extrusion = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 5, 2,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.extrusion_)}},
@@ -86,7 +86,7 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
       {::_pbi::TcParser::FastF64S1,
        {49, 6, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.tolerance_)}},
-      // repeated .session_proto.Line drills = 7;
+      // repeated .laika_proto.Line drills = 7;
       {::_pbi::TcParser::FastMtR1,
        {58, 1, 3,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drills_)}},
@@ -98,7 +98,7 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
       {::_pbi::TcParser::FastF64S1,
        {73, 8, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_tolerance_)}},
-      // repeated .session_proto.Line posts = 10;
+      // repeated .laika_proto.Line posts = 10;
       {::_pbi::TcParser::FastMtR1,
        {82, 2, 4,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.posts_)}},
@@ -115,52 +115,52 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
     }}, {{
       // string source = 1;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.source_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-      // .session_proto.Mesh mesh = 2;
+      // .laika_proto.Mesh mesh = 2;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.mesh_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline profile = 3;
+      // repeated .laika_proto.Polyline profile = 3;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.profile_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Vector extrusion = 4;
+      // .laika_proto.Vector extrusion = 4;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.extrusion_), _Internal::kHasBitsOffset + 5, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // int32 operation = 5;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.operation_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // double tolerance = 6;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.tolerance_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .session_proto.Line drills = 7;
+      // repeated .laika_proto.Line drills = 7;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drills_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double drill_radius = 8;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_radius_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // double drill_tolerance = 9;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_tolerance_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .session_proto.Line posts = 10;
+      // repeated .laika_proto.Line posts = 10;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.posts_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double post_radius = 11;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.post_radius_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Mesh>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Mesh>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Mesh_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Mesh_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
     }},
     {{
@@ -340,16 +340,15 @@ const char descriptor_table_protodef_interaction_5ffeature_5fsolid_2eproto[] ABS
     protodesc_cold) = {
     "\n\037interaction_feature_solid.proto\022\nwood_"
     "proto\032\nmesh.proto\032\016polyline.proto\032\014vecto"
-    "r.proto\032\nline.proto\"\323\002\n\027InteractionFeatu"
-    "reSolid\022\016\n\006source\030\001 \001(\t\022!\n\004mesh\030\002 \001(\0132\023."
-    "session_proto.Mesh\022(\n\007profile\030\003 \003(\0132\027.se"
-    "ssion_proto.Polyline\022(\n\textrusion\030\004 \001(\0132"
-    "\025.session_proto.Vector\022\021\n\toperation\030\005 \001("
-    "\005\022\021\n\ttolerance\030\006 \001(\001\022#\n\006drills\030\007 \003(\0132\023.s"
-    "ession_proto.Line\022\024\n\014drill_radius\030\010 \001(\001\022"
-    "\027\n\017drill_tolerance\030\t \001(\001\022\"\n\005posts\030\n \003(\0132"
-    "\023.session_proto.Line\022\023\n\013post_radius\030\013 \001("
-    "\001b\006proto3"
+    "r.proto\032\nline.proto\"\311\002\n\027InteractionFeatu"
+    "reSolid\022\016\n\006source\030\001 \001(\t\022\037\n\004mesh\030\002 \001(\0132\021."
+    "laika_proto.Mesh\022&\n\007profile\030\003 \003(\0132\025.laik"
+    "a_proto.Polyline\022&\n\textrusion\030\004 \001(\0132\023.la"
+    "ika_proto.Vector\022\021\n\toperation\030\005 \001(\005\022\021\n\tt"
+    "olerance\030\006 \001(\001\022!\n\006drills\030\007 \003(\0132\021.laika_p"
+    "roto.Line\022\024\n\014drill_radius\030\010 \001(\001\022\027\n\017drill"
+    "_tolerance\030\t \001(\001\022 \n\005posts\030\n \003(\0132\021.laika_"
+    "proto.Line\022\023\n\013post_radius\030\013 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fsolid_2eproto_deps[4] = {
@@ -362,7 +361,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fsolid_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fsolid_2eproto = {
     false,
     false,
-    449,
+    439,
     descriptor_table_protodef_interaction_5ffeature_5fsolid_2eproto,
     "interaction_feature_solid.proto",
     &descriptor_table_interaction_5ffeature_5fsolid_2eproto_once,
@@ -619,14 +618,14 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
     }
   }
 
-  // .session_proto.Mesh mesh = 2;
+  // .laika_proto.Mesh mesh = 2;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.mesh_, this_._impl_.mesh_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.Polyline profile = 3;
+  // repeated .laika_proto.Polyline profile = 3;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_profile_size());
@@ -638,7 +637,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
     }
   }
 
-  // .session_proto.Vector extrusion = 4;
+  // .laika_proto.Vector extrusion = 4;
   if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.extrusion_, this_._impl_.extrusion_->GetCachedSize(), target,
@@ -663,7 +662,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
     }
   }
 
-  // repeated .session_proto.Line drills = 7;
+  // repeated .laika_proto.Line drills = 7;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_drills_size());
@@ -693,7 +692,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
     }
   }
 
-  // repeated .session_proto.Line posts = 10;
+  // repeated .laika_proto.Line posts = 10;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_posts_size());
@@ -738,21 +737,21 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
-    // repeated .session_proto.Polyline profile = 3;
+    // repeated .laika_proto.Polyline profile = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_profile_size();
       for (const auto& msg : this_._internal_profile()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Line drills = 7;
+    // repeated .laika_proto.Line drills = 7;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_drills_size();
       for (const auto& msg : this_._internal_drills()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Line posts = 10;
+    // repeated .laika_proto.Line posts = 10;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1UL * this_._internal_posts_size();
       for (const auto& msg : this_._internal_posts()) {
@@ -766,12 +765,12 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
                                         this_._internal_source());
       }
     }
-    // .session_proto.Mesh mesh = 2;
+    // .laika_proto.Mesh mesh = 2;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.mesh_);
     }
-    // .session_proto.Vector extrusion = 4;
+    // .laika_proto.Vector extrusion = 4;
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.extrusion_);

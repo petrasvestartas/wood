@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vidy/vidy_guide.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Vidy miter offset shells at h = {0, 45, 255, 300} mm and 236 miter planes.
@@ -42,5 +42,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vidy_2_offset_mesh --parallel 6 && ./build/templates_vidy_2_offset_mesh && ../bash/publish-scene.sh --target templates_vidy_2_offset_mesh
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

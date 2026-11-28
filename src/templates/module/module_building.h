@@ -2,7 +2,7 @@
 #include "src/templates/module/module_building_guide.h"
 #include "src/templates/module/spatial_module.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_module {

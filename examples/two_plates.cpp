@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Two plates, one joint: an upright plate stands on a base plate and is tenoned into it.
@@ -44,5 +44,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target two_plates --parallel 6 && ./build/two_plates && ../bash/publish-scene.sh --target two_plates
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

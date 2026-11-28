@@ -68,11 +68,11 @@ constexpr CustomJoint::ParseTableT_ CustomJoint::InternalGenerateParseTable_(con
       {::_pbi::TcParser::FastUS1,
        {10, 2, 0,
         PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.family_)}},
-      // repeated .session_proto.Polyline male = 2;
+      // repeated .laika_proto.Polyline male = 2;
       {::_pbi::TcParser::FastMtR1,
        {18, 0, 0,
         PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.male_)}},
-      // repeated .session_proto.Polyline female = 3;
+      // repeated .laika_proto.Polyline female = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 1, 1,
         PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.female_)}},
@@ -81,21 +81,21 @@ constexpr CustomJoint::ParseTableT_ CustomJoint::InternalGenerateParseTable_(con
     }}, {{
       // string family = 1;
       {PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.family_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-      // repeated .session_proto.Polyline male = 2;
+      // repeated .laika_proto.Polyline male = 2;
       {PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.male_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline female = 3;
+      // repeated .laika_proto.Polyline female = 3;
       {PROTOBUF_FIELD_OFFSET(CustomJoint, _impl_.female_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -578,21 +578,21 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_settings_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\016settings.proto\022\nwood_proto\032\016polyline.p"
-    "roto\"m\n\013CustomJoint\022\016\n\006family\030\001 \001(\t\022%\n\004m"
-    "ale\030\002 \003(\0132\027.session_proto.Polyline\022\'\n\006fe"
-    "male\030\003 \003(\0132\027.session_proto.Polyline\"\316\003\n\010"
-    "Settings\022\023\n\013search_type\030\001 \001(\005\022\030\n\020joint_p"
-    "arameters\030\002 \003(\001\022\036\n\026joint_volume_extensio"
-    "n\030\003 \003(\001\022\023\n\013joint_scale\030\004 \003(\001\022\026\n\016dihedral"
-    "_angle\030\005 \001(\001\022\036\n\026all_treated_as_rotated\030\006"
-    " \001(\010\022 \n\030rotated_joint_as_average\030\007 \001(\010\022\020"
-    "\n\010distance\030\010 \001(\001\022\030\n\020distance_squared\030\t \001"
-    "(\001\022\r\n\005angle\030\n \001(\001\022\"\n\032duplicate_points_to"
-    "lerance\030\013 \001(\001\022\036\n\026limit_min_joint_length\030"
-    "\014 \001(\001\022\025\n\rclipper_scale\030\r \001(\003\022\024\n\014clipper_"
-    "area\030\016 \001(\001\022\r\n\005beams\030\017 \003(\001\022.\n\rcustom_join"
-    "ts\030\020 \003(\0132\027.wood_proto.CustomJoint\022\031\n\021joi"
-    "nt_depth_scale\030\021 \001(\001b\006proto3"
+    "roto\"i\n\013CustomJoint\022\016\n\006family\030\001 \001(\t\022#\n\004m"
+    "ale\030\002 \003(\0132\025.laika_proto.Polyline\022%\n\006fema"
+    "le\030\003 \003(\0132\025.laika_proto.Polyline\"\316\003\n\010Sett"
+    "ings\022\023\n\013search_type\030\001 \001(\005\022\030\n\020joint_param"
+    "eters\030\002 \003(\001\022\036\n\026joint_volume_extension\030\003 "
+    "\003(\001\022\023\n\013joint_scale\030\004 \003(\001\022\026\n\016dihedral_ang"
+    "le\030\005 \001(\001\022\036\n\026all_treated_as_rotated\030\006 \001(\010"
+    "\022 \n\030rotated_joint_as_average\030\007 \001(\010\022\020\n\010di"
+    "stance\030\010 \001(\001\022\030\n\020distance_squared\030\t \001(\001\022\r"
+    "\n\005angle\030\n \001(\001\022\"\n\032duplicate_points_tolera"
+    "nce\030\013 \001(\001\022\036\n\026limit_min_joint_length\030\014 \001("
+    "\001\022\025\n\rclipper_scale\030\r \001(\003\022\024\n\014clipper_area"
+    "\030\016 \001(\001\022\r\n\005beams\030\017 \003(\001\022.\n\rcustom_joints\030\020"
+    " \003(\0132\027.wood_proto.CustomJoint\022\031\n\021joint_d"
+    "epth_scale\030\021 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_settings_2eproto_deps[1] = {
@@ -602,7 +602,7 @@ static ::absl::once_flag descriptor_table_settings_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_settings_2eproto = {
     false,
     false,
-    628,
+    624,
     descriptor_table_protodef_settings_2eproto,
     "settings.proto",
     &descriptor_table_settings_2eproto_once,
@@ -785,7 +785,7 @@ PROTOBUF_NOINLINE void CustomJoint::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline male = 2;
+  // repeated .laika_proto.Polyline male = 2;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_male_size());
@@ -797,7 +797,7 @@ PROTOBUF_NOINLINE void CustomJoint::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline female = 3;
+  // repeated .laika_proto.Polyline female = 3;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_female_size());
@@ -833,14 +833,14 @@ PROTOBUF_NOINLINE void CustomJoint::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
-    // repeated .session_proto.Polyline male = 2;
+    // repeated .laika_proto.Polyline male = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_male_size();
       for (const auto& msg : this_._internal_male()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline female = 3;
+    // repeated .laika_proto.Polyline female = 3;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_female_size();
       for (const auto& msg : this_._internal_female()) {

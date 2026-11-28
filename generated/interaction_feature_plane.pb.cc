@@ -61,7 +61,7 @@ constexpr InteractionFeaturePlane::ParseTableT_ InteractionFeaturePlane::Interna
       ::_pbi::TcParser::GetTable<::wood_proto::InteractionFeaturePlane>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // .session_proto.Plane plane = 2;
+      // .laika_proto.Plane plane = 2;
       {::_pbi::TcParser::FastMtS1,
        {18, 1, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlane, _impl_.plane_)}},
@@ -74,14 +74,14 @@ constexpr InteractionFeaturePlane::ParseTableT_ InteractionFeaturePlane::Interna
     }}, {{
       // string source = 1;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlane, _impl_.source_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-      // .session_proto.Plane plane = 2;
+      // .laika_proto.Plane plane = 2;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlane, _impl_.plane_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
     }},
     {{
@@ -221,9 +221,9 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5ffeature_5fplane_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\037interaction_feature_plane.proto\022\nwood_"
-    "proto\032\013plane.proto\"N\n\027InteractionFeature"
-    "Plane\022\016\n\006source\030\001 \001(\t\022#\n\005plane\030\002 \001(\0132\024.s"
-    "ession_proto.Planeb\006proto3"
+    "proto\032\013plane.proto\"L\n\027InteractionFeature"
+    "Plane\022\016\n\006source\030\001 \001(\t\022!\n\005plane\030\002 \001(\0132\022.l"
+    "aika_proto.Planeb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fplane_2eproto_deps[1] = {
@@ -233,7 +233,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fplane_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fplane_2eproto = {
     false,
     false,
-    146,
+    144,
     descriptor_table_protodef_interaction_5ffeature_5fplane_2eproto,
     "interaction_feature_plane.proto",
     &descriptor_table_interaction_5ffeature_5fplane_2eproto_once,
@@ -391,7 +391,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlane::Clear() {
     }
   }
 
-  // .session_proto.Plane plane = 2;
+  // .laika_proto.Plane plane = 2;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.plane_, this_._impl_.plane_->GetCachedSize(), target,
@@ -429,7 +429,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlane::Clear() {
                                         this_._internal_source());
       }
     }
-    // .session_proto.Plane plane = 2;
+    // .laika_proto.Plane plane = 2;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.plane_);

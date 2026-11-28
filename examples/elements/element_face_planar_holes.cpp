@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A plate with four holes, each drilled by a hole element through a solid feature of drills.
@@ -46,5 +46,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_face_planar_holes --parallel 6 && ./build/element_face_planar_holes && ../bash/publish-scene.sh --target element_face_planar_holes
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

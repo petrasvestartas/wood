@@ -16,7 +16,7 @@
 #include <utility>
 #include <vector>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 /// Test surfaces for the reciprocal templates, the meshes on them and the frame ups they give.
 namespace wood_reciprocal {

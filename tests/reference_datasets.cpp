@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iomanip>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════

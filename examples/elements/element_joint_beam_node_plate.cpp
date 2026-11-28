@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A node plate: a post and a diagonal ending on a chord at one node, each stopping on the members before it, one plate let
@@ -55,5 +55,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_node_plate --parallel 6 && ./build/element_joint_beam_node_plate && ../bash/publish-scene.sh --target element_joint_beam_node_plate
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

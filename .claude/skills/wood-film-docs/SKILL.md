@@ -32,7 +32,7 @@ never rewrite it.
    checks: `label problems: 0` from render.py; no green pixels (`g > r+20 and g > b+15`, see
    below); no edge visible through a solid.
 6. **Write the pages** (rules below), pin the `Code:` links with `templates/permalinks.py`, and
-   after code changes carry them over with `templates/remap.py <wood sha> <session_cpp sha>`
+   after code changes carry them over with `templates/remap.py <wood sha> <laika_cpp sha>`
    (it prints every citation whose lines changed: reread and fix those by hand).
 7. **Build the docs** (`cmake --build build --target docs`) and look at `build/docs/html`, which is
    what the user reviews. Zero Doxygen warnings from the pages.

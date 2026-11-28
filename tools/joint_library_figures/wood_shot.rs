@@ -6,7 +6,7 @@ fn main() -> anyhow::Result<()> {
     use crate::app::scene::{FileDoc, Scene};
     use crate::camera::{Camera, View};
     use engine::gpu::{FrameInput, Gpu};
-    use session_rust::{Session, Xform};
+    use laika_rs::{Session, Xform};
     use std::io::Write;
     use std::rc::Rc;
 
@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
 
     // each label's point projected to its pixel
     if let (Some(labels_in), Some(labels_out)) = (args.get(6), args.get(7)) {
-        let view_proj = camera.view_proj_anchored(aspect, &session_rust::Point::new(0.0, 0.0, 0.0));
+        let view_proj = camera.view_proj_anchored(aspect, &laika_rs::Point::new(0.0, 0.0, 0.0));
         let mut out = String::new();
         for line in std::fs::read_to_string(labels_in)?.lines() {
             let Some((xyz, text)) = line.split_once('|') else { continue };
@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
             if v.len() != 3 {
                 continue;
             }
-            let clip = view_proj.transform_point(&session_rust::Point::new(v[0], v[1], v[2]));
+            let clip = view_proj.transform_point(&laika_rs::Point::new(v[0], v[1], v[2]));
             let px = (clip[0] + 1.0) * 0.5 * f64::from(width);
             let py = (1.0 - clip[1]) * 0.5 * f64::from(height);
             out += &format!("{px:.1} {py:.1}|{text}\n");

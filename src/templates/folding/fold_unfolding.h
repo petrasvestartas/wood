@@ -3,7 +3,7 @@
 #include "wood_session.h"
 #include "src/templates/template_chamfer.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════

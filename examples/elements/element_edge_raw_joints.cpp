@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Interlocking roundwood carpentry on scanned spruce trunks: wedged tusk tenon, pegged half-dovetail thrust brace, and Jupiter scarf with folding wedges.
@@ -153,5 +153,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_raw_joints --parallel 6 && ./build/element_edge_raw_joints && ../bash/publish-scene.sh --target element_edge_raw_joints
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

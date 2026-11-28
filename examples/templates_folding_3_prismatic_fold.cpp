@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/folding/prismatic_fold.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_folding;
 
@@ -30,5 +30,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_folding_3_prismatic_fold --parallel 6 && ./build/templates_folding_3_prismatic_fold && ../bash/publish-scene.sh --target templates_folding_3_prismatic_fold
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

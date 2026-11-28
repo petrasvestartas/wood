@@ -66,16 +66,16 @@ constexpr InteractionFeatureBeam::ParseTableT_ InteractionFeatureBeam::InternalG
       {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionFeatureBeam, _impl_.end_type_), 3>(),
        {8, 3, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_)}},
-      // repeated .session_proto.Polyline volumes = 2;
+      // repeated .laika_proto.Polyline volumes = 2;
       {::_pbi::TcParser::FastMtR1,
        {18, 0, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.volumes_)}},
       {::_pbi::TcParser::MiniParse, {}},
-      // .session_proto.Vector normal = 4;
+      // .laika_proto.Vector normal = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 2, 1,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.normal_)}},
-      // repeated .session_proto.Vector axes = 5;
+      // repeated .laika_proto.Vector axes = 5;
       {::_pbi::TcParser::FastMtR1,
        {42, 1, 2,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.axes_)}},
@@ -86,28 +86,28 @@ constexpr InteractionFeatureBeam::ParseTableT_ InteractionFeatureBeam::InternalG
     }}, {{
       // int32 end_type = 1;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-      // repeated .session_proto.Polyline volumes = 2;
+      // repeated .laika_proto.Polyline volumes = 2;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.volumes_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Vector normal = 4;
+      // .laika_proto.Vector normal = 4;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.normal_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Vector axes = 5;
+      // repeated .laika_proto.Vector axes = 5;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.axes_), _Internal::kHasBitsOffset + 1, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
     }},
     {{
@@ -256,12 +256,12 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5ffeature_5fbeam_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036interaction_feature_beam.proto\022\nwood_p"
-    "roto\032\016polyline.proto\032\014vector.proto\"\264\001\n\026I"
+    "roto\032\016polyline.proto\032\014vector.proto\"\256\001\n\026I"
     "nteractionFeatureBeam\022\020\n\010end_type\030\001 \001(\005\022"
-    "(\n\007volumes\030\002 \003(\0132\027.session_proto.Polylin"
-    "e\022%\n\006normal\030\004 \001(\0132\025.session_proto.Vector"
-    "\022#\n\004axes\030\005 \003(\0132\025.session_proto.VectorJ\004\010"
-    "\003\020\004R\014contact_guidb\006proto3"
+    "&\n\007volumes\030\002 \003(\0132\025.laika_proto.Polyline\022"
+    "#\n\006normal\030\004 \001(\0132\023.laika_proto.Vector\022!\n\004"
+    "axes\030\005 \003(\0132\023.laika_proto.VectorJ\004\010\003\020\004R\014c"
+    "ontact_guidb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fbeam_2eproto_deps[2] = {
@@ -272,7 +272,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fbeam_2eproto_o
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fbeam_2eproto = {
     false,
     false,
-    265,
+    259,
     descriptor_table_protodef_interaction_5ffeature_5fbeam_2eproto,
     "interaction_feature_beam.proto",
     &descriptor_table_interaction_5ffeature_5fbeam_2eproto_once,
@@ -470,7 +470,7 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline volumes = 2;
+  // repeated .laika_proto.Polyline volumes = 2;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_volumes_size());
@@ -482,14 +482,14 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
     }
   }
 
-  // .session_proto.Vector normal = 4;
+  // .laika_proto.Vector normal = 4;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.normal_, this_._impl_.normal_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.Vector axes = 5;
+  // repeated .laika_proto.Vector axes = 5;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_axes_size());
@@ -525,21 +525,21 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // repeated .session_proto.Polyline volumes = 2;
+    // repeated .laika_proto.Polyline volumes = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_volumes_size();
       for (const auto& msg : this_._internal_volumes()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Vector axes = 5;
+    // repeated .laika_proto.Vector axes = 5;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_axes_size();
       for (const auto& msg : this_._internal_axes()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // .session_proto.Vector normal = 4;
+    // .laika_proto.Vector normal = 4;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.normal_);

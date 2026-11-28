@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/shells/translation_shell.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The translation shell with its default cross section and profile: curves, sections, mesh and plates, each in its group.
@@ -28,5 +28,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_shells_1_translation_shell --parallel 6 && ./build/templates_shells_1_translation_shell && ../bash/publish-scene.sh --target templates_shells_1_translation_shell
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

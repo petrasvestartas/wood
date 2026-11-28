@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Four bifurcated Y-fork columns joined at both stem (dovetail T-bridle) and branch (pegged oblique thrust tenon) into two girders under three conical cross-lap rafters.
@@ -207,5 +207,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_raw_session --parallel 6 && ./build/element_edge_raw_session && ../bash/publish-scene.sh --target element_edge_raw_session
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Butterfly key pocket outline at depth y of the unit box.
@@ -66,5 +66,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_top_top_custom --parallel 6 && ./build/element_joint_plate_top_top_custom && ../bash/publish-scene.sh --target element_joint_plate_top_top_custom
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

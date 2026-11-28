@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/cassette_shell.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A segmented shell of hollow cassettes on the VDA dome.
@@ -35,5 +35,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_2_cassette_shell --parallel 6 && ./build/templates_module_2_cassette_shell && ../bash/publish-scene.sh --target templates_module_2_cassette_shell
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

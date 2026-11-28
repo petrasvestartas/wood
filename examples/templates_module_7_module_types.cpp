@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/spatial_module.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Three closed modules of one size: timber frame, solid plates, and a timber frame under a solid ceiling.
@@ -41,5 +41,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_7_module_types --parallel 6 && ./build/templates_module_7_module_types && ../bash/publish-scene.sh --target templates_module_7_module_types
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

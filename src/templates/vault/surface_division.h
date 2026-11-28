@@ -4,7 +4,7 @@
 #include "mesh.h"
 #include "nurbssurface.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_vault {
 

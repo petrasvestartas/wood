@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/timber_floor/timber_floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_timber_floor;
 
@@ -50,5 +50,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_timber_floor_1_structures --parallel 6 && ./build/templates_timber_floor_1_structures && ../bash/publish-scene.sh --target templates_timber_floor_1_structures
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

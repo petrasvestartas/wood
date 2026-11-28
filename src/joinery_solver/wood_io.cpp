@@ -2,7 +2,7 @@
 #include "wood_io.h"
 #include "wood_config.h"
 #include "wood_session.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 namespace io {

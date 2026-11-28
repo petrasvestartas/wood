@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/module_building.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Two rows of modules facing each other over a corridor of planar panels.
@@ -36,5 +36,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_13_module_corridor --parallel 6 && ./build/templates_module_13_module_corridor && ../bash/publish-scene.sh --target templates_module_13_module_corridor
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

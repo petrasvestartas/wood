@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vault/barrel.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The segmental barrel of the defaults, its staggered voussoirs in contact.
@@ -38,5 +38,5 @@ examples/templates_vault_2_barrel.cpp
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

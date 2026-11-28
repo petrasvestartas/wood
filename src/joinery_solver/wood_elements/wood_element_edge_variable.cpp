@@ -6,7 +6,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -97,10 +97,10 @@ std::shared_ptr<EdgeVariableElement> EdgeVariableElement::from_element(Element e
 
     beam->axis = Line::pb_loads(proto.axis().SerializeAsString());
 
-    for (const session_proto::Polyline& section : proto.sections())
+    for (const laika_proto::Polyline& section : proto.sections())
         beam->sections.push_back(Polyline::pb_loads(section.SerializeAsString()));
 
-    for (const session_proto::Plane& cut : proto.cuts())
+    for (const laika_proto::Plane& cut : proto.cuts())
         beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())

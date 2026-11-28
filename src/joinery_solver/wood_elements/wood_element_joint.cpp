@@ -5,7 +5,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 JointElement::JointElement() : Element("JointElement") {
     is_visible = false;
@@ -447,9 +447,9 @@ std::shared_ptr<JointElement> JointElement::from_element(Element element) {
 
 void JointElement::read_proto(const wood_proto::JointElement& proto) {
 
-    for (const session_proto::Polyline& loop : proto.loops())
+    for (const laika_proto::Polyline& loop : proto.loops())
         loops.push_back(Polyline::pb_loads(loop.SerializeAsString()));
-    for (const session_proto::Plane& cut : proto.cuts())
+    for (const laika_proto::Plane& cut : proto.cuts())
         cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
     targets.assign(proto.targets().begin(), proto.targets().end());
     line_radius = proto.line_radius() > 0 ? proto.line_radius() : 1.0;
@@ -462,9 +462,9 @@ void JointElement::read_proto(const wood_proto::JointElement& proto) {
     }
     if (proto.has_cutter_extrusion())
         cutter_extrusion = Vector::pb_loads(proto.cutter_extrusion().SerializeAsString());
-    for (const session_proto::Polyline& ring : proto.cutter_profile())
+    for (const laika_proto::Polyline& ring : proto.cutter_profile())
         cutter_profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
-    for (const session_proto::Line& axis : proto.drill_lines())
+    for (const laika_proto::Line& axis : proto.drill_lines())
         drill_lines.push_back(Line::pb_loads(axis.SerializeAsString()));
     design = proto.design();
     category = static_cast<JointCategory>(proto.category());
@@ -475,13 +475,13 @@ void JointElement::read_proto(const wood_proto::JointElement& proto) {
         step.target = read.target();
         if (read.has_removal())
             step.removal = Mesh::pb_loads(read.removal().SerializeAsString());
-        for (const session_proto::Plane& plane : read.planes())
+        for (const laika_proto::Plane& plane : read.planes())
             step.planes.push_back(Plane::pb_loads(plane.SerializeAsString()));
         steps.push_back(std::move(step));
     }
     for (const wood_proto::JointInsertion& read : proto.target_insertions()) {
         target_insertions.emplace_back();
-        for (const session_proto::Vector& direction : read.directions())
+        for (const laika_proto::Vector& direction : read.directions())
             target_insertions.back().push_back(Vector::pb_loads(direction.SerializeAsString()));
     }
 }

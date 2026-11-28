@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "src/templates/grid/grid_guide.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_grid {
 

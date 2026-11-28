@@ -87,7 +87,7 @@ fn support_reads_back() {
 }
 
 /// The faces on a rational surface: the cylinders of a wood element.
-fn cylinders(brep: &session_rust::BRep) -> usize {
+fn cylinders(brep: &laika_rs::BRep) -> usize {
     brep.m_faces
         .iter()
         .filter(|face| brep.m_surfaces[face.surface_index as usize].is_rational())
@@ -115,11 +115,11 @@ fn a_drilled_plate_is_exact() {
 fn every_element_is_written_as_a_brep() {
     assert!(matches!(
         plate().to_element().geometry(),
-        session_rust::element::ElementGeometry::BRep(_)
+        laika_rs::element::ElementGeometry::BRep(_)
     ));
     assert!(matches!(
         support().to_element().geometry(),
-        session_rust::element::ElementGeometry::BRep(_)
+        laika_rs::element::ElementGeometry::BRep(_)
     ));
 }
 

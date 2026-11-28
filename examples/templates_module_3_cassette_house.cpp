@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/cassette_shell.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A gable house of six cassettes.
@@ -44,5 +44,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_3_cassette_house --parallel 6 && ./build/templates_module_3_cassette_house && ../bash/publish-scene.sh --target templates_module_3_cassette_house
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

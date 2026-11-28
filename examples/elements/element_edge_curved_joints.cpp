@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Half an arch, side -1 or 1 of the crown at the origin's x, its end cut flat at the crown.
@@ -75,5 +75,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_curved_joints --parallel 6 && ./build/element_edge_curved_joints && ../bash/publish-scene.sh --target element_edge_curved_joints
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

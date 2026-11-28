@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// top_side_bridle on beams: a skew T-bridle rebuilt from photographs of a made joint, a fork around a tongue.
@@ -67,5 +67,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_top_side_bridle --parallel 6 && ./build/element_joint_beam_top_side_bridle && ../bash/publish-scene.sh --target element_joint_beam_top_side_bridle
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

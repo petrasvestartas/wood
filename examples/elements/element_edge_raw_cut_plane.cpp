@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A bifurcated tree fork trimmed across its butt, stem and branch by three cutting planes.
@@ -57,5 +57,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_raw_cut_plane --parallel 6 && ./build/element_edge_raw_cut_plane && ../bash/publish-scene.sh --target element_edge_raw_cut_plane
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

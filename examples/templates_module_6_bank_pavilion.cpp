@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/room_module.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The bank pavilion of four modules.
@@ -59,5 +59,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_6_bank_pavilion --parallel 6 && ./build/templates_module_6_bank_pavilion && ../bash/publish-scene.sh --target templates_module_6_bank_pavilion
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

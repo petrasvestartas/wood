@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 /// The boundary frame and the box beam shared by the reciprocal templates.
 namespace wood_reciprocal {

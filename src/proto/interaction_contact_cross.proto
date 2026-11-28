@@ -8,7 +8,7 @@ import "polyline.proto";
 message InteractionContactCross {
   repeated int32 faces_a = 1;                   // The two side faces of the first element, 2 entries
   repeated int32 faces_b = 2;                   // The two side faces of the second element, 2 entries
-  session_proto.Polyline polygon = 3;           // Closed quad on the mid-plane
-  repeated session_proto.Polyline lines = 4;    // The two perpendicular centrelines of polygon, 2 entries
-  repeated session_proto.Polyline volumes = 5;  // The two parallel quads bounding the joint volume, 2 entries
+  laika_proto.Polyline polygon = 3;           // Closed quad on the mid-plane
+  repeated laika_proto.Polyline lines = 4;    // The two perpendicular centrelines of polygon, 2 entries
+  repeated laika_proto.Polyline volumes = 5;  // The two parallel quads bounding the joint volume, 2 entries
 }

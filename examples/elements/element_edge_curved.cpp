@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Single-curved and double-curved glulam beams (after Tom Svilans' GluLamb).
@@ -88,5 +88,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_curved --parallel 6 && ./build/element_edge_curved && ../bash/publish-scene.sh --target element_edge_curved
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

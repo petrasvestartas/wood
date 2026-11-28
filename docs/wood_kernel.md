@@ -72,5 +72,5 @@ scene.pb_dump(pb_path("live"));
 <div class="wood-links">
   <a href="examples.html#ex_12_solid_features">Solid cuts</a>
   <a href="examples.html#ex_11_drill_solids">Drills</a>
-  <a href="https://petrasvestartas.github.io/session/">Viewer</a>
+  <a href="https://petrasvestartas.github.io/laika/">Viewer</a>
 </div>

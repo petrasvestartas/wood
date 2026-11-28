@@ -29,7 +29,7 @@ No photogrammetry, no structure from motion, no depth estimation, no segmentatio
 | Python, OpenCV 4.13 | `imread`, crops, grid lines and an overlay; `solvePnP` (SQPNP, then iterative), `projectPoints`, `Rodrigues` to solve and check cameras |
 | NumPy 2.5 | vanishing points by cross products, the rectification, residuals |
 | Pillow 12.1 | the comparison sheets: crop and scale only |
-| C++, CMake, MSVC, `wood`, `session_cpp` | the tile, the beams, the example, the test |
+| C++, CMake, MSVC, `wood`, `laika_cpp` | the tile, the beams, the example, the test |
 | Manifold, through wood's `solid_boolean` | the cuts and the overlap measurements |
 | Node, Chrome, the hosted session viewer, `tools/screenshot_viewer.mjs`, `tools/crop_viewer_shot.py` | every grey picture here, real viewer screenshots |
 

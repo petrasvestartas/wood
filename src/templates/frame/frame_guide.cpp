@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "src/templates/frame/frame_guide.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_frame {

@@ -7,7 +7,7 @@
 #include "src/templates/cavity_border.h"
 #include "src/templates/vidy/vidy_joint_kernel.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace {
 
@@ -2688,10 +2688,10 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
         parameters.z[i] = proto.z(i);
     }
 
-    for (const session_proto::Polyline& outline : proto.male())
+    for (const laika_proto::Polyline& outline : proto.male())
         parameters.outlines[0].push_back(Polyline::pb_loads(outline.SerializeAsString()));
 
-    for (const session_proto::Polyline& outline : proto.female())
+    for (const laika_proto::Polyline& outline : proto.female())
         parameters.outlines[1].push_back(Polyline::pb_loads(outline.SerializeAsString()));
 
     return parameters;
@@ -3008,7 +3008,7 @@ void JointPlateElement::read_proto(const wood_proto::JointElement& proto) {
     variant = proto.variant();
     division_distance = proto.division_distance();
     shift = proto.shift();
-    for (const session_proto::Interaction& item : proto.connections()) {
+    for (const laika_proto::Interaction& item : proto.connections()) {
         const std::shared_ptr<InteractionFeaturePlate> connection =
             std::dynamic_pointer_cast<InteractionFeaturePlate>(
                 Interaction::pb_loads(item.SerializeAsString())

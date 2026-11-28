@@ -69,21 +69,21 @@ constexpr JointInsertion::ParseTableT_ JointInsertion::InternalGenerateParseTabl
       ::_pbi::TcParser::GetTable<::wood_proto::JointInsertion>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .session_proto.Vector directions = 1;
+      // repeated .laika_proto.Vector directions = 1;
       {::_pbi::TcParser::FastMtR1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(JointInsertion, _impl_.directions_)}},
     }}, {{
       65535, 65535
     }}, {{
-      // repeated .session_proto.Vector directions = 1;
+      // repeated .laika_proto.Vector directions = 1;
       {PROTOBUF_FIELD_OFFSET(JointInsertion, _impl_.directions_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
     }},
     {{
@@ -268,11 +268,11 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
       {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.merge_with_joint_), 13>(),
        {96, 13, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_)}},
-      // repeated .session_proto.Polyline male = 13;
+      // repeated .laika_proto.Polyline male = 13;
       {::_pbi::TcParser::FastMtR1,
        {106, 3, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.male_)}},
-      // repeated .session_proto.Polyline female = 14;
+      // repeated .laika_proto.Polyline female = 14;
       {::_pbi::TcParser::FastMtR1,
        {114, 4, 1,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.female_)}},
@@ -304,21 +304,21 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.distance_squared_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // bool merge_with_joint = 12;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-      // repeated .session_proto.Polyline male = 13;
+      // repeated .laika_proto.Polyline male = 13;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.male_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline female = 14;
+      // repeated .laika_proto.Polyline female = 14;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.female_), _Internal::kHasBitsOffset + 4, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -488,21 +488,21 @@ constexpr JointCutter::ParseTableT_ JointCutter::InternalGenerateParseTable_(con
       ::_pbi::TcParser::GetTable<::wood_proto::JointCutter>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {::_pbi::TcParser::FastMtR1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(JointCutter, _impl_.loops_)}},
     }}, {{
       65535, 65535
     }}, {{
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {PROTOBUF_FIELD_OFFSET(JointCutter, _impl_.loops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -638,7 +638,7 @@ constexpr JointCutStep::ParseTableT_ JointCutStep::InternalGenerateParseTable_(c
       ::_pbi::TcParser::GetTable<::wood_proto::JointCutStep>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // .session_proto.Mesh removal = 4;
+      // .laika_proto.Mesh removal = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 2, 1,
         PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.removal_)}},
@@ -650,7 +650,7 @@ constexpr JointCutStep::ParseTableT_ JointCutStep::InternalGenerateParseTable_(c
       {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(JointCutStep, _impl_.target_), 3>(),
        {16, 3, 0,
         PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.target_)}},
-      // repeated .session_proto.Plane planes = 3;
+      // repeated .laika_proto.Plane planes = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 0, 0,
         PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.planes_)}},
@@ -661,21 +661,21 @@ constexpr JointCutStep::ParseTableT_ JointCutStep::InternalGenerateParseTable_(c
       {PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.label_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
       // uint32 target = 2;
       {PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.target_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUInt32)},
-      // repeated .session_proto.Plane planes = 3;
+      // repeated .laika_proto.Plane planes = 3;
       {PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.planes_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Mesh removal = 4;
+      // .laika_proto.Mesh removal = 4;
       {PROTOBUF_FIELD_OFFSET(JointCutStep, _impl_.removal_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Mesh>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Mesh>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Mesh_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Mesh_globals_},
         #endif
     }},
     {{
@@ -820,11 +820,11 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {::_pbi::TcParser::FastMtR1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.loops_)}},
-      // repeated .session_proto.Plane cuts = 2;
+      // repeated .laika_proto.Plane cuts = 2;
       {::_pbi::TcParser::FastMtR1,
        {18, 1, 1,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cuts_)}},
@@ -832,11 +832,11 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {::_pbi::TcParser::FastUR1,
        {26, 2, 0,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.targets_)}},
-      // repeated .session_proto.Interaction connections = 4;
+      // repeated .laika_proto.Interaction connections = 4;
       {::_pbi::TcParser::FastMtR1,
        {34, 3, 2,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.connections_)}},
-      // .session_proto.Interaction beam_feature = 5;
+      // .laika_proto.Interaction beam_feature = 5;
       {::_pbi::TcParser::FastMtS1,
        {42, 14, 3,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.beam_feature_)}},
@@ -868,15 +868,15 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {::_pbi::TcParser::FastF64S1,
        {97, 22, 0,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.chord_tolerance_)}},
-      // repeated .session_proto.Polyline cutter_profile = 13;
+      // repeated .laika_proto.Polyline cutter_profile = 13;
       {::_pbi::TcParser::FastMtR1,
        {106, 4, 4,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cutter_profile_)}},
-      // .session_proto.Vector cutter_extrusion = 14;
+      // .laika_proto.Vector cutter_extrusion = 14;
       {::_pbi::TcParser::FastMtS1,
        {114, 15, 5,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cutter_extrusion_)}},
-      // repeated .session_proto.Line drill_lines = 15;
+      // repeated .laika_proto.Line drill_lines = 15;
       {::_pbi::TcParser::FastMtR1,
        {122, 5, 6,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.drill_lines_)}},
@@ -888,7 +888,7 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {::_pbi::TcParser::FastMtS2,
        {394, 16, 7,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.plate_parameters_)}},
-      // repeated .session_proto.Polyline parts = 18;
+      // repeated .laika_proto.Polyline parts = 18;
       {::_pbi::TcParser::FastMtR2,
        {402, 6, 8,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.parts_)}},
@@ -909,7 +909,7 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {::_pbi::TcParser::FastV8S2,
        {440, 25, 0,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.pre_drill_)}},
-      // repeated .session_proto.Vector insertions = 24;
+      // repeated .laika_proto.Vector insertions = 24;
       {::_pbi::TcParser::FastMtR2,
        {450, 9, 11,
         PROTOBUF_FIELD_OFFSET(JointElement, _impl_.insertions_)}},
@@ -941,15 +941,15 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
     }}, {{
       65535, 65535
     }}, {{
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.loops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Plane cuts = 2;
+      // repeated .laika_proto.Plane cuts = 2;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cuts_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated string targets = 3;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.targets_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
-      // repeated .session_proto.Interaction connections = 4;
+      // repeated .laika_proto.Interaction connections = 4;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.connections_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Interaction beam_feature = 5;
+      // .laika_proto.Interaction beam_feature = 5;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.beam_feature_), _Internal::kHasBitsOffset + 14, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // int32 variant = 6;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.variant_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
@@ -965,17 +965,17 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.kind_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
       // double chord_tolerance = 12;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.chord_tolerance_), _Internal::kHasBitsOffset + 22, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .session_proto.Polyline cutter_profile = 13;
+      // repeated .laika_proto.Polyline cutter_profile = 13;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cutter_profile_), _Internal::kHasBitsOffset + 4, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Vector cutter_extrusion = 14;
+      // .laika_proto.Vector cutter_extrusion = 14;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cutter_extrusion_), _Internal::kHasBitsOffset + 15, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Line drill_lines = 15;
+      // repeated .laika_proto.Line drill_lines = 15;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.drill_lines_), _Internal::kHasBitsOffset + 5, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // optional int32 operation = 16;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.operation_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // .wood_proto.JointPlateParameters plate_parameters = 17;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.plate_parameters_), _Internal::kHasBitsOffset + 16, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline parts = 18;
+      // repeated .laika_proto.Polyline parts = 18;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.parts_), _Internal::kHasBitsOffset + 6, 8, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .wood_proto.JointCutter cutters = 19;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cutters_), _Internal::kHasBitsOffset + 7, 9, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
@@ -985,7 +985,7 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.solid_features_), _Internal::kHasBitsOffset + 8, 10, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool pre_drill = 23;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.pre_drill_), _Internal::kHasBitsOffset + 25, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-      // repeated .session_proto.Vector insertions = 24;
+      // repeated .laika_proto.Vector insertions = 24;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.insertions_), _Internal::kHasBitsOffset + 9, 11, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double cut_size = 25;
       {PROTOBUF_FIELD_OFFSET(JointElement, _impl_.cut_size_), _Internal::kHasBitsOffset + 27, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
@@ -1002,39 +1002,39 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Interaction>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Interaction>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Interaction_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Interaction_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Interaction>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Interaction>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Interaction_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Interaction_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::JointPlateParameters>()},
@@ -1042,9 +1042,9 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::JointPlateParameters_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::JointCutter>()},
@@ -1057,9 +1057,9 @@ constexpr JointElement::ParseTableT_ JointElement::InternalGenerateParseTable_(c
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::JointCutStep>()},
@@ -1404,47 +1404,46 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     "\n\023element_joint.proto\022\nwood_proto\032\nmesh."
     "proto\032\016polyline.proto\032\013plane.proto\032\nline"
     ".proto\032\014vector.proto\032\021interaction.proto\032"
-    "\037interaction_feature_solid.proto\"\326\007\n\014Joi"
-    "ntElement\022&\n\005loops\030\001 \003(\0132\027.session_proto"
-    ".Polyline\022\"\n\004cuts\030\002 \003(\0132\024.session_proto."
-    "Plane\022\017\n\007targets\030\003 \003(\t\022/\n\013connections\030\004 "
-    "\003(\0132\032.session_proto.Interaction\0220\n\014beam_"
-    "feature\030\005 \001(\0132\032.session_proto.Interactio"
-    "n\022\017\n\007variant\030\006 \001(\005\022\031\n\021division_distance\030"
-    "\007 \001(\001\022\r\n\005shift\030\010 \001(\001\022\023\n\013line_radius\030\t \001("
-    "\001\022\021\n\tgenerated\030\n \001(\010\022\014\n\004kind\030\013 \001(\t\022\027\n\017ch"
-    "ord_tolerance\030\014 \001(\001\022/\n\016cutter_profile\030\r "
-    "\003(\0132\027.session_proto.Polyline\022/\n\020cutter_e"
-    "xtrusion\030\016 \001(\0132\025.session_proto.Vector\022(\n"
-    "\013drill_lines\030\017 \003(\0132\023.session_proto.Line\022"
-    "\026\n\toperation\030\020 \001(\005H\000\210\001\001\022:\n\020plate_paramet"
-    "ers\030\021 \001(\0132 .wood_proto.JointPlateParamet"
-    "ers\022&\n\005parts\030\022 \003(\0132\027.session_proto.Polyl"
-    "ine\022(\n\007cutters\030\023 \003(\0132\027.wood_proto.JointC"
-    "utter\022\027\n\017drill_overshoot\030\024 \001(\001\022;\n\016solid_"
-    "features\030\025 \003(\0132#.wood_proto.InteractionF"
-    "eatureSolid\022\021\n\tpre_drill\030\027 \001(\010\022\020\n\010cut_si"
-    "ze\030\031 \001(\001\022)\n\ninsertions\030\030 \003(\0132\025.session_p"
-    "roto.Vector\022\016\n\006design\030\032 \001(\t\022\020\n\010category\030"
-    "\033 \001(\005\022\016\n\006family\030\034 \001(\005\022\'\n\005steps\030\035 \003(\0132\030.w"
-    "ood_proto.JointCutStep\0225\n\021target_inserti"
-    "ons\030\036 \003(\0132\032.wood_proto.JointInsertionB\014\n"
-    "\n_operationJ\004\010\026\020\027\"y\n\014JointCutStep\022\r\n\005lab"
-    "el\030\001 \001(\t\022\016\n\006target\030\002 \001(\r\022$\n\006planes\030\003 \003(\013"
-    "2\024.session_proto.Plane\022$\n\007removal\030\004 \001(\0132"
-    "\023.session_proto.Mesh\";\n\016JointInsertion\022)"
-    "\n\ndirections\030\001 \003(\0132\025.session_proto.Vecto"
-    "r\"5\n\013JointCutter\022&\n\005loops\030\001 \003(\0132\027.sessio"
-    "n_proto.Polyline\"\340\002\n\024JointPlateParameter"
-    "s\022\017\n\007library\030\001 \001(\t\022\024\n\014contact_type\030\002 \001(\005"
-    "\022\021\n\tdivisions\030\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007ch"
-    "amfer\030\005 \001(\010\022\033\n\016modify_outline\030\006 \001(\010H\000\210\001\001"
-    "\022\t\n\001x\030\007 \003(\001\022\t\n\001y\030\010 \003(\001\022\t\n\001z\030\t \003(\001\022\031\n\021dis"
-    "able_divisions\030\n \001(\010\022\030\n\020distance_squared"
-    "\030\013 \001(\001\022\030\n\020merge_with_joint\030\014 \001(\010\022%\n\004male"
-    "\030\r \003(\0132\027.session_proto.Polyline\022\'\n\006femal"
-    "e\030\016 \003(\0132\027.session_proto.PolylineB\021\n\017_mod"
-    "ify_outlineb\006proto3"
+    "\037interaction_feature_solid.proto\"\304\007\n\014Joi"
+    "ntElement\022$\n\005loops\030\001 \003(\0132\025.laika_proto.P"
+    "olyline\022 \n\004cuts\030\002 \003(\0132\022.laika_proto.Plan"
+    "e\022\017\n\007targets\030\003 \003(\t\022-\n\013connections\030\004 \003(\0132"
+    "\030.laika_proto.Interaction\022.\n\014beam_featur"
+    "e\030\005 \001(\0132\030.laika_proto.Interaction\022\017\n\007var"
+    "iant\030\006 \001(\005\022\031\n\021division_distance\030\007 \001(\001\022\r\n"
+    "\005shift\030\010 \001(\001\022\023\n\013line_radius\030\t \001(\001\022\021\n\tgen"
+    "erated\030\n \001(\010\022\014\n\004kind\030\013 \001(\t\022\027\n\017chord_tole"
+    "rance\030\014 \001(\001\022-\n\016cutter_profile\030\r \003(\0132\025.la"
+    "ika_proto.Polyline\022-\n\020cutter_extrusion\030\016"
+    " \001(\0132\023.laika_proto.Vector\022&\n\013drill_lines"
+    "\030\017 \003(\0132\021.laika_proto.Line\022\026\n\toperation\030\020"
+    " \001(\005H\000\210\001\001\022:\n\020plate_parameters\030\021 \001(\0132 .wo"
+    "od_proto.JointPlateParameters\022$\n\005parts\030\022"
+    " \003(\0132\025.laika_proto.Polyline\022(\n\007cutters\030\023"
+    " \003(\0132\027.wood_proto.JointCutter\022\027\n\017drill_o"
+    "vershoot\030\024 \001(\001\022;\n\016solid_features\030\025 \003(\0132#"
+    ".wood_proto.InteractionFeatureSolid\022\021\n\tp"
+    "re_drill\030\027 \001(\010\022\020\n\010cut_size\030\031 \001(\001\022\'\n\ninse"
+    "rtions\030\030 \003(\0132\023.laika_proto.Vector\022\016\n\006des"
+    "ign\030\032 \001(\t\022\020\n\010category\030\033 \001(\005\022\016\n\006family\030\034 "
+    "\001(\005\022\'\n\005steps\030\035 \003(\0132\030.wood_proto.JointCut"
+    "Step\0225\n\021target_insertions\030\036 \003(\0132\032.wood_p"
+    "roto.JointInsertionB\014\n\n_operationJ\004\010\026\020\027\""
+    "u\n\014JointCutStep\022\r\n\005label\030\001 \001(\t\022\016\n\006target"
+    "\030\002 \001(\r\022\"\n\006planes\030\003 \003(\0132\022.laika_proto.Pla"
+    "ne\022\"\n\007removal\030\004 \001(\0132\021.laika_proto.Mesh\"9"
+    "\n\016JointInsertion\022\'\n\ndirections\030\001 \003(\0132\023.l"
+    "aika_proto.Vector\"3\n\013JointCutter\022$\n\005loop"
+    "s\030\001 \003(\0132\025.laika_proto.Polyline\"\334\002\n\024Joint"
+    "PlateParameters\022\017\n\007library\030\001 \001(\t\022\024\n\014cont"
+    "act_type\030\002 \001(\005\022\021\n\tdivisions\030\003 \001(\005\022\r\n\005tap"
+    "er\030\004 \001(\001\022\017\n\007chamfer\030\005 \001(\010\022\033\n\016modify_outl"
+    "ine\030\006 \001(\010H\000\210\001\001\022\t\n\001x\030\007 \003(\001\022\t\n\001y\030\010 \003(\001\022\t\n\001"
+    "z\030\t \003(\001\022\031\n\021disable_divisions\030\n \001(\010\022\030\n\020di"
+    "stance_squared\030\013 \001(\001\022\030\n\020merge_with_joint"
+    "\030\014 \001(\010\022#\n\004male\030\r \003(\0132\025.laika_proto.Polyl"
+    "ine\022%\n\006female\030\016 \003(\0132\025.laika_proto.Polyli"
+    "neB\021\n\017_modify_outlineb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fjoint_2eproto_deps[7] = {
@@ -1460,7 +1459,7 @@ static ::absl::once_flag descriptor_table_element_5fjoint_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fjoint_2eproto = {
     false,
     false,
-    1739,
+    1709,
     descriptor_table_protodef_element_5fjoint_2eproto,
     "element_joint.proto",
     &descriptor_table_element_5fjoint_2eproto_once,
@@ -1883,7 +1882,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // repeated .session_proto.Polyline loops = 1;
+  // repeated .laika_proto.Polyline loops = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_loops_size());
@@ -1895,7 +1894,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Plane cuts = 2;
+  // repeated .laika_proto.Plane cuts = 2;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_cuts_size());
@@ -1917,7 +1916,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Interaction connections = 4;
+  // repeated .laika_proto.Interaction connections = 4;
   if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_connections_size());
@@ -1929,7 +1928,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // .session_proto.Interaction beam_feature = 5;
+  // .laika_proto.Interaction beam_feature = 5;
   if (CheckHasBit(cached_has_bits, 0x00004000U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         5, *this_._impl_.beam_feature_, this_._impl_.beam_feature_->GetCachedSize(), target,
@@ -2000,7 +1999,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline cutter_profile = 13;
+  // repeated .laika_proto.Polyline cutter_profile = 13;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_cutter_profile_size());
@@ -2012,14 +2011,14 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // .session_proto.Vector cutter_extrusion = 14;
+  // .laika_proto.Vector cutter_extrusion = 14;
   if (CheckHasBit(cached_has_bits, 0x00008000U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         14, *this_._impl_.cutter_extrusion_, this_._impl_.cutter_extrusion_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.Line drill_lines = 15;
+  // repeated .laika_proto.Line drill_lines = 15;
   if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_drill_lines_size());
@@ -2045,7 +2044,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
         stream);
   }
 
-  // repeated .session_proto.Polyline parts = 18;
+  // repeated .laika_proto.Polyline parts = 18;
   if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_parts_size());
@@ -2099,7 +2098,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Vector insertions = 24;
+  // repeated .laika_proto.Vector insertions = 24;
   if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_insertions_size());
@@ -2196,14 +2195,14 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
-    // repeated .session_proto.Polyline loops = 1;
+    // repeated .laika_proto.Polyline loops = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_loops_size();
       for (const auto& msg : this_._internal_loops()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Plane cuts = 2;
+    // repeated .laika_proto.Plane cuts = 2;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_cuts_size();
       for (const auto& msg : this_._internal_cuts()) {
@@ -2219,28 +2218,28 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
             this_._internal_targets().Get(i));
       }
     }
-    // repeated .session_proto.Interaction connections = 4;
+    // repeated .laika_proto.Interaction connections = 4;
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1UL * this_._internal_connections_size();
       for (const auto& msg : this_._internal_connections()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline cutter_profile = 13;
+    // repeated .laika_proto.Polyline cutter_profile = 13;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1UL * this_._internal_cutter_profile_size();
       for (const auto& msg : this_._internal_cutter_profile()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Line drill_lines = 15;
+    // repeated .laika_proto.Line drill_lines = 15;
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1UL * this_._internal_drill_lines_size();
       for (const auto& msg : this_._internal_drill_lines()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline parts = 18;
+    // repeated .laika_proto.Polyline parts = 18;
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 2UL * this_._internal_parts_size();
       for (const auto& msg : this_._internal_parts()) {
@@ -2263,7 +2262,7 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Vector insertions = 24;
+    // repeated .laika_proto.Vector insertions = 24;
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       total_size += 2UL * this_._internal_insertions_size();
       for (const auto& msg : this_._internal_insertions()) {
@@ -2298,12 +2297,12 @@ PROTOBUF_NOINLINE void JointElement::Clear() {
                                         this_._internal_design());
       }
     }
-    // .session_proto.Interaction beam_feature = 5;
+    // .laika_proto.Interaction beam_feature = 5;
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.beam_feature_);
     }
-    // .session_proto.Vector cutter_extrusion = 14;
+    // .laika_proto.Vector cutter_extrusion = 14;
     if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.cutter_extrusion_);
@@ -2802,7 +2801,7 @@ PROTOBUF_NOINLINE void JointCutStep::Clear() {
     }
   }
 
-  // repeated .session_proto.Plane planes = 3;
+  // repeated .laika_proto.Plane planes = 3;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_planes_size());
@@ -2814,7 +2813,7 @@ PROTOBUF_NOINLINE void JointCutStep::Clear() {
     }
   }
 
-  // .session_proto.Mesh removal = 4;
+  // .laika_proto.Mesh removal = 4;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.removal_, this_._impl_.removal_->GetCachedSize(), target,
@@ -2845,7 +2844,7 @@ PROTOBUF_NOINLINE void JointCutStep::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // repeated .session_proto.Plane planes = 3;
+    // repeated .laika_proto.Plane planes = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_planes_size();
       for (const auto& msg : this_._internal_planes()) {
@@ -2859,7 +2858,7 @@ PROTOBUF_NOINLINE void JointCutStep::Clear() {
                                         this_._internal_label());
       }
     }
-    // .session_proto.Mesh removal = 4;
+    // .laika_proto.Mesh removal = 4;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.removal_);
@@ -3082,7 +3081,7 @@ PROTOBUF_NOINLINE void JointInsertion::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // repeated .session_proto.Vector directions = 1;
+  // repeated .laika_proto.Vector directions = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_directions_size());
@@ -3117,7 +3116,7 @@ PROTOBUF_NOINLINE void JointInsertion::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
    {
-    // repeated .session_proto.Vector directions = 1;
+    // repeated .laika_proto.Vector directions = 1;
     cached_has_bits = this_._impl_._has_bits_[0];
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_directions_size();
@@ -3303,7 +3302,7 @@ PROTOBUF_NOINLINE void JointCutter::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // repeated .session_proto.Polyline loops = 1;
+  // repeated .laika_proto.Polyline loops = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_loops_size());
@@ -3338,7 +3337,7 @@ PROTOBUF_NOINLINE void JointCutter::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
    {
-    // repeated .session_proto.Polyline loops = 1;
+    // repeated .laika_proto.Polyline loops = 1;
     cached_has_bits = this_._impl_._has_bits_[0];
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_loops_size();
@@ -3725,7 +3724,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline male = 13;
+  // repeated .laika_proto.Polyline male = 13;
   if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_male_size());
@@ -3737,7 +3736,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline female = 14;
+  // repeated .laika_proto.Polyline female = 14;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_female_size());
@@ -3804,14 +3803,14 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
                               static_cast<::int32_t>(data_size));
       total_size += tag_size + data_size;
     }
-    // repeated .session_proto.Polyline male = 13;
+    // repeated .laika_proto.Polyline male = 13;
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1UL * this_._internal_male_size();
       for (const auto& msg : this_._internal_male()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline female = 14;
+    // repeated .laika_proto.Polyline female = 14;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1UL * this_._internal_female_size();
       for (const auto& msg : this_._internal_female()) {

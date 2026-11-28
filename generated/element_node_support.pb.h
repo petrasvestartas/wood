@@ -238,19 +238,19 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeSupportElement final : public :
     kChordToleranceFieldNumber = 22,
     kPinCountFieldNumber = 15,
   };
-  // .session_proto.Plane plane = 1;
+  // .laika_proto.Plane plane = 1;
   [[nodiscard]] bool has_plane() const;
   void clear_plane() ;
-  [[nodiscard]] const ::session_proto::Plane& plane() const;
-  [[nodiscard]] ::session_proto::Plane* PROTOBUF_NULLABLE release_plane();
-  ::session_proto::Plane* PROTOBUF_NONNULL mutable_plane();
-  void set_allocated_plane(::session_proto::Plane* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_plane(::session_proto::Plane* PROTOBUF_NULLABLE value);
-  ::session_proto::Plane* PROTOBUF_NULLABLE unsafe_arena_release_plane();
+  [[nodiscard]] const ::laika_proto::Plane& plane() const;
+  [[nodiscard]] ::laika_proto::Plane* PROTOBUF_NULLABLE release_plane();
+  ::laika_proto::Plane* PROTOBUF_NONNULL mutable_plane();
+  void set_allocated_plane(::laika_proto::Plane* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_plane(::laika_proto::Plane* PROTOBUF_NULLABLE value);
+  ::laika_proto::Plane* PROTOBUF_NULLABLE unsafe_arena_release_plane();
 
   private:
-  const ::session_proto::Plane& _internal_plane() const;
-  ::session_proto::Plane* PROTOBUF_NONNULL _internal_mutable_plane();
+  const ::laika_proto::Plane& _internal_plane() const;
+  ::laika_proto::Plane* PROTOBUF_NONNULL _internal_mutable_plane();
 
   public:
   // double height = 2;
@@ -496,7 +496,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeSupportElement final : public :
         const NodeSupportElement& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::session_proto::Plane* PROTOBUF_NULLABLE plane_;
+    ::laika_proto::Plane* PROTOBUF_NULLABLE plane_;
     double height_;
     double head_plate_diameter_;
     double head_plate_thickness_;
@@ -540,28 +540,28 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeSupportElement final : public :
 
 // NodeSupportElement
 
-// .session_proto.Plane plane = 1;
+// .laika_proto.Plane plane = 1;
 inline bool NodeSupportElement::has_plane() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
   PROTOBUF_ASSUME(!value || _impl_.plane_ != nullptr);
   return value;
 }
-inline const ::session_proto::Plane& NodeSupportElement::_internal_plane() const {
+inline const ::laika_proto::Plane& NodeSupportElement::_internal_plane() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Plane* p = _impl_.plane_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Plane>(&::session_proto::Plane_globals_);
+  const ::laika_proto::Plane* p = _impl_.plane_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Plane>(&::laika_proto::Plane_globals_);
 }
-inline const ::session_proto::Plane& NodeSupportElement::plane() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Plane& NodeSupportElement::plane() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.NodeSupportElement.plane)
   return _internal_plane();
 }
 inline void NodeSupportElement::unsafe_arena_set_allocated_plane(
-    ::session_proto::Plane* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Plane* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.plane_);
   }
-  _impl_.plane_ = reinterpret_cast<::session_proto::Plane*>(value);
+  _impl_.plane_ = reinterpret_cast<::laika_proto::Plane*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
@@ -569,11 +569,11 @@ inline void NodeSupportElement::unsafe_arena_set_allocated_plane(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.NodeSupportElement.plane)
 }
-inline ::session_proto::Plane* PROTOBUF_NULLABLE NodeSupportElement::release_plane() {
+inline ::laika_proto::Plane* PROTOBUF_NULLABLE NodeSupportElement::release_plane() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Plane* released = _impl_.plane_;
+  ::laika_proto::Plane* released = _impl_.plane_;
   _impl_.plane_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -588,31 +588,31 @@ inline ::session_proto::Plane* PROTOBUF_NULLABLE NodeSupportElement::release_pla
   }
   return released;
 }
-inline ::session_proto::Plane* PROTOBUF_NULLABLE NodeSupportElement::unsafe_arena_release_plane() {
+inline ::laika_proto::Plane* PROTOBUF_NULLABLE NodeSupportElement::unsafe_arena_release_plane() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.NodeSupportElement.plane)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Plane* temp = _impl_.plane_;
+  ::laika_proto::Plane* temp = _impl_.plane_;
   _impl_.plane_ = nullptr;
   return temp;
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL NodeSupportElement::_internal_mutable_plane() {
+inline ::laika_proto::Plane* PROTOBUF_NONNULL NodeSupportElement::_internal_mutable_plane() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.plane_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Plane>(GetArena());
-    _impl_.plane_ = reinterpret_cast<::session_proto::Plane*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Plane>(GetArena());
+    _impl_.plane_ = reinterpret_cast<::laika_proto::Plane*>(p);
   }
   return _impl_.plane_;
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL NodeSupportElement::mutable_plane()
+inline ::laika_proto::Plane* PROTOBUF_NONNULL NodeSupportElement::mutable_plane()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
-  ::session_proto::Plane* _msg = _internal_mutable_plane();
+  ::laika_proto::Plane* _msg = _internal_mutable_plane();
   // @@protoc_insertion_point(field_mutable:wood_proto.NodeSupportElement.plane)
   return _msg;
 }
-inline void NodeSupportElement::set_allocated_plane(::session_proto::Plane* PROTOBUF_NULLABLE value) {
+inline void NodeSupportElement::set_allocated_plane(::laika_proto::Plane* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -629,7 +629,7 @@ inline void NodeSupportElement::set_allocated_plane(::session_proto::Plane* PROT
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
 
-  _impl_.plane_ = reinterpret_cast<::session_proto::Plane*>(value);
+  _impl_.plane_ = reinterpret_cast<::laika_proto::Plane*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.NodeSupportElement.plane)
 }
 

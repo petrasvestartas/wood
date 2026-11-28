@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/wall.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A framed wall module with a door and a window.
@@ -32,5 +32,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_1_wall --parallel 6 && ./build/templates_module_1_wall && ../bash/publish-scene.sh --target templates_module_1_wall
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

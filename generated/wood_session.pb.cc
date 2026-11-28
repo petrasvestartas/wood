@@ -365,31 +365,31 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
       {::_pbi::TcParser::FastUS1,
        {18, 4, 0,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.guid_)}},
-      // .session_proto.Objects objects = 3;
+      // .laika_proto.Objects objects = 3;
       {::_pbi::TcParser::FastMtS1,
        {26, 5, 0,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_)}},
-      // .session_proto.Tree tree = 4;
+      // .laika_proto.Tree tree = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 6, 1,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.tree_)}},
-      // .session_proto.Graph graph = 5;
+      // .laika_proto.Graph graph = 5;
       {::_pbi::TcParser::FastMtS1,
        {42, 7, 2,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.graph_)}},
-      // repeated .session_proto.BoundingBox bvh_boxes = 6;
+      // repeated .laika_proto.BoundingBox bvh_boxes = 6;
       {::_pbi::TcParser::FastMtR1,
        {50, 0, 3,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.bvh_boxes_)}},
-      // repeated .session_proto.XformEntry xforms = 7;
+      // repeated .laika_proto.XformEntry xforms = 7;
       {::_pbi::TcParser::FastMtR1,
        {58, 1, 4,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.xforms_)}},
-      // .session_proto.Objects definitions = 8;
+      // .laika_proto.Objects definitions = 8;
       {::_pbi::TcParser::FastMtS1,
        {66, 8, 5,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_)}},
-      // repeated .session_proto.InteractionEntry interactions = 9;
+      // repeated .laika_proto.InteractionEntry interactions = 9;
       {::_pbi::TcParser::FastMtR1,
        {74, 2, 6,
         PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_)}},
@@ -408,19 +408,19 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.name_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
       // string guid = 2;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.guid_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-      // .session_proto.Objects objects = 3;
+      // .laika_proto.Objects objects = 3;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Tree tree = 4;
+      // .laika_proto.Tree tree = 4;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.tree_), _Internal::kHasBitsOffset + 6, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Graph graph = 5;
+      // .laika_proto.Graph graph = 5;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.graph_), _Internal::kHasBitsOffset + 7, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.BoundingBox bvh_boxes = 6;
+      // repeated .laika_proto.BoundingBox bvh_boxes = 6;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.bvh_boxes_), _Internal::kHasBitsOffset + 0, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.XformEntry xforms = 7;
+      // repeated .laika_proto.XformEntry xforms = 7;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.xforms_), _Internal::kHasBitsOffset + 1, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Objects definitions = 8;
+      // .laika_proto.Objects definitions = 8;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_), _Internal::kHasBitsOffset + 8, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.InteractionEntry interactions = 9;
+      // repeated .laika_proto.InteractionEntry interactions = 9;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_), _Internal::kHasBitsOffset + 2, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // .wood_proto.Settings settings = 101;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.settings_), _Internal::kHasBitsOffset + 9, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
@@ -431,39 +431,39 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Objects>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Objects>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Objects_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Objects_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Tree>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Tree>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Tree_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Tree_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Graph>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Graph>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Graph_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Graph_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::BoundingBox>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::BoundingBox>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::BoundingBox_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::BoundingBox_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::XformEntry>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::XformEntry>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::XformEntry_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::XformEntry_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Objects>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Objects>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Objects_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Objects_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::InteractionEntry>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::InteractionEntry>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::InteractionEntry_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::InteractionEntry_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::Settings>()},
@@ -689,21 +689,20 @@ const char descriptor_table_protodef_wood_5fsession_2eproto[] ABSL_ATTRIBUTE_SEC
     "\n\022wood_session.proto\022\nwood_proto\032\robject"
     "s.proto\032\ntree.proto\032\013graph.proto\032\021boundi"
     "ngbox.proto\032\rsession.proto\032\016settings.pro"
-    "to\"\337\003\n\013WoodSession\022\014\n\004name\030\001 \001(\t\022\014\n\004guid"
-    "\030\002 \001(\t\022\'\n\007objects\030\003 \001(\0132\026.session_proto."
-    "Objects\022!\n\004tree\030\004 \001(\0132\023.session_proto.Tr"
-    "ee\022#\n\005graph\030\005 \001(\0132\024.session_proto.Graph\022"
-    "-\n\tbvh_boxes\030\006 \003(\0132\032.session_proto.Bound"
-    "ingBox\022)\n\006xforms\030\007 \003(\0132\031.session_proto.X"
-    "formEntry\022+\n\013definitions\030\010 \001(\0132\026.session"
-    "_proto.Objects\0225\n\014interactions\030\t \003(\0132\037.s"
-    "ession_proto.InteractionEntry\022&\n\010setting"
-    "s\030e \001(\0132\024.wood_proto.Settings\022(\n\tadjacen"
-    "cy\030f \003(\0132\025.wood_proto.PlatePair\022-\n\rthree"
-    "_valence\030g \003(\0132\026.wood_proto.PlateGroupJ\004"
-    "\010d\020e\"*\n\tPlatePair\022\r\n\005first\030\001 \001(\005\022\016\n\006seco"
-    "nd\030\002 \001(\005\"\034\n\nPlateGroup\022\016\n\006values\030\001 \003(\005b\006"
-    "proto3"
+    "to\"\321\003\n\013WoodSession\022\014\n\004name\030\001 \001(\t\022\014\n\004guid"
+    "\030\002 \001(\t\022%\n\007objects\030\003 \001(\0132\024.laika_proto.Ob"
+    "jects\022\037\n\004tree\030\004 \001(\0132\021.laika_proto.Tree\022!"
+    "\n\005graph\030\005 \001(\0132\022.laika_proto.Graph\022+\n\tbvh"
+    "_boxes\030\006 \003(\0132\030.laika_proto.BoundingBox\022\'"
+    "\n\006xforms\030\007 \003(\0132\027.laika_proto.XformEntry\022"
+    ")\n\013definitions\030\010 \001(\0132\024.laika_proto.Objec"
+    "ts\0223\n\014interactions\030\t \003(\0132\035.laika_proto.I"
+    "nteractionEntry\022&\n\010settings\030e \001(\0132\024.wood"
+    "_proto.Settings\022(\n\tadjacency\030f \003(\0132\025.woo"
+    "d_proto.PlatePair\022-\n\rthree_valence\030g \003(\013"
+    "2\026.wood_proto.PlateGroupJ\004\010d\020e\"*\n\tPlateP"
+    "air\022\r\n\005first\030\001 \001(\005\022\016\n\006second\030\002 \001(\005\"\034\n\nPl"
+    "ateGroup\022\016\n\006values\030\001 \003(\005b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_wood_5fsession_2eproto_deps[6] = {
@@ -718,7 +717,7 @@ static ::absl::once_flag descriptor_table_wood_5fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_wood_5fsession_2eproto = {
     false,
     false,
-    686,
+    672,
     descriptor_table_protodef_wood_5fsession_2eproto,
     "wood_session.proto",
     &descriptor_table_wood_5fsession_2eproto_once,
@@ -1041,28 +1040,28 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     }
   }
 
-  // .session_proto.Objects objects = 3;
+  // .laika_proto.Objects objects = 3;
   if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         3, *this_._impl_.objects_, this_._impl_.objects_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.Tree tree = 4;
+  // .laika_proto.Tree tree = 4;
   if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.tree_, this_._impl_.tree_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.Graph graph = 5;
+  // .laika_proto.Graph graph = 5;
   if (CheckHasBit(cached_has_bits, 0x00000080U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         5, *this_._impl_.graph_, this_._impl_.graph_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.BoundingBox bvh_boxes = 6;
+  // repeated .laika_proto.BoundingBox bvh_boxes = 6;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_bvh_boxes_size());
@@ -1074,7 +1073,7 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     }
   }
 
-  // repeated .session_proto.XformEntry xforms = 7;
+  // repeated .laika_proto.XformEntry xforms = 7;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_xforms_size());
@@ -1086,14 +1085,14 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     }
   }
 
-  // .session_proto.Objects definitions = 8;
+  // .laika_proto.Objects definitions = 8;
   if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         8, *this_._impl_.definitions_, this_._impl_.definitions_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.InteractionEntry interactions = 9;
+  // repeated .laika_proto.InteractionEntry interactions = 9;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_interactions_size());
@@ -1160,21 +1159,21 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
-    // repeated .session_proto.BoundingBox bvh_boxes = 6;
+    // repeated .laika_proto.BoundingBox bvh_boxes = 6;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_bvh_boxes_size();
       for (const auto& msg : this_._internal_bvh_boxes()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.XformEntry xforms = 7;
+    // repeated .laika_proto.XformEntry xforms = 7;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_xforms_size();
       for (const auto& msg : this_._internal_xforms()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.InteractionEntry interactions = 9;
+    // repeated .laika_proto.InteractionEntry interactions = 9;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1UL * this_._internal_interactions_size();
       for (const auto& msg : this_._internal_interactions()) {
@@ -1195,24 +1194,24 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
                                         this_._internal_guid());
       }
     }
-    // .session_proto.Objects objects = 3;
+    // .laika_proto.Objects objects = 3;
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.objects_);
     }
-    // .session_proto.Tree tree = 4;
+    // .laika_proto.Tree tree = 4;
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.tree_);
     }
-    // .session_proto.Graph graph = 5;
+    // .laika_proto.Graph graph = 5;
     if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.graph_);
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
-    // .session_proto.Objects definitions = 8;
+    // .laika_proto.Objects definitions = 8;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.definitions_);

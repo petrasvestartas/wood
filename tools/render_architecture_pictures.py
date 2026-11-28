@@ -31,7 +31,7 @@ TEXT = (30, 30, 30)
 
 SCENE = r"""
 import sys
-from session_py.session import Session
+from laika_py.session import Session
 scene = Session.pb_load(sys.argv[1])
 branch = scene if sys.argv[2] == "all" else scene.get_branch(sys.argv[2])
 kinds = sys.argv[4].split(",") if sys.argv[4] else []

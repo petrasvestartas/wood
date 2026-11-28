@@ -200,7 +200,7 @@ The user marked a line down a post's round face in compare_a_above and asked for
 - Not traced: why the post's strips split into two runs there. Suspected, not proved: the angle wrap or the height grouping in `round_cut_brep`. Stopped, because that code is due to be replaced.
 - Sewn solid: not close. Step 8 stands. `round_cut_brep` lays faces side by side with no shared edges, volume 9.50e6 against 8.95e6, mesh open. Sewing it was not started.
 
-Plan changed by the main session: `brep-boolean` is fixing `BRep::boolean_difference` in session_cpp, and the column will be rebuilt through the real boolean then. Nothing changed in the code for this step. So the lines are still there, and the page's note stands.
+Plan changed by the main session: `brep-boolean` is fixing `BRep::boolean_difference` in laika_cpp, and the column will be rebuilt through the real boolean then. Nothing changed in the code for this step. So the lines are still there, and the page's note stands.
 
 ## Step 12: column_head from one column and four beams, at any angle
 

@@ -5,7 +5,7 @@
 #include "wood_interaction_contact.h"
 #include "wood_interaction_contact_face_type.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

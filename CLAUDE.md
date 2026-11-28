@@ -149,7 +149,7 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 ## Kernel first
 
 - Before writing a geometry or scene helper in wood, search the kernel headers
-  (`../session/session_cpp/src/*.h`: Point, Vector, Line, Plane, Polyline, Mesh, Xform,
+  (`../session/laika_cpp/src/*.h`: Point, Vector, Line, Plane, Polyline, Mesh, Xform,
   Intersection, Closest, ConvexHull, BooleanPolyline, Session). If it exists, call it
   directly; never re-implement its math and never wrap it only to rename it.
 - If the operation is missing and is not timber-specific, propose it for the kernel
@@ -172,9 +172,9 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
 
-  - Use namescapes of session_cpp and wood_session:
+  - Use namescapes of laika_cpp and wood_session:
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
   - Add a main function:
@@ -209,7 +209,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_floor_1_floorguide --parallel 6 && ./build/templates_floor_1_floorguide && ../bash/publish-scene.sh --target templates_floor_1_floorguide
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */
 
 ## Elements: example, picture and page

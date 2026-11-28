@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The contacts of the square floor: the face every two joined members share, drawn red by the viewer.
@@ -33,5 +33,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_floor_3_contacts --parallel 6 && ./build/templates_floor_3_contacts && ../bash/publish-scene.sh --target templates_floor_3_contacts
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
+https://petrasvestartas.github.io/laika/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
 */

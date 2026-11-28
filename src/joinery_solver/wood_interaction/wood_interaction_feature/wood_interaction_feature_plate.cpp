@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_interaction_feature_plate.h"
 #include "interaction_feature_plate.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 
@@ -21,7 +21,7 @@ static std::vector<Polyline> rings_from_pb(const wood_proto::PolylineList& list)
 
     std::vector<Polyline> rings;
 
-    for (const session_proto::Polyline& ring : list.items())
+    for (const laika_proto::Polyline& ring : list.items())
         rings.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
     return rings;
@@ -148,7 +148,7 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
 
     for (const std::optional<Polyline>& volume : joint_volumes) {
 
-        session_proto::Polyline* slot = proto.add_joint_volumes();
+        laika_proto::Polyline* slot = proto.add_joint_volumes();
 
         if (volume.has_value())
             if (!slot->ParseFromString(volume->pb_dumps()))

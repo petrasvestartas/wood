@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Pins centred across the contact of two stacked blocks, bored into both.
@@ -42,5 +42,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_beam_centred_pins --parallel 6 && ./build/element_joint_beam_centred_pins && ../bash/publish-scene.sh --target element_joint_beam_centred_pins
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

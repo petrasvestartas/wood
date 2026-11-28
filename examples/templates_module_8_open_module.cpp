@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/module/spatial_module.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A frame module open on both long sides and a module open on one, braced for transport.
@@ -42,5 +42,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_module_8_open_module --parallel 6 && ./build/templates_module_8_open_module && ../bash/publish-scene.sh --target templates_module_8_open_module
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -2,7 +2,7 @@
 #include "wood_merge_modifier.h"
 #include "wood_session.h"
 #include "wood_element_geometry.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 constexpr bool TRACE = false;
 

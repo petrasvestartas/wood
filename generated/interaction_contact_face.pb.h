@@ -223,59 +223,59 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
     kFaceBFieldNumber = 2,
     kTypeFieldNumber = 3,
   };
-  // repeated .session_proto.Line lines = 5;
+  // repeated .laika_proto.Line lines = 5;
   [[nodiscard]] int lines_size() const;
   private:
   int _internal_lines_size() const;
 
   public:
   void clear_lines() ;
-  [[nodiscard]] const ::session_proto::Line& lines(int index) const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_lines(int index);
-  ::session_proto::Line* PROTOBUF_NONNULL add_lines();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  [[nodiscard]] const ::laika_proto::Line& lines(int index) const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NONNULL mutable_lines(int index);
+  ::laika_proto::Line* PROTOBUF_NONNULL add_lines();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
   lines() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
   mutable_lines();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_lines() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_lines();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& _internal_lines() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL _internal_mutable_lines();
 
   public:
-  // repeated .session_proto.Polyline volumes = 6;
+  // repeated .laika_proto.Polyline volumes = 6;
   [[nodiscard]] int volumes_size() const;
   private:
   int _internal_volumes_size() const;
 
   public:
   void clear_volumes() ;
-  [[nodiscard]] const ::session_proto::Polyline& volumes(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_volumes(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_volumes();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& volumes(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_volumes(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_volumes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   volumes() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_volumes();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_volumes() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_volumes();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_volumes() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_volumes();
 
   public:
-  // .session_proto.Polyline polygon = 4;
+  // .laika_proto.Polyline polygon = 4;
   [[nodiscard]] bool has_polygon() const;
   void clear_polygon() ;
-  [[nodiscard]] const ::session_proto::Polyline& polygon() const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NULLABLE release_polygon();
-  ::session_proto::Polyline* PROTOBUF_NONNULL mutable_polygon();
-  void set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  ::session_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_polygon();
+  [[nodiscard]] const ::laika_proto::Polyline& polygon() const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NULLABLE release_polygon();
+  ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_polygon();
+  void set_allocated_polygon(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_polygon(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  ::laika_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_polygon();
 
   private:
-  const ::session_proto::Polyline& _internal_polygon() const;
-  ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_polygon();
+  const ::laika_proto::Polyline& _internal_polygon() const;
+  ::laika_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_polygon();
 
   public:
   // int32 face_a = 1;
@@ -341,9 +341,9 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
         const InteractionContactFace& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > lines_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > volumes_;
-    ::session_proto::Polyline* PROTOBUF_NULLABLE polygon_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Line > lines_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > volumes_;
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE polygon_;
     ::int32_t face_a_;
     ::int32_t face_b_;
     ::int32_t type_;
@@ -369,101 +369,101 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
 
 // InteractionContactFace
 
-// repeated .session_proto.Line lines = 5;
+// repeated .laika_proto.Line lines = 5;
 inline int InteractionContactFace::_internal_lines_size() const {
   return _internal_lines().size();
 }
 inline int InteractionContactFace::lines_size() const {
   return _internal_lines_size();
 }
-inline const ::session_proto::Line& InteractionContactFace::lines(int index) const
+inline const ::laika_proto::Line& InteractionContactFace::lines(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.lines)
   return _internal_lines().Get(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactFace::mutable_lines(int index)
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionContactFace::mutable_lines(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.lines)
   return _internal_mutable_lines()->Mutable(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactFace::add_lines()
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionContactFace::add_lines()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Line* _add =
+  ::laika_proto::Line* _add =
       _internal_mutable_lines()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionContactFace.lines)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionContactFace::lines() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& InteractionContactFace::lines() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionContactFace.lines)
   return _internal_lines();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionContactFace::mutable_lines() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactFace.lines)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_lines();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
 InteractionContactFace::_internal_lines() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.lines_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionContactFace::_internal_mutable_lines() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.lines_;
 }
 
-// repeated .session_proto.Polyline volumes = 6;
+// repeated .laika_proto.Polyline volumes = 6;
 inline int InteractionContactFace::_internal_volumes_size() const {
   return _internal_volumes().size();
 }
 inline int InteractionContactFace::volumes_size() const {
   return _internal_volumes_size();
 }
-inline const ::session_proto::Polyline& InteractionContactFace::volumes(int index) const
+inline const ::laika_proto::Polyline& InteractionContactFace::volumes(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.volumes)
   return _internal_volumes().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_volumes(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_volumes(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.volumes)
   return _internal_mutable_volumes()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::add_volumes()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::add_volumes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_volumes()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionContactFace.volumes)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionContactFace::volumes() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& InteractionContactFace::volumes() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionContactFace.volumes)
   return _internal_volumes();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionContactFace::mutable_volumes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactFace.volumes)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_volumes();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 InteractionContactFace::_internal_volumes() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.volumes_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionContactFace::_internal_mutable_volumes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.volumes_;
@@ -541,28 +541,28 @@ inline void InteractionContactFace::_internal_set_type(::int32_t value) {
   _impl_.type_ = value;
 }
 
-// .session_proto.Polyline polygon = 4;
+// .laika_proto.Polyline polygon = 4;
 inline bool InteractionContactFace::has_polygon() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.polygon_ != nullptr);
   return value;
 }
-inline const ::session_proto::Polyline& InteractionContactFace::_internal_polygon() const {
+inline const ::laika_proto::Polyline& InteractionContactFace::_internal_polygon() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Polyline* p = _impl_.polygon_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Polyline>(&::session_proto::Polyline_globals_);
+  const ::laika_proto::Polyline* p = _impl_.polygon_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Polyline>(&::laika_proto::Polyline_globals_);
 }
-inline const ::session_proto::Polyline& InteractionContactFace::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Polyline& InteractionContactFace::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.polygon)
   return _internal_polygon();
 }
 inline void InteractionContactFace::unsafe_arena_set_allocated_polygon(
-    ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.polygon_);
   }
-  _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.polygon_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
@@ -570,11 +570,11 @@ inline void InteractionContactFace::unsafe_arena_set_allocated_polygon(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactFace.polygon)
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::release_polygon() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* released = _impl_.polygon_;
+  ::laika_proto::Polyline* released = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -589,31 +589,31 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::rele
   }
   return released;
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::unsafe_arena_release_polygon() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::unsafe_arena_release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionContactFace.polygon)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* temp = _impl_.polygon_;
+  ::laika_proto::Polyline* temp = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   return temp;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::_internal_mutable_polygon() {
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::_internal_mutable_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.polygon_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Polyline>(GetArena());
-    _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Polyline>(GetArena());
+    _impl_.polygon_ = reinterpret_cast<::laika_proto::Polyline*>(p);
   }
   return _impl_.polygon_;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_polygon()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_polygon()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* _msg = _internal_mutable_polygon();
+  ::laika_proto::Polyline* _msg = _internal_mutable_polygon();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.polygon)
   return _msg;
 }
-inline void InteractionContactFace::set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+inline void InteractionContactFace::set_allocated_polygon(::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -630,7 +630,7 @@ inline void InteractionContactFace::set_allocated_polygon(::session_proto::Polyl
     ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
-  _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.polygon_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionContactFace.polygon)
 }
 

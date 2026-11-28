@@ -6,7 +6,7 @@ import "plane.proto";
 
 // The state of a NodeSupportElement beyond the kernel Element: its placement and every dimension of the column base.
 message NodeSupportElement {
-  session_proto.Plane plane = 1;            // Base plate underside centre, z up the column, x along a base plate side
+  laika_proto.Plane plane = 1;            // Base plate underside centre, z up the column, x along a base plate side
   double height = 2;                        // Base plate underside to head plate top
   double head_plate_diameter = 3;
   double head_plate_thickness = 4;

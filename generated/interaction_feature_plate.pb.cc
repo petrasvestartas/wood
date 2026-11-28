@@ -209,21 +209,21 @@ constexpr PolylineList::ParseTableT_ PolylineList::InternalGenerateParseTable_(c
       ::_pbi::TcParser::GetTable<::wood_proto::PolylineList>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .session_proto.Polyline items = 1;
+      // repeated .laika_proto.Polyline items = 1;
       {::_pbi::TcParser::FastMtR1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(PolylineList, _impl_.items_)}},
     }}, {{
       65535, 65535
     }}, {{
-      // repeated .session_proto.Polyline items = 1;
+      // repeated .laika_proto.Polyline items = 1;
       {PROTOBUF_FIELD_OFFSET(PolylineList, _impl_.items_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -369,11 +369,11 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
       {::_pbi::TcParser::FastV32P1,
        {26, 0, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.cross_faces_)}},
-      // repeated .session_proto.Line joint_lines = 4;
+      // repeated .laika_proto.Line joint_lines = 4;
       {::_pbi::TcParser::FastMtR1,
        {34, 1, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.joint_lines_)}},
-      // repeated .session_proto.Polyline joint_volumes = 5;
+      // repeated .laika_proto.Polyline joint_volumes = 5;
       {::_pbi::TcParser::FastMtR1,
        {42, 2, 1,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.joint_volumes_)}},
@@ -446,7 +446,7 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
       {::_pbi::TcParser::FastMtS2,
        {442, 13, 7,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.contact_)}},
-      // repeated .session_proto.ElementFeature element_features = 24;
+      // repeated .laika_proto.ElementFeature element_features = 24;
       {::_pbi::TcParser::FastMtR2,
        {450, 9, 8,
         PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.element_features_)}},
@@ -470,9 +470,9 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.joint_type_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // repeated int32 cross_faces = 3;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.cross_faces_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
-      // repeated .session_proto.Line joint_lines = 4;
+      // repeated .laika_proto.Line joint_lines = 4;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.joint_lines_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline joint_volumes = 5;
+      // repeated .laika_proto.Polyline joint_volumes = 5;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.joint_volumes_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .wood_proto.PolylineList male_outlines = 6;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.male_outlines_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
@@ -508,7 +508,7 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.element_b_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
       // .wood_proto.InteractionContactFace contact = 23;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.contact_), _Internal::kHasBitsOffset + 13, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.ElementFeature element_features = 24;
+      // repeated .laika_proto.ElementFeature element_features = 24;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.element_features_), _Internal::kHasBitsOffset + 9, 8, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated string linked_joints = 26;
       {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlate, _impl_.linked_joints_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
@@ -517,14 +517,14 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::PolylineList>()},
@@ -557,9 +557,9 @@ constexpr InteractionFeaturePlate::ParseTableT_ InteractionFeaturePlate::Interna
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionContactFace_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::ElementFeature>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::ElementFeature>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::ElementFeature_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::ElementFeature_globals_},
         #endif
     }},
     {{
@@ -829,29 +829,29 @@ const char descriptor_table_protodef_interaction_5ffeature_5fplate_2eproto[] ABS
     "\n\037interaction_feature_plate.proto\022\nwood_"
     "proto\032\relement.proto\032\nline.proto\032\016polyli"
     "ne.proto\032\036interaction_contact_face.proto"
-    "\"6\n\014PolylineList\022&\n\005items\030\001 \003(\0132\027.sessio"
-    "n_proto.Polyline\"\031\n\007IntList\022\016\n\006values\030\001 "
-    "\003(\005\"\256\006\n\027InteractionFeaturePlate\022\023\n\013targe"
-    "t_side\030\034 \001(\005\022\021\n\telement_a\030\025 \001(\t\022\021\n\teleme"
-    "nt_b\030\026 \001(\t\0223\n\007contact\030\027 \001(\0132\".wood_proto"
-    ".InteractionContactFace\0227\n\020element_featu"
-    "res\030\030 \003(\0132\035.session_proto.ElementFeature"
-    "\022\022\n\njoint_type\030\001 \001(\005\022\023\n\013cross_faces\030\003 \003("
-    "\005\022(\n\013joint_lines\030\004 \003(\0132\023.session_proto.L"
-    "ine\022.\n\rjoint_volumes\030\005 \003(\0132\027.session_pro"
-    "to.Polyline\022/\n\rmale_outlines\030\006 \003(\0132\030.woo"
-    "d_proto.PolylineList\0221\n\017female_outlines\030"
-    "\007 \003(\0132\030.wood_proto.PolylineList\0223\n\026male_"
-    "fabrication_types\030\010 \003(\0132\023.wood_proto.Int"
-    "List\0225\n\030female_fabrication_types\030\t \003(\0132\023"
-    ".wood_proto.IntList\022\021\n\tdivisions\030\n \001(\005\022\r"
-    "\n\005shift\030\013 \001(\001\022\016\n\006length\030\014 \001(\001\022\027\n\017divisio"
-    "n_length\030\r \001(\001\022\r\n\005scale\030\016 \003(\001\022\022\n\nunit_sc"
-    "ale\030\017 \001(\010\022\033\n\023unit_scale_distance\030\020 \001(\001\022\025"
-    "\n\rlinked_joints\030\032 \003(\t\022.\n\021linked_joints_s"
-    "eq\030\022 \003(\0132\023.wood_proto.IntList\022\014\n\004link\030\023 "
-    "\001(\010\022\021\n\tno_orient\030\024 \001(\010J\004\010\002\020\003J\004\010\031\020\032J\004\010\033\020\034"
-    "J\004\010\021\020\022R\014contact_guidb\006proto3"
+    "\"4\n\014PolylineList\022$\n\005items\030\001 \003(\0132\025.laika_"
+    "proto.Polyline\"\031\n\007IntList\022\016\n\006values\030\001 \003("
+    "\005\"\250\006\n\027InteractionFeaturePlate\022\023\n\013target_"
+    "side\030\034 \001(\005\022\021\n\telement_a\030\025 \001(\t\022\021\n\telement"
+    "_b\030\026 \001(\t\0223\n\007contact\030\027 \001(\0132\".wood_proto.I"
+    "nteractionContactFace\0225\n\020element_feature"
+    "s\030\030 \003(\0132\033.laika_proto.ElementFeature\022\022\n\n"
+    "joint_type\030\001 \001(\005\022\023\n\013cross_faces\030\003 \003(\005\022&\n"
+    "\013joint_lines\030\004 \003(\0132\021.laika_proto.Line\022,\n"
+    "\rjoint_volumes\030\005 \003(\0132\025.laika_proto.Polyl"
+    "ine\022/\n\rmale_outlines\030\006 \003(\0132\030.wood_proto."
+    "PolylineList\0221\n\017female_outlines\030\007 \003(\0132\030."
+    "wood_proto.PolylineList\0223\n\026male_fabricat"
+    "ion_types\030\010 \003(\0132\023.wood_proto.IntList\0225\n\030"
+    "female_fabrication_types\030\t \003(\0132\023.wood_pr"
+    "oto.IntList\022\021\n\tdivisions\030\n \001(\005\022\r\n\005shift\030"
+    "\013 \001(\001\022\016\n\006length\030\014 \001(\001\022\027\n\017division_length"
+    "\030\r \001(\001\022\r\n\005scale\030\016 \003(\001\022\022\n\nunit_scale\030\017 \001("
+    "\010\022\033\n\023unit_scale_distance\030\020 \001(\001\022\025\n\rlinked"
+    "_joints\030\032 \003(\t\022.\n\021linked_joints_seq\030\022 \003(\013"
+    "2\023.wood_proto.IntList\022\014\n\004link\030\023 \001(\010\022\021\n\tn"
+    "o_orient\030\024 \001(\010J\004\010\002\020\003J\004\010\031\020\032J\004\010\033\020\034J\004\010\021\020\022R\014"
+    "contact_guidb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fplate_2eproto_deps[4] = {
@@ -864,7 +864,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fplate_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fplate_2eproto = {
     false,
     false,
-    1028,
+    1020,
     descriptor_table_protodef_interaction_5ffeature_5fplate_2eproto,
     "interaction_feature_plate.proto",
     &descriptor_table_interaction_5ffeature_5fplate_2eproto_once,
@@ -1009,7 +1009,7 @@ PROTOBUF_NOINLINE void PolylineList::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // repeated .session_proto.Polyline items = 1;
+  // repeated .laika_proto.Polyline items = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_items_size());
@@ -1044,7 +1044,7 @@ PROTOBUF_NOINLINE void PolylineList::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
    {
-    // repeated .session_proto.Polyline items = 1;
+    // repeated .laika_proto.Polyline items = 1;
     cached_has_bits = this_._impl_._has_bits_[0];
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_items_size();
@@ -1679,7 +1679,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlate::Clear() {
     }
   }
 
-  // repeated .session_proto.Line joint_lines = 4;
+  // repeated .laika_proto.Line joint_lines = 4;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_joint_lines_size());
@@ -1691,7 +1691,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlate::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline joint_volumes = 5;
+  // repeated .laika_proto.Polyline joint_volumes = 5;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_joint_volumes_size());
@@ -1869,7 +1869,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlate::Clear() {
         stream);
   }
 
-  // repeated .session_proto.ElementFeature element_features = 24;
+  // repeated .laika_proto.ElementFeature element_features = 24;
   if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_element_features_size());
@@ -1931,14 +1931,14 @@ PROTOBUF_NOINLINE void InteractionFeaturePlate::Clear() {
               this_._internal_cross_faces(), 1,
               this_._impl_._cross_faces_cached_byte_size_);
     }
-    // repeated .session_proto.Line joint_lines = 4;
+    // repeated .laika_proto.Line joint_lines = 4;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_joint_lines_size();
       for (const auto& msg : this_._internal_joint_lines()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline joint_volumes = 5;
+    // repeated .laika_proto.Polyline joint_volumes = 5;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1UL * this_._internal_joint_volumes_size();
       for (const auto& msg : this_._internal_joint_volumes()) {
@@ -1992,7 +1992,7 @@ PROTOBUF_NOINLINE void InteractionFeaturePlate::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.ElementFeature element_features = 24;
+    // repeated .laika_proto.ElementFeature element_features = 24;
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       total_size += 2UL * this_._internal_element_features_size();
       for (const auto& msg : this_._internal_element_features()) {

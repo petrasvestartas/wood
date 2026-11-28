@@ -6,7 +6,7 @@
 #include "src/templates/folding/prismatic_fold.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 using namespace wood_folding;
 

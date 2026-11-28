@@ -2,7 +2,7 @@
 #include "src/templates/chevron/chevron.h"
 #include "src/templates/chevron/chevron_assembly.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Arch 22 of the 2017 MAX2 prototype assembled box by box: the order its tenons allow, every box swept along its insertion vector, and the 4 x 4 block at the crown.
@@ -45,5 +45,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_chevron_6_max2_assembly --parallel 6 && ./build/templates_chevron_6_max2_assembly && ../bash/publish-scene.sh --target templates_chevron_6_max2_assembly
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

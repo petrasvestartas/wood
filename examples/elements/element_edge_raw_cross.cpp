@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Six-cut extended and nine-cut sliced conical cross-lap joints on eccentric raw spruce trunks (PhD Ch. 5.5 & Ch. 9.4).
@@ -142,5 +142,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_edge_raw_cross --parallel 6 && ./build/element_edge_raw_cross && ../bash/publish-scene.sh --target element_edge_raw_cross
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

@@ -5,8 +5,8 @@ use crate::geometry::{
 };
 use crate::proto;
 use prost::Message;
-use session_rust::element::ElementFeature;
-use session_rust::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Vector};
+use laika_rs::element::ElementFeature;
+use laika_rs::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Vector};
 
 /// A straight timber member, a beam or a column: a radius and an up direction per axis segment, or a profile, as wood's EdgeStraightElement.
 #[derive(Clone, Debug)]
@@ -127,7 +127,7 @@ impl EdgeStraightElement {
         let along = points[1].clone() - points[0].clone();
         let up = self.up(0);
         let reach = along.normalized() * self.extension;
-        let at = |point: &session_rust::Point| -> Vec<Polyline> {
+        let at = |point: &laika_rs::Point| -> Vec<Polyline> {
             self.profile
                 .iter()
                 .map(|ring| profile_section(point, &along, &up, ring))

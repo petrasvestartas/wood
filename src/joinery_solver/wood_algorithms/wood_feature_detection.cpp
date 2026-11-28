@@ -2,7 +2,7 @@
 #include "wood_feature_detection.h"
 #include "wood_contact_detection.h"
 #include "wood_feature_construction.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 constexpr bool TRACE = false;

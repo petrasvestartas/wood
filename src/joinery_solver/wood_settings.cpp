@@ -2,7 +2,7 @@
 #include "wood_serialization.h"
 #include "wood_settings.h"
 #include "settings.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 
@@ -110,9 +110,9 @@ Settings Settings::pb_loads(const std::string& data) {
     s.beams.assign(proto.beams().begin(), proto.beams().end());
     for (const wood_proto::CustomJoint& entry : proto.custom_joints()) {
         std::array<std::vector<Polyline>, 2>& outlines = s.custom_joints[entry.family()];
-        for (const session_proto::Polyline& outline : entry.male())
+        for (const laika_proto::Polyline& outline : entry.male())
             outlines[0].push_back(Polyline::pb_loads(outline.SerializeAsString()));
-        for (const session_proto::Polyline& outline : entry.female())
+        for (const laika_proto::Polyline& outline : entry.female())
             outlines[1].push_back(Polyline::pb_loads(outline.SerializeAsString()));
     }
 

@@ -6,7 +6,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -58,9 +58,9 @@ std::shared_ptr<NodeBlockElement> NodeBlockElement::from_element(Element e) {
         return block;
     }
 
-    for (const session_proto::Polyline& loop : proto.loops())
+    for (const laika_proto::Polyline& loop : proto.loops())
         block->loops.push_back(Polyline::pb_loads(loop.SerializeAsString()));
-    for (const session_proto::Plane& cut : proto.cuts())
+    for (const laika_proto::Plane& cut : proto.cuts())
         block->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
     if (proto.has_source_mesh())

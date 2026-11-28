@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/truss/truss.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A Pratt roof truss from its guide, the design's overload by its parameters: the members and their butts made by the
@@ -29,5 +29,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_truss_1_pratt --parallel 6 && ./build/templates_truss_1_pratt && ../bash/publish-scene.sh --target templates_truss_1_pratt
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

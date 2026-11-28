@@ -1,8 +1,8 @@
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{frame_along, loft_stations, mesh_brep};
 use crate::proto;
-use session_rust::element::ElementFeature;
-use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline};
+use laika_rs::element::ElementFeature;
+use laika_rs::{BRep, Line, Mesh, Plane, Point, Polyline};
 
 /// A beam whose section changes along a straight axis, as wood's EdgeVariableElement.
 #[derive(Clone, Debug)]

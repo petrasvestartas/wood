@@ -3,7 +3,7 @@
 #include "wood_brep_drill.h"
 #include <numbers>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -54,7 +54,7 @@ static size_t cylinders(const BRep& brep) {
 
     size_t count = 0;
     for (const BRepFace& face : brep.m_faces)
-        count += brep.m_surfaces[face.surface_index].is_rational();
+        count += brep.m_surfaces[face.surface_index].nurbs().is_rational();
 
     return count;
 }

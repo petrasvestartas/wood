@@ -10,7 +10,7 @@
 
 namespace wood_session {
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 const int DRILL_SIDES = 16;
 
@@ -166,7 +166,7 @@ WoodSession WoodSession::file_json_load(const std::string& filename) {
     return scene;
 }
 
-WoodSession WoodSession::from_proto(const session_proto::Session& proto) {
+WoodSession WoodSession::from_proto(const laika_proto::Session& proto) {
 
     register_types();
 

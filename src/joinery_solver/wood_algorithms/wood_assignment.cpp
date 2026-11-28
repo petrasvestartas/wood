@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "wood_session.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

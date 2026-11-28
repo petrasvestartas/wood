@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/chevron/chevron_shifted.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The shifted chevron shell on the first Annen surface: the surface, the cell mesh, its edge planes, a box of plates per cell with its joints.
@@ -34,5 +34,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_chevron_2_shifted --parallel 6 && ./build/templates_chevron_2_shifted && ../bash/publish-scene.sh --target templates_chevron_2_shifted
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

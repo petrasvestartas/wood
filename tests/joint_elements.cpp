@@ -6,7 +6,7 @@
 #include <chrono>
 #include <set>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 static void check(bool ok, const std::string& message) {

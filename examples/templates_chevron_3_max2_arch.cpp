@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/chevron/chevron.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The chevron shell on the second Annen surface with the sliders of the 2017 MAX2 prototype: arch 22 as it was built.
@@ -41,5 +41,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_chevron_3_max2_arch --parallel 6 && ./build/templates_chevron_3_max2_arch && ../bash/publish-scene.sh --target templates_chevron_3_max2_arch
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

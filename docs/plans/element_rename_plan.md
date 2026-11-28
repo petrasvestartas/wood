@@ -60,7 +60,7 @@ The user confirmed all of these on 2026-11-04, with decision 2 changed: nothing 
 | `ConnectorPart` | `JointConnectorPartElement` | `wood_element_joint_connector_part` | `element_joint` | `JointConnectorPartElement` |
 
 `wood_profile.*` keeps its name and its `profile_*` functions: a profile is loops in the section frame, a
-`std::vector<Polyline>`, no class and no element. No new name collides with `session_cpp`, `session_rust`, the
+`std::vector<Polyline>`, no class and no element. No new name collides with `laika_cpp`, `laika_rs`, the
 viewer or wood (checked by grep; `graph.h` has `Edge`, `brep_*` have `FaceUse`, `EdgeUse`, `FaceCurve`, none equal).
 
 ### Base classes
@@ -116,9 +116,9 @@ trait, and nothing there needs one. So `wood` adds no base type.
 
 ### Name clashes
 
-`EdgeElement`, `FaceElement` and `NodeElement` appear nowhere in `session_cpp`, `session_rust`, `session_proto`,
+`EdgeElement`, `FaceElement` and `NodeElement` appear nowhere in `laika_cpp`, `laika_rs`, `laika_proto`,
 `session_viewer` or wood, so nothing clashes and no kernel use needs qualifying. Bare `Edge` would have collided with
-`session_cpp::Edge`; `graph.h` and wood's uses of it stay as they are.
+`laika_cpp::Edge`; `graph.h` and wood's uses of it stay as they are.
 
 ### Accessors
 
@@ -130,10 +130,10 @@ function and stays. Default element names (`"beam"`, `"column"`, `"plate"`) are 
 ## 3. Where the names are load-bearing
 
 **On the wire.** Only two strings are stored: `Element.element_type` and, for joints, `JointElement.kind`. `element_data` is
-plain `bytes` (`session_proto/element.proto:69`), so protobuf message names are not on the wire and can change freely.
+plain `bytes` (`laika_proto/element.proto:69`), so protobuf message names are not on the wire and can change freely.
 
 **What happens on an unknown tag.** `Element::pb_loads_polymorphic` falls back to a base `Element` that keeps its tag,
-data and geometry (`session_cpp/src/element.h:512`, same in `session_rust`). So a wrong tag does not lose the picture;
+data and geometry (`laika_cpp/src/element.h:512`, same in `laika_rs`). So a wrong tag does not lose the picture;
 it loses the class: `get_elements<T>()` no longer finds it, joints cannot read it.
 
 | Consumer | What it does with the names | What the rename means |
@@ -145,7 +145,7 @@ it loses the class: `get_elements<T>()` no longer finds it, joints cannot read i
 | `data/floor_model.pb`, `compas_tf/session.py` | `"Plate"`, `"Column"`, `"Solid"` with JSON payloads; `compas_tf` is never pushed from here | old tags and JSON read for good |
 | `data/*.yml`, `data/templates/*.json` | keys only (`beams:`, `obj:`, no class tags) | nothing |
 | wood `Settings.beams`, `settings.proto` | a yaml field, not a class | stays |
-| `session_cpp`, `session_py`, `session_rust` | carry `element_type` as an opaque string; no wood class named | nothing |
+| `laika_cpp`, `session_py`, `laika_rs` | carry `element_type` as an opaque string; no wood class named | nothing |
 | viewer display (`scene_display.rs`, `source_memory.rs`) | draws `element.geometry()`, never decodes `element_data`, never calls `from_element` | scenes with new tags draw the same |
 | viewer colour | none by type: the node colour in the scene, set by `WoodSession::add` | same grey for every member |
 | viewer commands (`element_beam.rs`, `element_column.rs`, `element_plate.rs`, `element_block.rs`, `element_support.rs`, `element_beam_variable.rs`, `tool/elements.rs`) | compile against `wood::Beam`, `wood::Column`, `wood::Plate`, `wood::Block`, `wood::Support`, `wood::BeamVariable`, `Column::from_profile`, `Beam::from_profile`, and a test asserts `e.element_type == "Plate"` | changes with `wood/rust` in step 6b |
@@ -552,9 +552,9 @@ Stop rule for step 5: if the parity test fails on anything but the base plane, s
 **What session CI does.**
 
 - `viewer-check` and `viewer-pages` clone wood's `main` tip, sparse `rust`, on every run.
-- A wood push does not start them. They start on a session push touching `session_viewer/**` or `session_rust`, on a pull
+- A wood push does not start them. They start on a session push touching `session_viewer/**` or `laika_rs`, on a pull
   request, by `workflow_dispatch`, and through `viewer-pages` when `Session mini tests` finishes.
-- The reviewer bot bumps `session_rust` on Mondays at 03:00 and 05:00 UTC, which starts `viewer-check`.
+- The reviewer bot bumps `laika_rs` on Mondays at 03:00 and 05:00 UTC, which starts `viewer-check`.
 - `viewer-pages` needs `check` to pass, so a broken viewer never deploys: the worst case is a red run, not a broken site.
 
 **Order: wood first, then session, by hand.**
@@ -795,7 +795,7 @@ same rename at step 8. `wood/.claude/agents/wood-agent.md` and `joint-from-photo
 ## 11. Blockers to clear first
 
 - **The user must install protoc 36.2.** The download was blocked, so it cannot come from here. Regeneration is wood only: `tools/regen_proto.sh` runs
-  `session_cpp/.protoc/36.2/bin/protoc`, a gitignored cache; put the release there, or set `WOOD_PROTOC` to it. No `protoc`
+  `laika_cpp/.protoc/36.2/bin/protoc`, a gitignored cache; put the release there, or set `WOOD_PROTOC` to it. No `protoc`
   is on the path. Without it `generated/` (34 tracked files) cannot be regenerated, and steps 1 to 4, 5c and 6 all change
   protos. A mismatched version does not compile against the kernel's libprotobuf, so `generated/` must not be hand-edited.
   Do not run `session/bash/gen_proto.sh` whole: it regenerates the kernel's files too.

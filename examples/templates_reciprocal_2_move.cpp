@@ -2,7 +2,7 @@
 #include "src/templates/reciprocal/reciprocal_move.h"
 #include "src/templates/reciprocal/reciprocal_surface.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 const int SURFACE = 0;
@@ -85,5 +85,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_reciprocal_2_move --parallel 6 && ./build/templates_reciprocal_2_move && ../bash/publish-scene.sh --target templates_reciprocal_2_move
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

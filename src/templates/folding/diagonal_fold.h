@@ -2,7 +2,7 @@
 #include "src/templates/folding/folding_guide.h"
 #include "src/templates/folding/fold_mesh.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_folding {

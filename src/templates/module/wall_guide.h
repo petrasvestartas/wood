@@ -1,7 +1,7 @@
 #pragma once
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_module {

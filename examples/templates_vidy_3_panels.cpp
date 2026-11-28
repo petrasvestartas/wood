@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Vidy 45 mm CLT panels: 308 shell plates + 154 full-corner border boards = 462 plates.
@@ -48,5 +48,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vidy_3_panels --parallel 6 && ./build/templates_vidy_3_panels && ../bash/publish-scene.sh --target templates_vidy_3_panels
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

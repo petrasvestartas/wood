@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 /// Which detection pass compute_features runs.
 enum SearchType : int {

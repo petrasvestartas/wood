@@ -62,11 +62,11 @@ constexpr NodeBlockElement::ParseTableT_ NodeBlockElement::InternalGenerateParse
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {::_pbi::TcParser::FastMtR1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.loops_)}},
-      // repeated .session_proto.Plane cuts = 2;
+      // repeated .laika_proto.Plane cuts = 2;
       {::_pbi::TcParser::FastMtR1,
        {18, 1, 1,
         PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.cuts_)}},
@@ -74,7 +74,7 @@ constexpr NodeBlockElement::ParseTableT_ NodeBlockElement::InternalGenerateParse
       {::_pbi::TcParser::FastMtR1,
        {26, 2, 2,
         PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.solid_features_)}},
-      // .session_proto.Mesh source_mesh = 4;
+      // .laika_proto.Mesh source_mesh = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 4, 3,
         PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.source_mesh_)}},
@@ -87,27 +87,27 @@ constexpr NodeBlockElement::ParseTableT_ NodeBlockElement::InternalGenerateParse
     }}, {{
       65535, 65535
     }}, {{
-      // repeated .session_proto.Polyline loops = 1;
+      // repeated .laika_proto.Polyline loops = 1;
       {PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.loops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Plane cuts = 2;
+      // repeated .laika_proto.Plane cuts = 2;
       {PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.cuts_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
       {PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.solid_features_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Mesh source_mesh = 4;
+      // .laika_proto.Mesh source_mesh = 4;
       {PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.source_mesh_), _Internal::kHasBitsOffset + 4, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .wood_proto.InteractionFeaturePlane plane_features = 5;
       {PROTOBUF_FIELD_OFFSET(NodeBlockElement, _impl_.plane_features_), _Internal::kHasBitsOffset + 3, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
@@ -115,9 +115,9 @@ constexpr NodeBlockElement::ParseTableT_ NodeBlockElement::InternalGenerateParse
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Mesh>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Mesh>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Mesh_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Mesh_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeaturePlane>()},
@@ -284,14 +284,14 @@ const char descriptor_table_protodef_element_5fnode_5fblock_2eproto[] ABSL_ATTRI
     "\n\030element_node_block.proto\022\nwood_proto\032\037"
     "interaction_feature_solid.proto\032\037interac"
     "tion_feature_plane.proto\032\013plane.proto\032\nm"
-    "esh.proto\032\016polyline.proto\"\202\002\n\020NodeBlockE"
-    "lement\022(\n\013source_mesh\030\004 \001(\0132\023.session_pr"
-    "oto.Mesh\022;\n\016solid_features\030\003 \003(\0132#.wood_"
-    "proto.InteractionFeatureSolid\022;\n\016plane_f"
-    "eatures\030\005 \003(\0132#.wood_proto.InteractionFe"
-    "aturePlane\022&\n\005loops\030\001 \003(\0132\027.session_prot"
-    "o.Polyline\022\"\n\004cuts\030\002 \003(\0132\024.session_proto"
-    ".Planeb\006proto3"
+    "esh.proto\032\016polyline.proto\"\374\001\n\020NodeBlockE"
+    "lement\022&\n\013source_mesh\030\004 \001(\0132\021.laika_prot"
+    "o.Mesh\022;\n\016solid_features\030\003 \003(\0132#.wood_pr"
+    "oto.InteractionFeatureSolid\022;\n\016plane_fea"
+    "tures\030\005 \003(\0132#.wood_proto.InteractionFeat"
+    "urePlane\022$\n\005loops\030\001 \003(\0132\025.laika_proto.Po"
+    "lyline\022 \n\004cuts\030\002 \003(\0132\022.laika_proto.Plane"
+    "b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fnode_5fblock_2eproto_deps[5] = {
@@ -305,7 +305,7 @@ static ::absl::once_flag descriptor_table_element_5fnode_5fblock_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fnode_5fblock_2eproto = {
     false,
     false,
-    414,
+    408,
     descriptor_table_protodef_element_5fnode_5fblock_2eproto,
     "element_node_block.proto",
     &descriptor_table_element_5fnode_5fblock_2eproto_once,
@@ -527,7 +527,7 @@ PROTOBUF_NOINLINE void NodeBlockElement::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // repeated .session_proto.Polyline loops = 1;
+  // repeated .laika_proto.Polyline loops = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_loops_size());
@@ -539,7 +539,7 @@ PROTOBUF_NOINLINE void NodeBlockElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Plane cuts = 2;
+  // repeated .laika_proto.Plane cuts = 2;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_cuts_size());
@@ -563,7 +563,7 @@ PROTOBUF_NOINLINE void NodeBlockElement::Clear() {
     }
   }
 
-  // .session_proto.Mesh source_mesh = 4;
+  // .laika_proto.Mesh source_mesh = 4;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.source_mesh_, this_._impl_.source_mesh_->GetCachedSize(), target,
@@ -606,14 +606,14 @@ PROTOBUF_NOINLINE void NodeBlockElement::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
-    // repeated .session_proto.Polyline loops = 1;
+    // repeated .laika_proto.Polyline loops = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_loops_size();
       for (const auto& msg : this_._internal_loops()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Plane cuts = 2;
+    // repeated .laika_proto.Plane cuts = 2;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_cuts_size();
       for (const auto& msg : this_._internal_cuts()) {
@@ -634,7 +634,7 @@ PROTOBUF_NOINLINE void NodeBlockElement::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // .session_proto.Mesh source_mesh = 4;
+    // .laika_proto.Mesh source_mesh = 4;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.source_mesh_);

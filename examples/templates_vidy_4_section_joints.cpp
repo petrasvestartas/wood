@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vidy/vidy.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Vidy 11-bay joinery: 462 plates, 176 seams, single-axis through-tenons and 6-step module assembly.
@@ -52,5 +52,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_vidy_4_section_joints --parallel 6 && ./build/templates_vidy_4_section_joints && ../bash/publish-scene.sh --target templates_vidy_4_section_joints
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

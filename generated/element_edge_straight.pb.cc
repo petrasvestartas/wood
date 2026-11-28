@@ -62,7 +62,7 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // .session_proto.Polyline axis = 1;
+      // .laika_proto.Polyline axis = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 6, 0,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.axis_)}},
@@ -70,7 +70,7 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       {::_pbi::TcParser::FastF64P1,
        {18, 0, 0,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.radii_)}},
-      // repeated .session_proto.Vector directions = 3;
+      // repeated .laika_proto.Vector directions = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 1, 1,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.directions_)}},
@@ -78,11 +78,11 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EdgeStraightElement, _impl_.allowed_type_), 9>(),
        {32, 9, 0,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.allowed_type_)}},
-      // repeated .session_proto.Plane cuts = 5;
+      // repeated .laika_proto.Plane cuts = 5;
       {::_pbi::TcParser::FastMtR1,
        {42, 2, 2,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.cuts_)}},
-      // repeated .session_proto.Polyline profile = 6;
+      // repeated .laika_proto.Polyline profile = 6;
       {::_pbi::TcParser::FastMtR1,
        {50, 3, 3,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.profile_)}},
@@ -110,17 +110,17 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
     }}, {{
       65535, 65535
     }}, {{
-      // .session_proto.Polyline axis = 1;
+      // .laika_proto.Polyline axis = 1;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.axis_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated double radii = 2;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.radii_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
-      // repeated .session_proto.Vector directions = 3;
+      // repeated .laika_proto.Vector directions = 3;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.directions_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // int32 allowed_type = 4;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.allowed_type_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-      // repeated .session_proto.Plane cuts = 5;
+      // repeated .laika_proto.Plane cuts = 5;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.cuts_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline profile = 6;
+      // repeated .laika_proto.Polyline profile = 6;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.profile_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .wood_proto.InteractionFeatureSolid solid_features = 7;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.solid_features_), _Internal::kHasBitsOffset + 4, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
@@ -133,24 +133,24 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Vector>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Vector_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Plane>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Plane_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Plane_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
@@ -345,17 +345,17 @@ const char descriptor_table_protodef_element_5fedge_5fstraight_2eproto[] ABSL_AT
     "\n\033element_edge_straight.proto\022\nwood_prot"
     "o\032\037interaction_feature_solid.proto\032\037inte"
     "raction_feature_plane.proto\032\013plane.proto"
-    "\032\016polyline.proto\032\014vector.proto\"\375\002\n\023EdgeS"
+    "\032\016polyline.proto\032\014vector.proto\"\365\002\n\023EdgeS"
     "traightElement\022;\n\016solid_features\030\007 \003(\0132#"
     ".wood_proto.InteractionFeatureSolid\022;\n\016p"
     "lane_features\030\010 \003(\0132#.wood_proto.Interac"
-    "tionFeaturePlane\022%\n\004axis\030\001 \001(\0132\027.session"
-    "_proto.Polyline\022\r\n\005radii\030\002 \003(\001\022)\n\ndirect"
-    "ions\030\003 \003(\0132\025.session_proto.Vector\022\024\n\014all"
-    "owed_type\030\004 \001(\005\022\"\n\004cuts\030\005 \003(\0132\024.session_"
-    "proto.Plane\022(\n\007profile\030\006 \003(\0132\027.session_p"
-    "roto.Polyline\022\024\n\014round_radius\030\n \001(\001\022\021\n\te"
-    "xtension\030\t \001(\001b\006proto3"
+    "tionFeaturePlane\022#\n\004axis\030\001 \001(\0132\025.laika_p"
+    "roto.Polyline\022\r\n\005radii\030\002 \003(\001\022\'\n\ndirectio"
+    "ns\030\003 \003(\0132\023.laika_proto.Vector\022\024\n\014allowed"
+    "_type\030\004 \001(\005\022 \n\004cuts\030\005 \003(\0132\022.laika_proto."
+    "Plane\022&\n\007profile\030\006 \003(\0132\025.laika_proto.Pol"
+    "yline\022\024\n\014round_radius\030\n \001(\001\022\021\n\textension"
+    "\030\t \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fedge_5fstraight_2eproto_deps[5] = {
@@ -369,7 +369,7 @@ static ::absl::once_flag descriptor_table_element_5fedge_5fstraight_2eproto_once
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fedge_5fstraight_2eproto = {
     false,
     false,
-    542,
+    534,
     descriptor_table_protodef_element_5fedge_5fstraight_2eproto,
     "element_edge_straight.proto",
     &descriptor_table_element_5fedge_5fstraight_2eproto_once,
@@ -646,7 +646,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // .session_proto.Polyline axis = 1;
+  // .laika_proto.Polyline axis = 1;
   if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.axis_, this_._impl_.axis_->GetCachedSize(), target,
@@ -660,7 +660,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Vector directions = 3;
+  // repeated .laika_proto.Vector directions = 3;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_directions_size());
@@ -681,7 +681,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Plane cuts = 5;
+  // repeated .laika_proto.Plane cuts = 5;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_cuts_size());
@@ -693,7 +693,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
     }
   }
 
-  // repeated .session_proto.Polyline profile = 6;
+  // repeated .laika_proto.Polyline profile = 6;
   if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_profile_size());
@@ -781,21 +781,21 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
                               static_cast<::int32_t>(data_size));
       total_size += tag_size + data_size;
     }
-    // repeated .session_proto.Vector directions = 3;
+    // repeated .laika_proto.Vector directions = 3;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1UL * this_._internal_directions_size();
       for (const auto& msg : this_._internal_directions()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Plane cuts = 5;
+    // repeated .laika_proto.Plane cuts = 5;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1UL * this_._internal_cuts_size();
       for (const auto& msg : this_._internal_cuts()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .session_proto.Polyline profile = 6;
+    // repeated .laika_proto.Polyline profile = 6;
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1UL * this_._internal_profile_size();
       for (const auto& msg : this_._internal_profile()) {
@@ -816,7 +816,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // .session_proto.Polyline axis = 1;
+    // .laika_proto.Polyline axis = 1;
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.axis_);

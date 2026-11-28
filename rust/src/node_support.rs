@@ -4,7 +4,7 @@ use crate::geometry::{
     drilled_plate_brep,
 };
 use crate::proto;
-use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Xform};
+use laika_rs::{BRep, Line, Mesh, Plane, Point, Polyline, Xform};
 use std::f64::consts::PI;
 
 /// An adjustable column base, as wood's NodeSupportElement, with the manufacturer's dimensions by default.

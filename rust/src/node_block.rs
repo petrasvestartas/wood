@@ -1,7 +1,7 @@
 use crate::element::WoodElement;
 use crate::geometry::{brep_between_loops, frame_along, mesh_brep};
 use crate::proto;
-use session_rust::{BRep, Mesh, Plane, Polyline};
+use laika_rs::{BRep, Mesh, Plane, Polyline};
 
 /// A solid block, as wood's NodeBlockElement.
 #[derive(Clone, Debug)]

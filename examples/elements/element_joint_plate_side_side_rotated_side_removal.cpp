@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// side_removal on a rotated pair.
@@ -50,5 +50,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_side_side_rotated_side_removal --parallel 6 && ./build/element_joint_plate_side_side_rotated_side_removal && ../bash/publish-scene.sh --target element_joint_plate_side_side_rotated_side_removal
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

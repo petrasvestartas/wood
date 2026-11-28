@@ -2,7 +2,7 @@
 #include "src/templates/chevron/chevron_shifted.h"
 #include "src/templates/chevron/chevron_assembly.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The shifted chevron shell on the first Annen surface assembled cell by cell: the order its tenons allow, every cell swept along its insertion vector, and the 4 x 4 block at the crown.
@@ -54,5 +54,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_chevron_5_shifted_assembly --parallel 6 && ./build/templates_chevron_5_shifted_assembly && ../bash/publish-scene.sh --target templates_chevron_5_shifted_assembly
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

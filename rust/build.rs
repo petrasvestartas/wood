@@ -5,12 +5,12 @@ fn main() {
     println!("cargo:rerun-if-env-changed=REGEN_PROTO");
 
     let wood_dir = PathBuf::from("../src/proto");
-    let session_dir = PathBuf::from("../../session/session_proto");
+    let laika_dir = PathBuf::from("../../laika/laika_proto");
     let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/proto");
 
     if std::env::var("REGEN_PROTO").as_deref() == Ok("0")
         || !wood_dir.exists()
-        || !session_dir.exists()
+        || !laika_dir.exists()
     {
         return;
     }
@@ -40,9 +40,9 @@ fn main() {
 
     let mut config = prost_build::Config::new();
     config.out_dir(&staging);
-    config.extern_path(".session_proto", "::session_rust::proto");
+    config.extern_path(".laika_proto", "::laika_rs::proto");
     config
-        .compile_protos(&protos, &[&wood_dir, &session_dir])
+        .compile_protos(&protos, &[&wood_dir, &laika_dir])
         .expect("prost-build: compile wood protos");
 
     // copy only what changed, so cargo does not rebuild the crate on every run

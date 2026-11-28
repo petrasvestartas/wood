@@ -2,7 +2,7 @@
 #include "wood_element_geometry.h"
 #include <numbers>
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -251,7 +251,7 @@ static void check_crossings() {
             for (const std::shared_ptr<EdgeStraightElement>& member : {a, b})
                 for (const BRepFace& face : member->model_geometry_brep().m_faces)
                     cylinders +=
-                        member->model_geometry_brep().m_surfaces[face.surface_index].is_rational();
+                        member->model_geometry_brep().m_surfaces[face.surface_index].nurbs().is_rational();
             if (id >= 33)
                 check(
                     cylinders > 0,

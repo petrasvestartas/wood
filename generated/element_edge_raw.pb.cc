@@ -66,19 +66,19 @@ constexpr EdgeRawElement::ParseTableT_ EdgeRawElement::InternalGenerateParseTabl
       {::_pbi::TcParser::FastMtS1,
        {10, 1, 0,
         PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.base_)}},
-      // .session_proto.Mesh raw_mesh = 2;
+      // .laika_proto.Mesh raw_mesh = 2;
       {::_pbi::TcParser::FastMtS1,
        {18, 2, 1,
         PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_mesh_)}},
-      // .session_proto.PointCloud raw_pointcloud = 3;
+      // .laika_proto.PointCloud raw_pointcloud = 3;
       {::_pbi::TcParser::FastMtS1,
        {26, 3, 2,
         PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_pointcloud_)}},
-      // .session_proto.Xform raw_xform = 4;
+      // .laika_proto.Xform raw_xform = 4;
       {::_pbi::TcParser::FastMtS1,
        {34, 4, 3,
         PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_xform_)}},
-      // repeated .session_proto.Polyline branch_axes = 5;
+      // repeated .laika_proto.Polyline branch_axes = 5;
       {::_pbi::TcParser::FastMtR1,
        {42, 0, 4,
         PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.branch_axes_)}},
@@ -95,13 +95,13 @@ constexpr EdgeRawElement::ParseTableT_ EdgeRawElement::InternalGenerateParseTabl
     }}, {{
       // .wood_proto.EdgeStraightElement base = 1;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.base_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Mesh raw_mesh = 2;
+      // .laika_proto.Mesh raw_mesh = 2;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_mesh_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.PointCloud raw_pointcloud = 3;
+      // .laika_proto.PointCloud raw_pointcloud = 3;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_pointcloud_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Xform raw_xform = 4;
+      // .laika_proto.Xform raw_xform = 4;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.raw_xform_), _Internal::kHasBitsOffset + 4, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .session_proto.Polyline branch_axes = 5;
+      // repeated .laika_proto.Polyline branch_axes = 5;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.branch_axes_), _Internal::kHasBitsOffset + 0, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool use_raw_mesh = 6;
       {PROTOBUF_FIELD_OFFSET(EdgeRawElement, _impl_.use_raw_mesh_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
@@ -115,24 +115,24 @@ constexpr EdgeRawElement::ParseTableT_ EdgeRawElement::InternalGenerateParseTabl
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::EdgeStraightElement_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Mesh>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Mesh>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Mesh_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Mesh_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::PointCloud>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::PointCloud>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::PointCloud_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::PointCloud_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Xform>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Xform>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Xform_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Xform_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -288,14 +288,14 @@ const char descriptor_table_protodef_element_5fedge_5fraw_2eproto[] ABSL_ATTRIBU
     "\n\026element_edge_raw.proto\022\nwood_proto\032\033el"
     "ement_edge_straight.proto\032\nmesh.proto\032\020p"
     "ointcloud.proto\032\016polyline.proto\032\013xform.p"
-    "roto\"\237\002\n\016EdgeRawElement\022-\n\004base\030\001 \001(\0132\037."
-    "wood_proto.EdgeStraightElement\022%\n\010raw_me"
-    "sh\030\002 \001(\0132\023.session_proto.Mesh\0221\n\016raw_poi"
-    "ntcloud\030\003 \001(\0132\031.session_proto.PointCloud"
-    "\022\'\n\traw_xform\030\004 \001(\0132\024.session_proto.Xfor"
-    "m\022,\n\013branch_axes\030\005 \003(\0132\027.session_proto.P"
-    "olyline\022\024\n\014use_raw_mesh\030\006 \001(\010\022\027\n\017show_po"
-    "intcloud\030\007 \001(\010b\006proto3"
+    "roto\"\227\002\n\016EdgeRawElement\022-\n\004base\030\001 \001(\0132\037."
+    "wood_proto.EdgeStraightElement\022#\n\010raw_me"
+    "sh\030\002 \001(\0132\021.laika_proto.Mesh\022/\n\016raw_point"
+    "cloud\030\003 \001(\0132\027.laika_proto.PointCloud\022%\n\t"
+    "raw_xform\030\004 \001(\0132\022.laika_proto.Xform\022*\n\013b"
+    "ranch_axes\030\005 \003(\0132\025.laika_proto.Polyline\022"
+    "\024\n\014use_raw_mesh\030\006 \001(\010\022\027\n\017show_pointcloud"
+    "\030\007 \001(\010b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fedge_5fraw_2eproto_deps[5] = {
@@ -309,7 +309,7 @@ static ::absl::once_flag descriptor_table_element_5fedge_5fraw_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fedge_5fraw_2eproto = {
     false,
     false,
-    422,
+    414,
     descriptor_table_protodef_element_5fedge_5fraw_2eproto,
     "element_edge_raw.proto",
     &descriptor_table_element_5fedge_5fraw_2eproto_once,
@@ -534,28 +534,28 @@ PROTOBUF_NOINLINE void EdgeRawElement::Clear() {
         stream);
   }
 
-  // .session_proto.Mesh raw_mesh = 2;
+  // .laika_proto.Mesh raw_mesh = 2;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.raw_mesh_, this_._impl_.raw_mesh_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.PointCloud raw_pointcloud = 3;
+  // .laika_proto.PointCloud raw_pointcloud = 3;
   if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         3, *this_._impl_.raw_pointcloud_, this_._impl_.raw_pointcloud_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.Xform raw_xform = 4;
+  // .laika_proto.Xform raw_xform = 4;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.raw_xform_, this_._impl_.raw_xform_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .session_proto.Polyline branch_axes = 5;
+  // repeated .laika_proto.Polyline branch_axes = 5;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_branch_axes_size());
@@ -609,7 +609,7 @@ PROTOBUF_NOINLINE void EdgeRawElement::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
-    // repeated .session_proto.Polyline branch_axes = 5;
+    // repeated .laika_proto.Polyline branch_axes = 5;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_branch_axes_size();
       for (const auto& msg : this_._internal_branch_axes()) {
@@ -621,17 +621,17 @@ PROTOBUF_NOINLINE void EdgeRawElement::Clear() {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.base_);
     }
-    // .session_proto.Mesh raw_mesh = 2;
+    // .laika_proto.Mesh raw_mesh = 2;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.raw_mesh_);
     }
-    // .session_proto.PointCloud raw_pointcloud = 3;
+    // .laika_proto.PointCloud raw_pointcloud = 3;
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.raw_pointcloud_);
     }
-    // .session_proto.Xform raw_xform = 4;
+    // .laika_proto.Xform raw_xform = 4;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.raw_xform_);

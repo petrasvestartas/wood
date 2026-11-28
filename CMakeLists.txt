@@ -9,66 +9,52 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-# session_cpp: where the kernel comes from. First hit wins:
+# laika_cpp: where the kernel comes from. First hit wins:
 #
-#   1. -DSESSION_CPP_LOCAL=<dir>, or the SESSION_CPP_LOCAL environment variable
-#   2. ../session_cpp next to this repo - a plain checkout beside wood.
-#   3. ../session/session_cpp - the wood_research layout (see ../README.md), where
-#      the kernel arrives inside the `session` monorepo it is authored in. One
+#   1. -DLAIKA_CPP_LOCAL=<dir>, or the LAIKA_CPP_LOCAL environment variable
+#   2. ../laika_cpp next to this repo - a plain checkout beside wood.
+#   3. ../laika/laika_cpp - the wood_research layout (see ../README.md), where
+#      the kernel arrives inside the `laika` monorepo it is authored in. One
 #      checkout shared by wood and wood_nano, so `git pull` there updates both.
 #   4. a fresh FetchContent clone of GitHub main (CI, or a lone checkout)
 #
 # wood_nano resolves the kernel the same way, in the same order.
 include(FetchContent)
 
-set(SESSION_CPP_LOCAL "" CACHE PATH
-    "Local session_cpp checkout; ../session_cpp, ../session/session_cpp, or a GitHub clone when empty")
+set(LAIKA_CPP_LOCAL "" CACHE PATH
+    "Local laika_cpp checkout; ../laika_cpp, ../laika/laika_cpp, or a GitHub clone when empty")
 
-set(SESSION_CPP_DIR "")
+set(LAIKA_CPP_DIR "")
 foreach(_candidate IN ITEMS
-        "${SESSION_CPP_LOCAL}"
-        "$ENV{SESSION_CPP_LOCAL}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../session_cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../session/session_cpp")
+        "${LAIKA_CPP_LOCAL}"
+        "$ENV{LAIKA_CPP_LOCAL}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../laika_cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../laika/laika_cpp")
     if(NOT "${_candidate}" STREQUAL "" AND EXISTS "${_candidate}/CMakeLists.txt")
-        get_filename_component(SESSION_CPP_DIR "${_candidate}" REALPATH)
+        get_filename_component(LAIKA_CPP_DIR "${_candidate}" REALPATH)
         break()
     endif()
 endforeach()
 
-if(SESSION_CPP_DIR)
-    message(STATUS "wood: using local session_cpp at ${SESSION_CPP_DIR}")
+if(LAIKA_CPP_DIR)
+    message(STATUS "wood: using local laika_cpp at ${LAIKA_CPP_DIR}")
 else()
-    FetchContent_Declare(session_cpp
-        GIT_REPOSITORY https://github.com/petrasvestartas/session_cpp.git
+    FetchContent_Declare(laika_cpp
+        GIT_REPOSITORY https://github.com/petrasvestartas/laika_cpp.git
         GIT_TAG        main
         GIT_SHALLOW    TRUE
     )
-    FetchContent_GetProperties(session_cpp)
-    if(NOT session_cpp_POPULATED)
-        FetchContent_Populate(session_cpp)
+    FetchContent_GetProperties(laika_cpp)
+    if(NOT laika_cpp_POPULATED)
+        FetchContent_Populate(laika_cpp)
     endif()
-    set(SESSION_CPP_DIR "${session_cpp_SOURCE_DIR}")
-    message(STATUS "wood: fetched session_cpp to ${SESSION_CPP_DIR}")
+    set(LAIKA_CPP_DIR "${laika_cpp_SOURCE_DIR}")
+    message(STATUS "wood: fetched laika_cpp to ${LAIKA_CPP_DIR}")
 endif()
 
-# No generated/ mirror here any more.
-#
-# session_cpp used to locate its own protobuf sources through CMAKE_SOURCE_DIR, which
-# under add_subdirectory() is THIS project rather than session_cpp - so every consumer
-# had to copy session_cpp/generated into its own root just to be found. session_cpp now
-# anchors those paths to its own directory (SESSION_CPP_ROOT), so the copy is obsolete.
-#
-# Deleting it also removes the failure it caused. file(COPY) preserves timestamps, so a
-# regenerated element.pb.h could land here OLDER than the objects already compiled
-# against the previous one; make skipped the rebuild and linked two different layouts of
-# session_proto::Element together. That surfaced at runtime as
-#   malloc(): invalid size (unsorted)   in Element::pb_dumps -> ArenaStringPtr::Set
-# which reads as a serialization bug in whatever you last touched. There is now one copy
-# of the generated sources, in session_cpp, and nothing to go stale.
-
-set(ENABLE_UNITY_BUILD OFF CACHE BOOL "Disable session_cpp unity build" FORCE)
-add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
+# No generated/ mirror here any more: laika_cpp anchors its protobuf sources to LAIKA_CPP_ROOT.
+set(ENABLE_UNITY_BUILD OFF CACHE BOOL "Disable laika_cpp unity build" FORCE)
+add_subdirectory(${LAIKA_CPP_DIR} laika_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
     src/joinery_solver/wood_config.cpp
@@ -201,7 +187,7 @@ set(WOOD_SOURCES
 )
 
 # The wood protobuf messages (src/proto/*.proto), generated into generated/ by tools/regen_proto.sh
-# and committed, as session_cpp does with its own; CI regenerates them with the pinned protoc and fails on a
+# and committed, as laika_cpp does with its own; CI regenerates them with the pinned protoc and fails on a
 # difference. The wood_regen_proto target below runs the same command when that protoc is present.
 file(GLOB WOOD_PROTO_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/generated/*.pb.cc)
 if(NOT MSVC)
@@ -209,14 +195,14 @@ if(NOT MSVC)
 endif()
 
 # wood_core: the joinery solver, compiled once and shared by every target (ADD_EXE below), as
-# session_cpp does with session_core.
+# laika_cpp does with laika_core.
 # Clipper2 does the 2D polygon booleans (wood_contact_detection.cpp, wood_merge_modifier.cpp). It ships
-# inside session_cpp but session_core does not compile it, so the three translation units it needs
+# inside laika_cpp but laika_core does not compile it, so the three translation units it needs
 # are built here. Any other consumer that compiles those files has to add them too.
 set(WOOD_CLIPPER2_SOURCES
-    ${SESSION_CPP_DIR}/src/clipper2/clipper.engine.cpp
-    ${SESSION_CPP_DIR}/src/clipper2/clipper.offset.cpp
-    ${SESSION_CPP_DIR}/src/clipper2/clipper.rectclip.cpp
+    ${LAIKA_CPP_DIR}/src/clipper2/clipper.engine.cpp
+    ${LAIKA_CPP_DIR}/src/clipper2/clipper.offset.cpp
+    ${LAIKA_CPP_DIR}/src/clipper2/clipper.rectclip.cpp
 )
 
 add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES} ${WOOD_PROTO_SOURCES})
@@ -227,7 +213,7 @@ if(NOT MSVC)
     target_compile_options(wood_core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 target_include_directories(wood_core PUBLIC
-    ${SESSION_CPP_DIR}
+    ${LAIKA_CPP_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
@@ -239,12 +225,12 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
 )
-# session_core's usage requirements: src, fmt, json, guid, yaml, and the protobuf gencode,
+# laika_core's usage requirements: src, fmt, json, guid, yaml, and the protobuf gencode,
 # protobuf and abseil headers as SYSTEM. Linking keeps that flag; spelling the include list out
-# through $<TARGET_PROPERTY:session_core,INTERFACE_INCLUDE_DIRECTORIES> turned abseil into a plain
+# through $<TARGET_PROPERTY:laika_core,INTERFACE_INCLUDE_DIRECTORIES> turned abseil into a plain
 # -I and flooded every wood file with its -Wpedantic warnings. An object library linking an object
-# library takes only the usage requirements; ADD_EXE still links session_core's objects itself.
-target_link_libraries(wood_core PUBLIC session_core)
+# library takes only the usage requirements; ADD_EXE still links laika_core's objects itself.
+target_link_libraries(wood_core PUBLIC laika_core)
 
 # Manifold, the mesh boolean behind solid_boolean and apply_solid_cuts: guaranteed closed results
 # where wood's BSP split had opened up on chained cuts (the floor column head). Pinned, static, no
@@ -286,13 +272,13 @@ if(EXISTS "${manifold_SOURCE_DIR}/src/edge_op.cpp")
 endif()
 target_link_libraries(wood_core PUBLIC manifold::manifold)
 
-find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/36.2/bin NO_DEFAULT_PATH)
+find_program(WOOD_PROTOC protoc HINTS ${LAIKA_CPP_DIR}/.protoc/36.2/bin ${LAIKA_DEPS_PREFIX}/bin NO_DEFAULT_PATH)
 if(WOOD_PROTOC)
     file(GLOB WOOD_PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.proto)
     add_custom_target(wood_regen_proto
         COMMAND ${WOOD_PROTOC} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/generated
                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src/proto
-                --proto_path=${SESSION_CPP_DIR}/../session_proto
+                --proto_path=${LAIKA_CPP_DIR}/../laika_proto
                 ${WOOD_PROTO_FILES}
         DEPENDS ${WOOD_PROTO_FILES}
         COMMENT "Regenerating wood/generated from src/proto"
@@ -300,11 +286,11 @@ if(WOOD_PROTOC)
     )
 endif()
 
-# Every executable in this project: wood solver + session kernel + protobuf.
+# Every executable in this project: wood solver + laika kernel + protobuf.
 # Extra sources (e.g. the dataset runners) go in ${ARGN} and are compiled per target.
 function(ADD_EXE NAME SRC)
     add_executable(${NAME} ${SRC} ${ARGN})
-    target_link_libraries(${NAME} PRIVATE wood_core session_core)
+    target_link_libraries(${NAME} PRIVATE wood_core laika_core)
     if(NOT MSVC)
         target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic)
     endif()

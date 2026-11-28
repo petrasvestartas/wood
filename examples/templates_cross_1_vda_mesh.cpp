@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/cross/vda_mesh.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The vda mesh on its default dome.
@@ -48,5 +48,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_cross_1_vda_mesh --parallel 6 && ./build/templates_cross_1_vda_mesh && ../bash/publish-scene.sh --target templates_cross_1_vda_mesh
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

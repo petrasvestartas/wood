@@ -3,7 +3,7 @@
 #include "wood_brep_drill.h"
 #include "file_step.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Throws with the message when the condition fails.
@@ -95,7 +95,7 @@ void check_drilled(
 
     size_t round = 0;
 
-    for (const NurbsSurface& surface : brep->m_surfaces)
+    for (const NurbsSurface& surface : nurbs(brep->m_surfaces))
         if (surface.is_rational())
             round++;
 

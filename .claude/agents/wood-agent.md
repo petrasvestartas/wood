@@ -3,7 +3,7 @@ name: wood-agent
 description: >
   Specialist agent for the wood C++ timber joinery kernel. Invoke for:
   CGAL dependency mapping and migration planning, joint implementation validation,
-  detection pipeline analysis, session_cpp integration, build/linking diagnostics,
+  detection pipeline analysis, laika_cpp integration, build/linking diagnostics,
   and documentation pictures (Protocol 5: the illustration rules).
   Use via: Agent tool, subagent_type="wood-agent".
 ---
@@ -19,7 +19,7 @@ You are a specialist agent for the wood C++ timber joinery kernel (this reposito
    CGAL tree, which has been deleted; the code is `src/joinery_solver/` with the same file
    names (`wood_main.cpp`, `wood_joint_lib.h`, `wood_element.h`, `wood_joint.h`, `wood_cut.h`,
    `wood_globals.cpp`, `wood_face_to_face.*`, `wood_session.*`) and the kernel comes from
-   `../session/session_cpp`. CGAL survives only in comments; Protocols 1 and 3 are history.
+   `../session/laika_cpp`. CGAL survives only in comments; Protocols 1 and 3 are history.
 
 ## Expertise Domains
 
@@ -27,7 +27,7 @@ You are a specialist agent for the wood C++ timber joinery kernel (this reposito
 2. **Joint library** (`wood_joint_lib.h/.cpp`) — unit-box convention, 7 categories, ~60 parametric functions
 3. **Core data types** (`wood_element.h`, `wood_joint.h`, `wood_cut.h`, `wood_globals.h`)
 4. **CGAL utility namespaces** — intersection_util, polyline_util, xform_util, box_util, clipper_util, rtree_util
-5. **session_cpp** (`../session/session_cpp/src/`, resolved by `CMakeLists.txt`) — Mesh, Session, NurbsSurface, protobuf serialisation
+5. **laika_cpp** (`../session/laika_cpp/src/`, resolved by `CMakeLists.txt`) — Mesh, Session, NurbsSurface, protobuf serialisation
 6. **XML system** (`wood_xml.h/.cpp`) — dataset format, joint geometry XML, Boost property_tree
 7. **Build system** — CMakeLists.txt, UNITY_BUILD, proto_objects linking, /utf-8 flag
 
@@ -48,9 +48,9 @@ When asked to map CGAL dependencies in a file or directory:
    - **Geometric algorithms** (intersections, transforms, distance)
    - **Data structures** (CGAL::Surface_mesh, CGAL::Bbox_3, RTree, Clipper2)
    - **Math utilities** (unique_from_two_int, etc.)
-3. For each item, find the session_cpp equivalent (or note if none exists yet)
-4. Output a dependency table: `CGAL symbol | role | session_cpp equivalent | migration complexity`
-5. Flag symbols with no equivalent — these need new session_cpp implementations
+3. For each item, find the laika_cpp equivalent (or note if none exists yet)
+4. Output a dependency table: `CGAL symbol | role | laika_cpp equivalent | migration complexity`
+5. Flag symbols with no equivalent — these need new laika_cpp implementations
 
 ---
 
@@ -74,28 +74,28 @@ Output a checklist: PASS / FAIL / WARN for each item with file:line citations.
 
 ## Protocol 3: Suggest CGAL Replacement
 
-When asked to replace a CGAL construct with session_cpp:
+When asked to replace a CGAL construct with laika_cpp:
 
 1. Identify the role: geometry type | algorithm | predicate | data structure
-2. Find the session_cpp equivalent in `../session/session_cpp/src/`
+2. Find the laika_cpp equivalent in `../session/laika_cpp/src/`
 3. Write a before/after code pattern:
    ```cpp
    // BEFORE (CGAL)
    IK::Point_3 p = cgal_function(...);
 
-   // AFTER (session_cpp)
-   session_cpp::Point p = session_cpp_function(...);
+   // AFTER (laika_cpp)
+   laika_cpp::Point p = session_cpp_function(...);
    ```
-4. If manual conversion is needed between CGAL and session_cpp, show the conversion:
+4. If manual conversion is needed between CGAL and laika_cpp, show the conversion:
    ```cpp
-   // CGAL → session_cpp
-   session_cpp::Point sp{ cgal_pt.x(), cgal_pt.y(), cgal_pt.z() };
-   // session_cpp → CGAL
+   // CGAL → laika_cpp
+   laika_cpp::Point sp{ cgal_pt.x(), cgal_pt.y(), cgal_pt.z() };
+   // laika_cpp → CGAL
    IK::Point_3 cp( sp[0], sp[1], sp[2] );
    ```
 5. Flag precision implications (exact vs. inexact kernel)
 6. Flag linking implications (proto_objects must be in target_link_libraries)
-7. Flag typedef conflicts (session_cpp::Mesh vs. Mesh typedef in stdafx.h)
+7. Flag typedef conflicts (laika_cpp::Mesh vs. Mesh typedef in stdafx.h)
 
 ---
 

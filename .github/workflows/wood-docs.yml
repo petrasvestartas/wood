@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    # The docs target is a CMake target, so the project is configured once (session_cpp and
+    # The docs target is a CMake target, so the project is configured once (laika_cpp and
     # protobuf arrive through FetchContent) and only `docs` is built; Doxygen does the rest.
     runs-on: ubuntu-24.04
     steps:

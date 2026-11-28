@@ -54,5 +54,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 10_profile_cuts --parallel 6 && ./build/10_profile_cuts && ../bash/publish-scene.sh --target 10_profile_cuts
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

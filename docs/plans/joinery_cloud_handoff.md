@@ -9,7 +9,7 @@ here was established by audits, fixes and reviews run on 2026-10-09/10 (Fable 5.
 ## 0. How to work (binding)
 
 - Read `CLAUDE.md` (repo root) first: house style, **no lambdas**, explicit types, one concept per
-  file, short functions, section banners, kernel first (session_cpp headers before any helper),
+  file, short functions, section banners, kernel first (laika_cpp headers before any helper),
   the key pattern: a joint is an element computed from the contact, `add(joint, group)`, then
   `add_interaction(joint, member, joint->interaction(i))` per target. One header/source pair for
   Joint, JointPlate, JointBeam; per-joint builders live in
@@ -178,7 +178,7 @@ annen_grid_full_arch) must match the reference.
   cr_c_ip_5 drill_50 / drill_10 must bore.
 - cross_vda_single_arch plate 37: 14/15 vs 17 points (drop_folded_corners vs reference).
 - Kernel gap: `Polyline::extend_segment_equally(int)` never re-syncs a closed ring's closing
-  vertex: fix it in session_cpp, session_py and session_rust together (the kernel repo
+  vertex: fix it in laika_cpp, session_py and laika_rs together (the kernel repo
   petrasvestartas/session) and drop the wood workaround; other kernel gaps in `oracle.json`
   (`Polyline::is_planar`, `is_simple`, a point-set distance, tolerant `is_closed`).
 - ss_e_op_17 and ss_e_op_tutorial have no 2024 counterpart: keep by name, out of the id table,

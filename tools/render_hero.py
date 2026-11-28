@@ -17,9 +17,9 @@ import hero_moves
 from PIL import Image, ImageChops
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
-SESSION = WOOD.parent / "session"
-PYTHON = SESSION / "session_py/.venv/bin/python"
-RENDERER = SESSION / "session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+SESSION = WOOD.parent / "laika"
+PYTHON = SESSION / "laika_py/.venv/bin/python"
+RENDERER = SESSION / "laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 EXAMPLE = "templates_floor_7_contacts_cantilevers"
 WORK = WOOD / "build/hero"  # The scenes and the frames: too many for a temporary folder in memory.
 RENDERED = (8000, 6400)  # What is drawn, before the crop.
@@ -30,7 +30,7 @@ BOUNDS = ((-4300.0, -4300.0, -500.0), (4300.0, 4300.0, 7000.0))  # Of every fram
 # The meshes of a scene's pieces, where they stand.
 MESHES = r"""
 import json, sys
-from session_py.session import Session
+from laika_py.session import Session
 scene, out = sys.argv[1:3]
 pieces = []
 scene = Session.pb_load(scene)
@@ -48,11 +48,11 @@ json.dump(pieces, open(out, "w"))
 # the background's colour at the corners of the bounds keep the camera.
 SCENES = r"""
 import json, sys
-from session_py.session import Session
-from session_py.xform import Xform
-from session_py.color import Color
-from session_py.line import Line
-from session_py.point import Point
+from laika_py.session import Session
+from laika_py.xform import Xform
+from laika_py.color import Color
+from laika_py.line import Line
+from laika_py.point import Point
 source, plan_path, out, first, last = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), int(sys.argv[5])
 BROWN = Color(0.4196, 0.2667, 0.1373, 1.0)  # #AD8D68, linear
 plan = json.load(open(plan_path))

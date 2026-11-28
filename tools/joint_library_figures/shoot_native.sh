@@ -8,7 +8,7 @@
 #                                                                                a dot on its point and its text beside it
 set -euo pipefail
 WOOD="$(cd "$(dirname "$0")/../.." && pwd)"
-VIEWER="${SESSION_VIEWER:-$WOOD/../session/session_viewer}"
+VIEWER="${LAIKA_VIEWER:-$WOOD/../laika/laika_viewer}"
 HOST="$(rustc -vV | sed -n 's/host: //p')"
 SHOT="$VIEWER/target/$HOST/release/examples/wood_shot"
 [ -f /usr/share/vulkan/icd.d/lvp_icd.json ] && [ -z "${VK_ICD_FILENAMES:-}" ] && export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json

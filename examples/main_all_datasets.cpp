@@ -66,5 +66,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target main_all_datasets --parallel 6 && ./build/main_all_datasets && ../bash/publish-scene.sh --target main_all_datasets
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

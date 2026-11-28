@@ -73,7 +73,7 @@ the hexbox dataset output changed; its pre-test contents were restored. The full
 ## Element mapping
 
 parity : `examples/main_element_mapping_check.cpp:104` requests the block GUID before
-serialization, matching session_cpp's current lazy identity contract. Both JSON
+serialization, matching laika_cpp's current lazy identity contract. Both JSON
 and protobuf assertions compare with that requested identity. No library identity
 behavior was changed.
 
@@ -157,6 +157,6 @@ the pipeline's serialized output.
 
 ran : All four wood CTest suites pass. The three changed C++ translation units pass
 syntax checks with `-Wall -Wextra -Wpedantic` without diagnostics. The dependency
-rebuild emitted warnings in Abseil, Protobuf, and session_cpp; project-wide zero
+rebuild emitted warnings in Abseil, Protobuf, and laika_cpp; project-wide zero
 warnings is not claimed. The protected examples and all recorded pre-existing
 edits remain byte-for-byte unchanged.

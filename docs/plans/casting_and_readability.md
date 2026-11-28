@@ -104,7 +104,7 @@ invalidates the target. The beam's volume swap (`:1043-1046`) becomes
 
 **2. `transformed` in `wood_instance.cpp:171-204`: 7 casts that the kernel's virtuals already do.**
 Every wood class overrides the kernel's virtual `clone()` and `place()`. The kernel's
-`Element::place` moves the features and insertion vectors (`session_cpp/src/element.cpp:464-482`).
+`Element::place` moves the features and insertion vectors (`laika_cpp/src/element.cpp:464-482`).
 `JointElement::transformed` is already clone and place (`wood_element_joint.cpp:276-283`). The ladder
 and six hand-written `transformed` bodies, about 20 lines each, become:
 

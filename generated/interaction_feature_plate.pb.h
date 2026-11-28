@@ -447,24 +447,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED PolylineList final : public ::googl
   enum : int {
     kItemsFieldNumber = 1,
   };
-  // repeated .session_proto.Polyline items = 1;
+  // repeated .laika_proto.Polyline items = 1;
   [[nodiscard]] int items_size() const;
   private:
   int _internal_items_size() const;
 
   public:
   void clear_items() ;
-  [[nodiscard]] const ::session_proto::Polyline& items(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_items(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_items();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& items(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_items(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_items();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   items() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_items();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_items() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_items();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_items() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_items();
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.PolylineList)
@@ -500,7 +500,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED PolylineList final : public ::googl
         const PolylineList& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > items_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > items_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -700,44 +700,44 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
   ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_cross_faces();
 
   public:
-  // repeated .session_proto.Line joint_lines = 4;
+  // repeated .laika_proto.Line joint_lines = 4;
   [[nodiscard]] int joint_lines_size() const;
   private:
   int _internal_joint_lines_size() const;
 
   public:
   void clear_joint_lines() ;
-  [[nodiscard]] const ::session_proto::Line& joint_lines(int index) const;
-  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_joint_lines(int index);
-  ::session_proto::Line* PROTOBUF_NONNULL add_joint_lines();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  [[nodiscard]] const ::laika_proto::Line& joint_lines(int index) const;
+  [[nodiscard]] ::laika_proto::Line* PROTOBUF_NONNULL mutable_joint_lines(int index);
+  ::laika_proto::Line* PROTOBUF_NONNULL add_joint_lines();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
   joint_lines() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
   mutable_joint_lines();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_joint_lines() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_joint_lines();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& _internal_joint_lines() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL _internal_mutable_joint_lines();
 
   public:
-  // repeated .session_proto.Polyline joint_volumes = 5;
+  // repeated .laika_proto.Polyline joint_volumes = 5;
   [[nodiscard]] int joint_volumes_size() const;
   private:
   int _internal_joint_volumes_size() const;
 
   public:
   void clear_joint_volumes() ;
-  [[nodiscard]] const ::session_proto::Polyline& joint_volumes(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_joint_volumes(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_joint_volumes();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& joint_volumes(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_joint_volumes(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_joint_volumes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   joint_volumes() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_joint_volumes();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_joint_volumes() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_joint_volumes();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_joint_volumes() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_joint_volumes();
 
   public:
   // repeated .wood_proto.PolylineList male_outlines = 6;
@@ -859,24 +859,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
   ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL _internal_mutable_linked_joints_seq();
 
   public:
-  // repeated .session_proto.ElementFeature element_features = 24;
+  // repeated .laika_proto.ElementFeature element_features = 24;
   [[nodiscard]] int element_features_size() const;
   private:
   int _internal_element_features_size() const;
 
   public:
   void clear_element_features() ;
-  [[nodiscard]] const ::session_proto::ElementFeature& element_features(int index) const;
-  [[nodiscard]] ::session_proto::ElementFeature* PROTOBUF_NONNULL mutable_element_features(int index);
-  ::session_proto::ElementFeature* PROTOBUF_NONNULL add_element_features();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>&
+  [[nodiscard]] const ::laika_proto::ElementFeature& element_features(int index) const;
+  [[nodiscard]] ::laika_proto::ElementFeature* PROTOBUF_NONNULL mutable_element_features(int index);
+  ::laika_proto::ElementFeature* PROTOBUF_NONNULL add_element_features();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>&
   element_features() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>* PROTOBUF_NONNULL
   mutable_element_features();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& _internal_element_features() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL _internal_mutable_element_features();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>& _internal_element_features() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>* PROTOBUF_NONNULL _internal_mutable_element_features();
 
   public:
   // repeated string linked_joints = 26;
@@ -1084,15 +1084,15 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedField<::int32_t> cross_faces_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > joint_lines_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > joint_volumes_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Line > joint_lines_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > joint_volumes_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PolylineList > male_outlines_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PolylineList > female_outlines_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > male_fabrication_types_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > female_fabrication_types_;
     ::google::protobuf::RepeatedField<double> scale_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > linked_joints_seq_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::ElementFeature > element_features_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::ElementFeature > element_features_;
     ::google::protobuf::RepeatedPtrField<::std::string> linked_joints_;
     ::google::protobuf::internal::ArenaStringPtr element_a_;
     ::google::protobuf::internal::ArenaStringPtr element_b_;
@@ -1130,51 +1130,51 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
 
 // PolylineList
 
-// repeated .session_proto.Polyline items = 1;
+// repeated .laika_proto.Polyline items = 1;
 inline int PolylineList::_internal_items_size() const {
   return _internal_items().size();
 }
 inline int PolylineList::items_size() const {
   return _internal_items_size();
 }
-inline const ::session_proto::Polyline& PolylineList::items(int index) const
+inline const ::laika_proto::Polyline& PolylineList::items(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.PolylineList.items)
   return _internal_items().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL PolylineList::mutable_items(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL PolylineList::mutable_items(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.PolylineList.items)
   return _internal_mutable_items()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL PolylineList::add_items()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL PolylineList::add_items()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_items()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.PolylineList.items)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& PolylineList::items() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& PolylineList::items() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.PolylineList.items)
   return _internal_items();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 PolylineList::mutable_items() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.PolylineList.items)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_items();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 PolylineList::_internal_items() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.items_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 PolylineList::_internal_mutable_items() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.items_;
@@ -1484,51 +1484,51 @@ inline void InteractionFeaturePlate::set_allocated_contact(::wood_proto::Interac
   // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeaturePlate.contact)
 }
 
-// repeated .session_proto.ElementFeature element_features = 24;
+// repeated .laika_proto.ElementFeature element_features = 24;
 inline int InteractionFeaturePlate::_internal_element_features_size() const {
   return _internal_element_features().size();
 }
 inline int InteractionFeaturePlate::element_features_size() const {
   return _internal_element_features_size();
 }
-inline const ::session_proto::ElementFeature& InteractionFeaturePlate::element_features(int index) const
+inline const ::laika_proto::ElementFeature& InteractionFeaturePlate::element_features(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.element_features)
   return _internal_element_features().Get(index);
 }
-inline ::session_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_element_features(int index)
+inline ::laika_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_element_features(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlate.element_features)
   return _internal_mutable_element_features()->Mutable(index);
 }
-inline ::session_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeaturePlate::add_element_features()
+inline ::laika_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeaturePlate::add_element_features()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::ElementFeature* _add =
+  ::laika_proto::ElementFeature* _add =
       _internal_mutable_element_features()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeaturePlate.element_features)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& InteractionFeaturePlate::element_features() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>& InteractionFeaturePlate::element_features() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeaturePlate.element_features)
   return _internal_element_features();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>* PROTOBUF_NONNULL
 InteractionFeaturePlate::mutable_element_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeaturePlate.element_features)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_element_features();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>&
 InteractionFeaturePlate::_internal_element_features() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.element_features_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::ElementFeature>* PROTOBUF_NONNULL
 InteractionFeaturePlate::_internal_mutable_element_features() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.element_features_;
@@ -1609,101 +1609,101 @@ InteractionFeaturePlate::_internal_mutable_cross_faces() {
   return &_impl_.cross_faces_;
 }
 
-// repeated .session_proto.Line joint_lines = 4;
+// repeated .laika_proto.Line joint_lines = 4;
 inline int InteractionFeaturePlate::_internal_joint_lines_size() const {
   return _internal_joint_lines().size();
 }
 inline int InteractionFeaturePlate::joint_lines_size() const {
   return _internal_joint_lines_size();
 }
-inline const ::session_proto::Line& InteractionFeaturePlate::joint_lines(int index) const
+inline const ::laika_proto::Line& InteractionFeaturePlate::joint_lines(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.joint_lines)
   return _internal_joint_lines().Get(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_joint_lines(int index)
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_joint_lines(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlate.joint_lines)
   return _internal_mutable_joint_lines()->Mutable(index);
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeaturePlate::add_joint_lines()
+inline ::laika_proto::Line* PROTOBUF_NONNULL InteractionFeaturePlate::add_joint_lines()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Line* _add =
+  ::laika_proto::Line* _add =
       _internal_mutable_joint_lines()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeaturePlate.joint_lines)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionFeaturePlate::joint_lines() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>& InteractionFeaturePlate::joint_lines() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeaturePlate.joint_lines)
   return _internal_joint_lines();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeaturePlate::mutable_joint_lines() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeaturePlate.joint_lines)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_joint_lines();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Line>&
 InteractionFeaturePlate::_internal_joint_lines() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.joint_lines_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Line>* PROTOBUF_NONNULL
 InteractionFeaturePlate::_internal_mutable_joint_lines() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.joint_lines_;
 }
 
-// repeated .session_proto.Polyline joint_volumes = 5;
+// repeated .laika_proto.Polyline joint_volumes = 5;
 inline int InteractionFeaturePlate::_internal_joint_volumes_size() const {
   return _internal_joint_volumes().size();
 }
 inline int InteractionFeaturePlate::joint_volumes_size() const {
   return _internal_joint_volumes_size();
 }
-inline const ::session_proto::Polyline& InteractionFeaturePlate::joint_volumes(int index) const
+inline const ::laika_proto::Polyline& InteractionFeaturePlate::joint_volumes(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.joint_volumes)
   return _internal_joint_volumes().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_joint_volumes(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_joint_volumes(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlate.joint_volumes)
   return _internal_mutable_joint_volumes()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionFeaturePlate::add_joint_volumes()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL InteractionFeaturePlate::add_joint_volumes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_joint_volumes()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_add:wood_proto.InteractionFeaturePlate.joint_volumes)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionFeaturePlate::joint_volumes() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& InteractionFeaturePlate::joint_volumes() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.InteractionFeaturePlate.joint_volumes)
   return _internal_joint_volumes();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionFeaturePlate::mutable_joint_volumes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeaturePlate.joint_volumes)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_joint_volumes();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 InteractionFeaturePlate::_internal_joint_volumes() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.joint_volumes_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 InteractionFeaturePlate::_internal_mutable_joint_volumes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.joint_volumes_;

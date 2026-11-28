@@ -2,7 +2,7 @@
 #include "src/templates/shells/shells_guide.h"
 #include "src/templates/template_chamfer.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════

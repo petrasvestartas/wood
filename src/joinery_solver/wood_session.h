@@ -24,7 +24,7 @@
 #include "wood_io.h"
 #include "wood_view.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
@@ -101,7 +101,7 @@ public:
     static WoodSession file_json_load(const std::string& filename);
 
     /// Session::from_proto as a WoodSession; the settings live only in the wood_proto bytes pb_loads reads.
-    static WoodSession from_proto(const session_proto::Session& proto);
+    static WoodSession from_proto(const laika_proto::Session& proto);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

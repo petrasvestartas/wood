@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_session.h"
 #include "yaml.hpp"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 namespace config {

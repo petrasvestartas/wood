@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A row of plates lofted between two rails, as a bed row of the floor: one plate per segment.
@@ -46,5 +46,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_face_planar_session --parallel 6 && ./build/element_face_planar_session && ../bash/publish-scene.sh --target element_face_planar_session
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

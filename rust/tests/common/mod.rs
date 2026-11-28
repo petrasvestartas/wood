@@ -1,7 +1,7 @@
 #![allow(dead_code)] // each test file uses part of it
 
-use session_rust::element::ElementGeometry;
-use session_rust::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Session};
+use laika_rs::element::ElementGeometry;
+use laika_rs::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Session};
 use wood::geometry::{compute_up, profile_rectangle};
 use wood::{
     EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement,
@@ -16,9 +16,9 @@ pub fn p(x: f64, y: f64, z: f64) -> Point {
 pub fn rectangle(corner: Point, width: f64, height: f64) -> Polyline {
     Polyline::new(vec![
         corner.clone(),
-        corner.clone() + session_rust::Vector::new(width, 0.0, 0.0),
-        corner.clone() + session_rust::Vector::new(width, height, 0.0),
-        corner.clone() + session_rust::Vector::new(0.0, height, 0.0),
+        corner.clone() + laika_rs::Vector::new(width, 0.0, 0.0),
+        corner.clone() + laika_rs::Vector::new(width, height, 0.0),
+        corner.clone() + laika_rs::Vector::new(0.0, height, 0.0),
         corner,
     ])
 }
@@ -34,7 +34,7 @@ pub fn plate() -> FacePlanarElement {
     ]);
     FacePlanarElement::new(
         &bottom,
-        &bottom.translated(&session_rust::Vector::new(0.0, 0.0, 40.0)),
+        &bottom.translated(&laika_rs::Vector::new(0.0, 0.0, 40.0)),
         "plate",
     )
 }

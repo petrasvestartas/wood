@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// Chamfered half-lap slot outline on a male face at y in the unit box.
@@ -80,5 +80,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target element_joint_plate_cross_custom --parallel 6 && ./build/element_joint_plate_cross_custom && ../bash/publish-scene.sh --target element_joint_plate_cross_custom
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

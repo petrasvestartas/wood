@@ -31,10 +31,10 @@ PAGES = sorted((WOOD / "docs/elements").glob("element_joint_plate*.md")) + [
 # and the parts to draw brown.
 OUTS = r"""
 import json, sys
-from session_py.session import Session
-from session_py.xform import Xform
-from session_py.line import Line
-from session_py.point import Point
+from laika_py.session import Session
+from laika_py.xform import Xform
+from laika_py.line import Line
+from laika_py.point import Point
 scene_path, assembly_path, apart_path = sys.argv[1:4]
 scene = Session.pb_load(scene_path)
 assembly = json.load(open(assembly_path))
@@ -162,7 +162,7 @@ print(json.dumps({"order": order, "joints": joints, "parts": parts}))
 # down, or in towards the scene's middle when there are four of them or more.
 STACK = r"""
 import json, sys
-from session_py.session import Session
+from laika_py.session import Session
 scene = Session.pb_load(sys.argv[1])
 members = []
 for element in scene.objects.elements:

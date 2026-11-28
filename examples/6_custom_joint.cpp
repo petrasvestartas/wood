@@ -1,6 +1,6 @@
 #include "wood_session.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 const double SEAM_DEPTH = 1.5;
@@ -59,5 +59,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 6_custom_joint --parallel 6 && ./build/6_custom_joint && ../bash/publish-scene.sh --target 6_custom_joint
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

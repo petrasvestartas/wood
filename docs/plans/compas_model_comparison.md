@@ -104,7 +104,7 @@ Deviations (all checked):
 
 | Concept | compas_model | wood |
 |---|---|---|
-| Model | `Model`: elements by guid, an `ElementTree` (transforms compose down the tree) and an `InteractionGraph` whose edges carry `modifiers` and `contacts` | `WoodSession : Session`: the same shape (tree, `world_xform` composed in `session_cpp/src/session.cpp:741`, a graph, interactions per edge) |
+| Model | `Model`: elements by guid, an `ElementTree` (transforms compose down the tree) and an `InteractionGraph` whose edges carry `modifiers` and `contacts` | `WoodSession : Session`: the same shape (tree, `world_xform` composed in `laika_cpp/src/session.cpp:741`, a graph, interactions per edge) |
 | Element geometry | Computed on read: local geometry, then the model transform, then every incoming edge's `modifier.apply(source, geometry)` (`element.py:324-342`). Lazy caches are reset by `@reset_computed` on setters (`element.py:34`). | `add_interaction` copies each effect into the target (`solid_features`, `plane_features`, `cuts`, display `ElementFeature`s); `invalidate_geometry` is called by hand |
 | Effect of an interaction | One method, `Modifier.apply` (`modifiers/modifier.py`, 39 lines) | No such method on the kernel's `Interaction`; the session's type ladder decides |
 | Joint as an element | None; modifiers are plain data on edges | `JointElement` with its own geometry, targets and `interaction(i)`. Wood is richer here. |
@@ -147,13 +147,13 @@ Deviations (all checked):
 
 ## 4. Is compas_model's BVH better?
 
-| | wood (`session_cpp` `SpatialBVH`) | compas_model shipped | compas_model in docs only |
+| | wood (`laika_cpp` `SpatialBVH`) | compas_model shipped | compas_model in docs only |
 |---|---|---|---|
 | Structure | Linear BVH (Karras 2012), 30-bit Morton codes, flat binary node array | Python object tree, median split on the longest axis (`datastructures/bvh.py:278-312`) | Binary tree, median split |
 | Build cost | O(n log n) | O(n log² n), in Python | Same as shipped |
 | Node volume | AABB, then an OBB separating-axis filter (`wood_contact_detection.cpp:371-373`) | AABB, or a PCA-fitted OBB | AABB / OBB |
 | Query | n box queries, explicit stack | Breadth-first with `pop(0)` | Dual-tree traversal |
-| Tolerance | Absolute: OBB half-size + inflate (`session_cpp/src/obb.cpp:144-146`) | Relative × 1.2 | Absolute, but with a positive tolerance it falls back to checking every pair, O(n²) |
+| Tolerance | Absolute: OBB half-size + inflate (`laika_cpp/src/obb.cpp:144-146`) | Relative × 1.2 | Absolute, but with a positive tolerance it falls back to checking every pair, O(n²) |
 | Narrow phase | Face against face, Clipper2 | Face against face, shapely | Coal triangle BVH (meshes) or OCC (BReps) |
 
 **Verdict: no, compas_model's BVH is not better for timber contact detection, and wood's `SpatialBVH` is
@@ -172,7 +172,7 @@ adequate.**
   O(N² · segments²) (`wood_contact_detection.cpp:924-962`). This is the one place a BVH would help
   (truss, grid).
 - Wood computes a world size `ws` (`wood_contact_detection.cpp:352-361`) that the build never uses: the
-  Morton codes are scaled to the box centres instead (`session_cpp/src/spatial_bvh.cpp:312-343`). About
+  Morton codes are scaled to the box centres instead (`laika_cpp/src/spatial_bvh.cpp:312-343`). About
   ten lines of dead code.
 - The traversal stack is a fixed 64 entries guarded only by `assert` (`spatial_bvh.cpp:161-186`), so in a
   release build an overflow writes out of bounds. A linear BVH's depth stays far below 64 in practice,

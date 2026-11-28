@@ -42,7 +42,7 @@ Key files:
 - Joint library: `src/joinery_solver/wood_joint_lib.h`
 - Data types: `src/joinery_solver/wood_element.h`, `wood_joint.h`, `wood_cut.h`
 - Shapes: `src/shapes/shapes.cpp`
-- session_cpp: `ext/session_cpp/src/`
+- laika_cpp: `ext/laika_cpp/src/`
 
 ---
 
@@ -87,7 +87,7 @@ The CGAL migration is finished: `src/joinery_solver/` is CGAL-free and only comm
 name CGAL functions (`grep -rn CGAL src/joinery_solver`). Use this mode for a feature that
 still exists only in git history: `git log --all --oneline -- cmake/src/wood/include/<file>`
 and `git show <sha>:cmake/src/wood/include/<file>` to read the old CGAL version, then port
-it against `../session/session_cpp/src/` with the naming rules in `session-format`.
+it against `../session/laika_cpp/src/` with the naming rules in `session-format`.
 
 ---
 
@@ -105,7 +105,7 @@ Match symptom against this table and cite the fix with file:function:
 | joint geometry wrong size | unit_scale not set | Set `j.unit_scale = true` |
 | build succeeds but cmake exits 1 | absl/protoc post-build | Normal; confirm by `wood.exe` line in output |
 | output truncated on crash | stdout buffering | Use `std::cerr` for debug |
-| ambiguous Mesh type | typedef in stdafx.h | Qualify as `session_cpp::Mesh` |
+| ambiguous Mesh type | typedef in stdafx.h | Qualify as `laika_cpp::Mesh` |
 | female/male swapped | JOINTS_TYPES sign | Negative = female; positive = male |
 
 For any symptom not in the table, search `memory/wood_kernel.md` Section 10 and answer with a file:line citation.

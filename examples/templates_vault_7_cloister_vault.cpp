@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/vault/cloister_vault.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The cloister vault of the defaults, its voussoirs in contact.
@@ -38,5 +38,5 @@ examples/templates_vault_7_cloister_vault.cpp
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

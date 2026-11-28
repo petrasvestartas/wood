@@ -958,7 +958,7 @@ SurfaceDivision::SurfaceDivision(
 SurfaceDivision SurfaceDivision::from_brep(const BRep& brep, double size_u, double size_v) {
 
     std::vector<NurbsSurface> patches;
-    for (const NurbsSurface& surface : brep.m_surfaces)
+    for (const NurbsSurface& surface : nurbs(brep.m_surfaces))
         if (surface.is_valid())
             patches.push_back(surface);
 

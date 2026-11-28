@@ -65,11 +65,11 @@ constexpr FacePlanarElement::ParseTableT_ FacePlanarElement::InternalGeneratePar
       {::_pbi::TcParser::FastMtR1,
        {34, 0, 2,
         PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.solid_features_)}},
-      // .session_proto.Polyline bottom = 1;
+      // .laika_proto.Polyline bottom = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 1, 0,
         PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.bottom_)}},
-      // .session_proto.Polyline top = 2;
+      // .laika_proto.Polyline top = 2;
       {::_pbi::TcParser::FastMtS1,
        {18, 2, 1,
         PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.top_)}},
@@ -80,9 +80,9 @@ constexpr FacePlanarElement::ParseTableT_ FacePlanarElement::InternalGeneratePar
     }}, {{
       65535, 65535
     }}, {{
-      // .session_proto.Polyline bottom = 1;
+      // .laika_proto.Polyline bottom = 1;
       {PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.bottom_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-      // .session_proto.Polyline top = 2;
+      // .laika_proto.Polyline top = 2;
       {PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.top_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool reversed = 3;
       {PROTOBUF_FIELD_OFFSET(FacePlanarElement, _impl_.reversed_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
@@ -91,14 +91,14 @@ constexpr FacePlanarElement::ParseTableT_ FacePlanarElement::InternalGeneratePar
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Polyline>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
@@ -249,11 +249,11 @@ const char descriptor_table_protodef_element_5fface_5fplanar_2eproto[] ABSL_ATTR
     protodesc_cold) = {
     "\n\031element_face_planar.proto\022\nwood_proto\032"
     "\037interaction_feature_solid.proto\032\016polyli"
-    "ne.proto\"\261\001\n\021FacePlanarElement\022;\n\016solid_"
+    "ne.proto\"\255\001\n\021FacePlanarElement\022;\n\016solid_"
     "features\030\004 \003(\0132#.wood_proto.InteractionF"
-    "eatureSolid\022\'\n\006bottom\030\001 \001(\0132\027.session_pr"
-    "oto.Polyline\022$\n\003top\030\002 \001(\0132\027.session_prot"
-    "o.Polyline\022\020\n\010reversed\030\003 \001(\010b\006proto3"
+    "eatureSolid\022%\n\006bottom\030\001 \001(\0132\025.laika_prot"
+    "o.Polyline\022\"\n\003top\030\002 \001(\0132\025.laika_proto.Po"
+    "lyline\022\020\n\010reversed\030\003 \001(\010b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fface_5fplanar_2eproto_deps[2] = {
@@ -264,7 +264,7 @@ static ::absl::once_flag descriptor_table_element_5fface_5fplanar_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fface_5fplanar_2eproto = {
     false,
     false,
-    276,
+    272,
     descriptor_table_protodef_element_5fface_5fplanar_2eproto,
     "element_face_planar.proto",
     &descriptor_table_element_5fface_5fplanar_2eproto_once,
@@ -446,14 +446,14 @@ PROTOBUF_NOINLINE void FacePlanarElement::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // .session_proto.Polyline bottom = 1;
+  // .laika_proto.Polyline bottom = 1;
   if (CheckHasBit(cached_has_bits, 0x00000002U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.bottom_, this_._impl_.bottom_->GetCachedSize(), target,
         stream);
   }
 
-  // .session_proto.Polyline top = 2;
+  // .laika_proto.Polyline top = 2;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.top_, this_._impl_.top_->GetCachedSize(), target,
@@ -512,12 +512,12 @@ PROTOBUF_NOINLINE void FacePlanarElement::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // .session_proto.Polyline bottom = 1;
+    // .laika_proto.Polyline bottom = 1;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.bottom_);
     }
-    // .session_proto.Polyline top = 2;
+    // .laika_proto.Polyline top = 2;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.top_);

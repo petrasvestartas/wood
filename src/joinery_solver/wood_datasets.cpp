@@ -2,7 +2,7 @@
 #include "wood_session.h"
 #include "wood_datasets.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// One dataset: its yml globals, its plates, the joints, and data/output/<DATA_SET_OUTPUT_FILE> with the outline dumps beside it.

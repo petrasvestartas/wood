@@ -1,7 +1,7 @@
 #include "wood_session.h"
 #include "src/templates/truss/truss.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// A truss from members of your own: two chords through their nodes and five webs, each with its half section; the template cuts the butts and miters.
@@ -41,5 +41,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target templates_truss_4_custom_wireframe --parallel 6 && ./build/templates_truss_4_custom_wireframe && ../bash/publish-scene.sh --target templates_truss_4_custom_wireframe
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/laika/
 */

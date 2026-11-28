@@ -2,7 +2,7 @@
 #include "src/templates/cylindrical_folding/cylindrical_folding_guide.h"
 #include "src/templates/development.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_cylindrical_folding {

@@ -62,7 +62,7 @@ constexpr InteractionContactAxis::ParseTableT_ InteractionContactAxis::InternalG
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
       {::_pbi::TcParser::MiniParse, {}},
-      // .session_proto.Line segment = 1;
+      // .laika_proto.Line segment = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 0, 0,
         PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_)}},
@@ -93,7 +93,7 @@ constexpr InteractionContactAxis::ParseTableT_ InteractionContactAxis::InternalG
     }}, {{
       65535, 65535
     }}, {{
-      // .session_proto.Line segment = 1;
+      // .laika_proto.Line segment = 1;
       {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // double t_a = 2;
       {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.t_a_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
@@ -110,9 +110,9 @@ constexpr InteractionContactAxis::ParseTableT_ InteractionContactAxis::InternalG
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        {::_pbi::TcParser::GetTable<::laika_proto::Line>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::laika_proto::Line_globals_},
         #endif
     }},
     {{
@@ -262,11 +262,11 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5fcontact_5faxis_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036interaction_contact_axis.proto\022\nwood_p"
-    "roto\032\nline.proto\"\246\001\n\026InteractionContactA"
-    "xis\022$\n\007segment\030\001 \001(\0132\023.session_proto.Lin"
-    "e\022\013\n\003t_a\030\002 \001(\001\022\013\n\003t_b\030\003 \001(\001\022\022\n\npolyline_"
-    "a\030\004 \001(\005\022\021\n\tsegment_a\030\005 \001(\005\022\022\n\npolyline_b"
-    "\030\006 \001(\005\022\021\n\tsegment_b\030\007 \001(\005b\006proto3"
+    "roto\032\nline.proto\"\244\001\n\026InteractionContactA"
+    "xis\022\"\n\007segment\030\001 \001(\0132\021.laika_proto.Line\022"
+    "\013\n\003t_a\030\002 \001(\001\022\013\n\003t_b\030\003 \001(\001\022\022\n\npolyline_a\030"
+    "\004 \001(\005\022\021\n\tsegment_a\030\005 \001(\005\022\022\n\npolyline_b\030\006"
+    " \001(\005\022\021\n\tsegment_b\030\007 \001(\005b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5fcontact_5faxis_2eproto_deps[1] = {
@@ -276,7 +276,7 @@ static ::absl::once_flag descriptor_table_interaction_5fcontact_5faxis_2eproto_o
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5fcontact_5faxis_2eproto = {
     false,
     false,
-    233,
+    231,
     descriptor_table_protodef_interaction_5fcontact_5faxis_2eproto,
     "interaction_contact_axis.proto",
     &descriptor_table_interaction_5fcontact_5faxis_2eproto_once,
@@ -436,7 +436,7 @@ PROTOBUF_NOINLINE void InteractionContactAxis::Clear() {
   (void)cached_has_bits;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  // .session_proto.Line segment = 1;
+  // .laika_proto.Line segment = 1;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.segment_, this_._impl_.segment_->GetCachedSize(), target,
@@ -521,7 +521,7 @@ PROTOBUF_NOINLINE void InteractionContactAxis::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
-    // .session_proto.Line segment = 1;
+    // .laika_proto.Line segment = 1;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.segment_);

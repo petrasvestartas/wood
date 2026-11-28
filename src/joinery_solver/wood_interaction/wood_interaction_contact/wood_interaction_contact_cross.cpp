@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_interaction_contact_cross.h"
 #include "interaction_contact_cross.pb.h"
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

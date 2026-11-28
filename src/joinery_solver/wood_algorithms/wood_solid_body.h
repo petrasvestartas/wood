@@ -9,7 +9,7 @@ namespace manifold {
 class Manifold;
 }
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

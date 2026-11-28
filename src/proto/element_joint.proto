@@ -8,11 +8,11 @@ import "vector.proto";
 import "interaction.proto";
 import "interaction_feature_solid.proto";
 message JointElement {
-  repeated session_proto.Polyline loops = 1;
-  repeated session_proto.Plane cuts = 2;
+  repeated laika_proto.Polyline loops = 1;
+  repeated laika_proto.Plane cuts = 2;
   repeated string targets = 3;
-  repeated session_proto.Interaction connections = 4;
-  session_proto.Interaction beam_feature = 5;
+  repeated laika_proto.Interaction connections = 4;
+  laika_proto.Interaction beam_feature = 5;
   int32 variant = 6;
   double division_distance = 7;
   double shift = 8;
@@ -20,19 +20,19 @@ message JointElement {
   bool generated = 10;
   string kind = 11;
   double chord_tolerance = 12;
-  repeated session_proto.Polyline cutter_profile = 13;
-  session_proto.Vector cutter_extrusion = 14;
-  repeated session_proto.Line drill_lines = 15;
+  repeated laika_proto.Polyline cutter_profile = 13;
+  laika_proto.Vector cutter_extrusion = 14;
+  repeated laika_proto.Line drill_lines = 15;
   optional int32 operation = 16;
   JointPlateParameters plate_parameters = 17;
-  repeated session_proto.Polyline parts = 18;   // A connector's own solids as bottom, top loop pairs
+  repeated laika_proto.Polyline parts = 18;   // A connector's own solids as bottom, top loop pairs
   repeated JointCutter cutters = 19;            // A connector's cutters, one entry per target in targets order
   double drill_overshoot = 20;                  // How far a connector's holes run past its pins where they leave a target
   repeated InteractionFeatureSolid solid_features = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
   reserved 22;                                  // Was nested; a connector's children in the tree now say it
   bool pre_drill = 23;                          // A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
   double cut_size = 25;                         // A cutting plane: the side of the square it is drawn as
-  repeated session_proto.Vector insertions = 24; // A connector's direction each target slides off it, in targets order
+  repeated laika_proto.Vector insertions = 24; // A connector's direction each target slides off it, in targets order
   string design = 26;                           // The catalogue design it is made as, by its compendium name; empty for an older joint
   int32 category = 27;                          // JointCategory: what meets in it
   int32 family = 28;                            // JointFamily: the family the catalogue files it under
@@ -44,18 +44,18 @@ message JointElement {
 message JointCutStep {
   string label = 1;                             // "A1", "B2"
   uint32 target = 2;                            // Which target, in targets order
-  repeated session_proto.Plane planes = 3;      // The saw or chisel planes
-  session_proto.Mesh removal = 4;               // The wood it takes away; empty for a kerf
+  repeated laika_proto.Plane planes = 3;      // The saw or chisel planes
+  laika_proto.Mesh removal = 4;               // The wood it takes away; empty for a kerf
 }
 
 // The directions one target of a joint can be inserted along.
 message JointInsertion {
-  repeated session_proto.Vector directions = 1;
+  repeated laika_proto.Vector directions = 1;
 }
 
 // The solids a connector cuts out of one target, as bottom, top loop pairs.
 message JointCutter {
-  repeated session_proto.Polyline loops = 1;
+  repeated laika_proto.Polyline loops = 1;
 }
 
 message JointPlateParameters {
@@ -71,6 +71,6 @@ message JointPlateParameters {
   bool disable_divisions = 10;
   double distance_squared = 11;
   bool merge_with_joint = 12;
-  repeated session_proto.Polyline male = 13;
-  repeated session_proto.Polyline female = 14;
+  repeated laika_proto.Polyline male = 13;
+  repeated laika_proto.Polyline female = 14;
 }

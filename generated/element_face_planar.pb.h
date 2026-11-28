@@ -241,34 +241,34 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED FacePlanarElement final : public ::
   ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
-  // .session_proto.Polyline bottom = 1;
+  // .laika_proto.Polyline bottom = 1;
   [[nodiscard]] bool has_bottom() const;
   void clear_bottom() ;
-  [[nodiscard]] const ::session_proto::Polyline& bottom() const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NULLABLE release_bottom();
-  ::session_proto::Polyline* PROTOBUF_NONNULL mutable_bottom();
-  void set_allocated_bottom(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_bottom(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  ::session_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_bottom();
+  [[nodiscard]] const ::laika_proto::Polyline& bottom() const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NULLABLE release_bottom();
+  ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_bottom();
+  void set_allocated_bottom(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_bottom(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  ::laika_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_bottom();
 
   private:
-  const ::session_proto::Polyline& _internal_bottom() const;
-  ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_bottom();
+  const ::laika_proto::Polyline& _internal_bottom() const;
+  ::laika_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_bottom();
 
   public:
-  // .session_proto.Polyline top = 2;
+  // .laika_proto.Polyline top = 2;
   [[nodiscard]] bool has_top() const;
   void clear_top() ;
-  [[nodiscard]] const ::session_proto::Polyline& top() const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NULLABLE release_top();
-  ::session_proto::Polyline* PROTOBUF_NONNULL mutable_top();
-  void set_allocated_top(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_top(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  ::session_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_top();
+  [[nodiscard]] const ::laika_proto::Polyline& top() const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NULLABLE release_top();
+  ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_top();
+  void set_allocated_top(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_top(::laika_proto::Polyline* PROTOBUF_NULLABLE value);
+  ::laika_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_top();
 
   private:
-  const ::session_proto::Polyline& _internal_top() const;
-  ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_top();
+  const ::laika_proto::Polyline& _internal_top() const;
+  ::laika_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_top();
 
   public:
   // bool reversed = 3;
@@ -315,8 +315,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED FacePlanarElement final : public ::
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
-    ::session_proto::Polyline* PROTOBUF_NULLABLE bottom_;
-    ::session_proto::Polyline* PROTOBUF_NULLABLE top_;
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE bottom_;
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE top_;
     bool reversed_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -390,28 +390,28 @@ FacePlanarElement::_internal_mutable_solid_features() {
   return &_impl_.solid_features_;
 }
 
-// .session_proto.Polyline bottom = 1;
+// .laika_proto.Polyline bottom = 1;
 inline bool FacePlanarElement::has_bottom() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
   PROTOBUF_ASSUME(!value || _impl_.bottom_ != nullptr);
   return value;
 }
-inline const ::session_proto::Polyline& FacePlanarElement::_internal_bottom() const {
+inline const ::laika_proto::Polyline& FacePlanarElement::_internal_bottom() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Polyline* p = _impl_.bottom_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Polyline>(&::session_proto::Polyline_globals_);
+  const ::laika_proto::Polyline* p = _impl_.bottom_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Polyline>(&::laika_proto::Polyline_globals_);
 }
-inline const ::session_proto::Polyline& FacePlanarElement::bottom() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Polyline& FacePlanarElement::bottom() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.FacePlanarElement.bottom)
   return _internal_bottom();
 }
 inline void FacePlanarElement::unsafe_arena_set_allocated_bottom(
-    ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.bottom_);
   }
-  _impl_.bottom_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.bottom_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
@@ -419,11 +419,11 @@ inline void FacePlanarElement::unsafe_arena_set_allocated_bottom(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.FacePlanarElement.bottom)
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_bottom() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_bottom() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-  ::session_proto::Polyline* released = _impl_.bottom_;
+  ::laika_proto::Polyline* released = _impl_.bottom_;
   _impl_.bottom_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -438,31 +438,31 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_b
   }
   return released;
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::unsafe_arena_release_bottom() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::unsafe_arena_release_bottom() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.FacePlanarElement.bottom)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-  ::session_proto::Polyline* temp = _impl_.bottom_;
+  ::laika_proto::Polyline* temp = _impl_.bottom_;
   _impl_.bottom_ = nullptr;
   return temp;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::_internal_mutable_bottom() {
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::_internal_mutable_bottom() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.bottom_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Polyline>(GetArena());
-    _impl_.bottom_ = reinterpret_cast<::session_proto::Polyline*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Polyline>(GetArena());
+    _impl_.bottom_ = reinterpret_cast<::laika_proto::Polyline*>(p);
   }
   return _impl_.bottom_;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::mutable_bottom()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::mutable_bottom()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  ::session_proto::Polyline* _msg = _internal_mutable_bottom();
+  ::laika_proto::Polyline* _msg = _internal_mutable_bottom();
   // @@protoc_insertion_point(field_mutable:wood_proto.FacePlanarElement.bottom)
   return _msg;
 }
-inline void FacePlanarElement::set_allocated_bottom(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+inline void FacePlanarElement::set_allocated_bottom(::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -479,32 +479,32 @@ inline void FacePlanarElement::set_allocated_bottom(::session_proto::Polyline* P
     ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
 
-  _impl_.bottom_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.bottom_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.FacePlanarElement.bottom)
 }
 
-// .session_proto.Polyline top = 2;
+// .laika_proto.Polyline top = 2;
 inline bool FacePlanarElement::has_top() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.top_ != nullptr);
   return value;
 }
-inline const ::session_proto::Polyline& FacePlanarElement::_internal_top() const {
+inline const ::laika_proto::Polyline& FacePlanarElement::_internal_top() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Polyline* p = _impl_.top_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Polyline>(&::session_proto::Polyline_globals_);
+  const ::laika_proto::Polyline* p = _impl_.top_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Polyline>(&::laika_proto::Polyline_globals_);
 }
-inline const ::session_proto::Polyline& FacePlanarElement::top() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Polyline& FacePlanarElement::top() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.FacePlanarElement.top)
   return _internal_top();
 }
 inline void FacePlanarElement::unsafe_arena_set_allocated_top(
-    ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.top_);
   }
-  _impl_.top_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.top_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
@@ -512,11 +512,11 @@ inline void FacePlanarElement::unsafe_arena_set_allocated_top(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.FacePlanarElement.top)
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_top() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_top() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* released = _impl_.top_;
+  ::laika_proto::Polyline* released = _impl_.top_;
   _impl_.top_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -531,31 +531,31 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::release_t
   }
   return released;
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::unsafe_arena_release_top() {
+inline ::laika_proto::Polyline* PROTOBUF_NULLABLE FacePlanarElement::unsafe_arena_release_top() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.FacePlanarElement.top)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* temp = _impl_.top_;
+  ::laika_proto::Polyline* temp = _impl_.top_;
   _impl_.top_ = nullptr;
   return temp;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::_internal_mutable_top() {
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::_internal_mutable_top() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.top_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Polyline>(GetArena());
-    _impl_.top_ = reinterpret_cast<::session_proto::Polyline*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Polyline>(GetArena());
+    _impl_.top_ = reinterpret_cast<::laika_proto::Polyline*>(p);
   }
   return _impl_.top_;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::mutable_top()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL FacePlanarElement::mutable_top()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Polyline* _msg = _internal_mutable_top();
+  ::laika_proto::Polyline* _msg = _internal_mutable_top();
   // @@protoc_insertion_point(field_mutable:wood_proto.FacePlanarElement.top)
   return _msg;
 }
-inline void FacePlanarElement::set_allocated_top(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+inline void FacePlanarElement::set_allocated_top(::laika_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -572,7 +572,7 @@ inline void FacePlanarElement::set_allocated_top(::session_proto::Polyline* PROT
     ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
-  _impl_.top_ = reinterpret_cast<::session_proto::Polyline*>(value);
+  _impl_.top_ = reinterpret_cast<::laika_proto::Polyline*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.FacePlanarElement.top)
 }
 

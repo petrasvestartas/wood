@@ -5,7 +5,7 @@
 #include "wood_interaction_feature_plate.h"
 #include "wood_settings.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 

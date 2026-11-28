@@ -712,7 +712,7 @@ seat widths, column overhang, pin counts).
 ```cpp
 /// The plan: four bay corners counter-clockwise at the datum z 0, the oculus and every size that does not change with them, each with its default.
 struct FloorGuide {
-    std::array<session_cpp::Point, 4> corners;
+    std::array<laika_cpp::Point, 4> corners;
     double oculus = 1000.0;                // Distance of every oculus corner from the centre along its seam: a square diamond on a rectangular bay.
     double column_head = 220.0;            // Side of the square shaft and of the head polygon at the corner (compas_tf size_column_head).
     double column_head_chamfer = 120.0;    // Where the chamfer vertices sit on the shaft faces; also the capitel width.
@@ -731,58 +731,58 @@ struct FloorGuide {
     bool seam_through_ribs = true;         // The seam beams run on through the outer rib band to the bay's outer face; the outer ribs end on them, no ties.
     double static_h() const;               // height - rise: the rib depth at every seam and at the oculus.
     static FloorGuide rectangle(double half_x, double half_y, double oculus = 1000.0);
-    static FloorGuide quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0);
-    session_cpp::Point centre() const;                        // The vertex centroid, where the bimedians cross and bisect each other.
-    session_cpp::Point midpoint(size_t k) const;              // Of edge k, corner k to corner k + 1.
+    static FloorGuide quadrilateral(const std::array<laika_cpp::Point, 4>& corners, double oculus = 1000.0);
+    laika_cpp::Point centre() const;                        // The vertex centroid, where the bimedians cross and bisect each other.
+    laika_cpp::Point midpoint(size_t k) const;              // Of edge k, corner k to corner k + 1.
     double corner_angle(size_t k) const;                      // Degrees.
-    std::array<session_cpp::Point, 4> oculus_corners() const; // Corner k oculus from the centre towards midpoint k.
+    std::array<laika_cpp::Point, 4> oculus_corners() const; // Corner k oculus from the centre towards midpoint k.
     double oculus_corner_angle(size_t k) const; double oculus_seam_angle(size_t k) const;
     bool valid(std::string& why) const;                       // Counter-clockwise, convex, at z 0, oculus corners inside the quarters, ring coverage sin(theta_j) >= sin(beta_j) at every oculus corner (R7).
 };
 
 /// A bay edge: its line, midpoint and the two planes of the outer rib band on it, shared by the quarters on either side of the midpoint; stored with one origin, re-origined per quarter in geometry[q] (R1).
-struct BayEdge { session_cpp::Line line; session_cpp::Point midpoint; std::array<session_cpp::Plane, 2> band; };
+struct BayEdge { laika_cpp::Line line; laika_cpp::Point midpoint; std::array<laika_cpp::Plane, 2> band; };
 
 /// A seam: the line from an edge midpoint to the centre and its vertical plane; plane_into carries the normal into that quarter, faces_into adds the offset by inner_beams.
 struct Seam {
-    size_t index; session_cpp::Line line; session_cpp::Point oculus_corner; session_cpp::Plane plane; double thickness;
-    session_cpp::Plane plane_into(size_t quarter) const;
-    std::array<session_cpp::Plane, 2> faces_into(size_t quarter) const;
+    size_t index; laika_cpp::Line line; laika_cpp::Point oculus_corner; laika_cpp::Plane plane; double thickness;
+    laika_cpp::Plane plane_into(size_t quarter) const;
+    std::array<laika_cpp::Plane, 2> faces_into(size_t quarter) const;
 };
 
 /// The oculus edge of one quarter: its line, the tilted bearing plane the quarter beam and the ring beam share, the vertical back face, and the ring's inner plane.
-struct OculusEdge { session_cpp::Line line; session_cpp::Plane tilted; session_cpp::Plane back; session_cpp::Plane ring_inner; };
+struct OculusEdge { laika_cpp::Line line; laika_cpp::Plane tilted; laika_cpp::Plane back; laika_cpp::Plane ring_inner; };
 
 /// A column corner: the fixed square column's frame, the head polygon, the carved fan, the cutter levels, the support plane and the column axis.
 struct ColumnCorner {
-    session_cpp::Point corner; session_cpp::Vector x_axis; session_cpp::Vector y_axis;   // Edge directions at a right corner, symmetric about the bisector otherwise.
-    std::vector<session_cpp::Point> head;                                                // compas_tf quarter_column_polygon in the frame.
-    session_cpp::Vector chamfer_direction;                                               // unit(head[3] - head[2]).
-    std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan;                          // Side 0, chamfer, side 1 with their far faces over the ribs' run-ins.
-    std::array<session_cpp::Plane, 2> sides;                                             // The head edges on the bay boundary, normal into the bay (floor_guide.py:388-389).
+    laika_cpp::Point corner; laika_cpp::Vector x_axis; laika_cpp::Vector y_axis;   // Edge directions at a right corner, symmetric about the bisector otherwise.
+    std::vector<laika_cpp::Point> head;                                                // compas_tf quarter_column_polygon in the frame.
+    laika_cpp::Vector chamfer_direction;                                               // unit(head[3] - head[2]).
+    std::array<std::array<laika_cpp::Plane, 2>, 3> wedge_fan;                          // Side 0, chamfer, side 1 with their far faces over the ribs' run-ins.
+    std::array<laika_cpp::Plane, 2> sides;                                             // The head edges on the bay boundary, normal into the bay (floor_guide.py:388-389).
     std::array<double, 3> levels;                                                        // 0, the middle level at the outer rib bottoms (-694.793 on the square, R8), -column_head_depth.
-    session_cpp::Point axis_point; session_cpp::Plane support_plane; session_cpp::Line axis;
+    laika_cpp::Point axis_point; laika_cpp::Plane support_plane; laika_cpp::Line axis;
     std::array<double, 2> column_offset;                                                 // Per bay edge, mm, signed: + the outer rib band overhangs the column's outer face (obtuse corner), - the column stands outside the bay edge (acute); 0 at 90 deg (R8).
     std::array<double, 3> wedge_seat;                                                    // Side 0, chamfer, side 1 seats on the head, mm (20 / 19.3 / 20 on the square).
 };
 
 /// The central panel of one quarter by rule A: its ruling, the shared sweep of the two inner ribs, and each inner rib's central traces.
 struct CentralPanel {
-    session_cpp::Vector ruling;                       // u.
-    session_cpp::Vector rib_sweep;                    // r, one direction for both inner ribs.
-    std::array<std::array<session_cpp::Polyline, 3>, 2> traces;   // Per inner rib, its central face's soffit, +t and +2t, offset in the panel's own cross-section.
+    laika_cpp::Vector ruling;                       // u.
+    laika_cpp::Vector rib_sweep;                    // r, one direction for both inner ribs.
+    std::array<std::array<laika_cpp::Polyline, 3>, 2> traces;   // Per inner rib, its central face's soffit, +t and +2t, offset in the panel's own cross-section.
     std::array<double, 2> obliqueness;                // Degrees between r and each rib's normal.
     double residual;                                  // Closure of rib 1's trace on the cylinder, mm.
 };
 
 /// The private geometry of one quarter, computed once by the Floor constructor (6.1): compas_tf's layout with outer_ribs from the bands, inner_beams from the seams and the oculus edge, wedges[0..2] from the column fan, every plane re-origined at the quarter's half-edge midpoints (R1).
 struct QuarterGeometry {
-    std::vector<session_cpp::Point> polygon;                               // Corner, midpoint, oculus corner, oculus corner, midpoint.
+    std::vector<laika_cpp::Point> polygon;                               // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; ConstructionQuads quads;
     std::array<double, 2> run_in;                                          // Per outer rib, solved so both outer ribs of a corner end at one level; the side blocks are as thick (R8).
-    std::vector<std::array<session_cpp::Polyline, 3>> parabolas;           // Outer 0, outer 1, shadow 0, shadow 1, each with its +t / +2t.
+    std::vector<std::array<laika_cpp::Polyline, 3>> parabolas;           // Outer 0, outer 1, shadow 0, shadow 1, each with its +t / +2t.
     CentralPanel central_panel;
-    std::vector<session_cpp::Plane> bed_top_planes;
+    std::vector<laika_cpp::Plane> bed_top_planes;
 };
 
 /// One quarter as a view of the floor: the shared entities and its geometry read by reference, only members (outlines) built.
@@ -791,7 +791,7 @@ struct Quarter {
     const QuarterGeometry& geometry() const; const FloorGuide& plan() const;
     const ColumnCorner& column() const; const OculusEdge& oculus_edge() const;
     const Seam& seam(size_t side) const; const BayEdge& edge(size_t side) const;
-    std::array<session_cpp::Plane, 2> rib_seam_ends() const;       // Where each outer rib ends at its seam: the seam plane, or the seam beam's far face with seam_through_ribs.
+    std::array<laika_cpp::Plane, 2> rib_seam_ends() const;       // Where each outer rib ends at its seam: the seam plane, or the seam beam's far face with seam_through_ribs.
     std::vector<Outline> outer_ribs() const, inner_ribs() const, inner_beams() const, wedges() const, tsections() const;
     std::vector<std::vector<Outline>> beds() const;
     std::vector<Outline> column_cutters() const;                   // The six plates that carve the column head, read by column_cuts.
@@ -816,9 +816,9 @@ struct FloorReport {
 /// The floor: its plan, read-only once given, every shared entity and every quarter's geometry computed once, quarter views on demand and the oculus; a new plan makes a new floor.
 struct Floor {
     const FloorGuide plan;
-    session_cpp::Point centre;
+    laika_cpp::Point centre;
     std::array<BayEdge, 4> edges; std::array<Seam, 4> seams;
-    std::array<session_cpp::Point, 4> oculus_corners; std::array<OculusEdge, 4> oculus_edges;
+    std::array<laika_cpp::Point, 4> oculus_corners; std::array<OculusEdge, 4> oculus_edges;
     std::array<ColumnCorner, 4> columns; std::array<QuarterGeometry, 4> geometry;
     double soffit;                                             // Every inner and ring beam's soffit: the deepest end of a rib that ends on one (R7).
     explicit Floor(const FloorGuide& plan);                     // Throws when the plan is invalid, e.g. Floor floor(FloorGuide::rectangle(3000, 2400)).
@@ -835,31 +835,31 @@ enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oc
 struct MemberRef { int quarter; Family family; size_t index; int row = -1; std::string name() const; };
 /// One relationship: the two members, the shared plane, the contact polygon read from their outlines, and the seam or corner it belongs to.
 struct Relationship {
-    Relation kind; MemberRef a; MemberRef b; session_cpp::Plane plane; session_cpp::Polyline contact; wood_session::ContactType type; size_t seam_or_corner;
-    std::vector<session_cpp::Line> pins;        // A pin row's axes, head to tip.
+    Relation kind; MemberRef a; MemberRef b; laika_cpp::Plane plane; laika_cpp::Polyline contact; wood_session::ContactType type; size_t seam_or_corner;
+    std::vector<laika_cpp::Line> pins;        // A pin row's axes, head to tip.
     std::vector<MemberRef> through;               // Further members its pins pass.
-    std::optional<session_cpp::Plane> end;        // The bay's outer face a seam wedge runs on to with seam_through_ribs.
+    std::optional<laika_cpp::Plane> end;        // The bay's outer face a seam wedge runs on to with seam_through_ribs.
     double area() const; std::string text() const; Place place() const;
 };
 
 /// The placed members of the whole floor by quarter and family, the ring beams and the column models, with the groups the connectors go under.
 struct FloorMembers {
     std::array<QuarterMembers, 4> quarters; std::vector<Member> ring; std::vector<ColumnModel> columns;
-    std::shared_ptr<session_cpp::TreeNode> group, oculus;
-    std::shared_ptr<session_cpp::Element> get(const MemberRef& ref) const;
+    std::shared_ptr<laika_cpp::TreeNode> group, oculus;
+    std::shared_ptr<laika_cpp::Element> get(const MemberRef& ref) const;
     double thickness(const MemberRef& ref) const;
-    std::array<std::shared_ptr<session_cpp::Element>, 2> pair(const Relationship& row) const;
+    std::array<std::shared_ptr<laika_cpp::Element>, 2> pair(const Relationship& row) const;
 };
 
 std::vector<Relationship> relationships(const Floor& floor);                    // Section 8, in connector order: 52 rows, then 36 pin rows.
 std::vector<Relationship> relationships(const Floor& floor, Relation kind);     // The rows of one kind, in the same order.
 
-FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);     // The four quarters and the oculus, lifted by bay_height, built in place.
+FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<laika_cpp::TreeNode>& group);     // The four quarters and the oculus, lifted by bay_height, built in place.
 void add_columns(wood_session::WoodSession&, const Floor&, group, FloorMembers&);                                                       // The four column models, filled into the members.
 ColumnModel add_column_model(wood_session::WoodSession&, const Floor&, size_t corner, group);                                            // NodeSupportElement, column carved by column_cuts, support joint at corner k.
 QuarterMembers add_quarter_model(wood_session::WoodSession&, const Quarter&, group);                                                     // The six families, suffix "_k".
 std::vector<Member> add_oculus_model(wood_session::WoodSession&, const Floor&, group);
-const session_cpp::Color CONNECTOR_COLOR;                                                                                                // blue, 38 / 149 / 233.
+const laika_cpp::Color CONNECTOR_COLOR;                                                                                                // blue, 38 / 149 / 233.
 std::vector<std::shared_ptr<wood_session::JointBeamElement>> add_connectors(wood_session::WoodSession&, const Floor&, const FloorMembers&, kinds);   // One JointBeamElement per relationship through the existing factories, under connector_group(row) (section 8.2).
 
 /// The constructed contacts checked against the kernel's search.
@@ -871,7 +871,7 @@ PinCheck check_pins(const wood_session::WoodSession&, const Floor&, pins);      
 
 /// Exact bores in the cut members and connector parts against the pin stretches that ask for them; str() lists the counts, then every faceted member.
 struct BrepCheck { size_t exact, bores, connectors, part_bores, stretches; double ms; std::vector<std::string> faceted; std::string str() const; };
-size_t count_bores(const session_cpp::BRep& brep);                                                                                       // The exact bores of a BRep: its cylinders.
+size_t count_bores(const laika_cpp::BRep& brep);                                                                                       // The exact bores of a BRep: its cylinders.
 BrepCheck check_breps(const wood_session::WoodSession& session);
 void compute_breps(wood_session::WoodSession& session);                                                                                    // Every cut member, part and pin written as its BRep, the bores exact cylinders.
 ```
@@ -1037,7 +1037,7 @@ vanishing.
 
 Every connector is drawn blue: `add_connectors` sets `CONNECTOR_COLOR` (RGB 38 / 149 / 233) on the
 connector's tree node and on every part and pin node nested under it (`Session::set_node_color`),
-and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
+and the pb keeps the node colours (`laika_proto.TreeNode.color`). The colour is on every node
 rather than on a group, because no viewer reads a group's colour for the objects under it.
 
 Every member carries a "drill" element feature per hole a joint makes in it (pins,

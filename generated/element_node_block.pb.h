@@ -225,44 +225,44 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeBlockElement final : public ::g
     kPlaneFeaturesFieldNumber = 5,
     kSourceMeshFieldNumber = 4,
   };
-  // repeated .session_proto.Polyline loops = 1;
+  // repeated .laika_proto.Polyline loops = 1;
   [[nodiscard]] int loops_size() const;
   private:
   int _internal_loops_size() const;
 
   public:
   void clear_loops() ;
-  [[nodiscard]] const ::session_proto::Polyline& loops(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_loops(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_loops();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& loops(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_loops(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_loops();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   loops() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_loops();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_loops() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_loops();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_loops() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_loops();
 
   public:
-  // repeated .session_proto.Plane cuts = 2;
+  // repeated .laika_proto.Plane cuts = 2;
   [[nodiscard]] int cuts_size() const;
   private:
   int _internal_cuts_size() const;
 
   public:
   void clear_cuts() ;
-  [[nodiscard]] const ::session_proto::Plane& cuts(int index) const;
-  [[nodiscard]] ::session_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
-  ::session_proto::Plane* PROTOBUF_NONNULL add_cuts();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+  [[nodiscard]] const ::laika_proto::Plane& cuts(int index) const;
+  [[nodiscard]] ::laika_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
+  ::laika_proto::Plane* PROTOBUF_NONNULL add_cuts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>&
   cuts() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
   mutable_cuts();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& _internal_cuts() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>& _internal_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
 
   public:
   // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
@@ -305,19 +305,19 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeBlockElement final : public ::g
   ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL _internal_mutable_plane_features();
 
   public:
-  // .session_proto.Mesh source_mesh = 4;
+  // .laika_proto.Mesh source_mesh = 4;
   [[nodiscard]] bool has_source_mesh() const;
   void clear_source_mesh() ;
-  [[nodiscard]] const ::session_proto::Mesh& source_mesh() const;
-  [[nodiscard]] ::session_proto::Mesh* PROTOBUF_NULLABLE release_source_mesh();
-  ::session_proto::Mesh* PROTOBUF_NONNULL mutable_source_mesh();
-  void set_allocated_source_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_source_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  ::session_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_source_mesh();
+  [[nodiscard]] const ::laika_proto::Mesh& source_mesh() const;
+  [[nodiscard]] ::laika_proto::Mesh* PROTOBUF_NULLABLE release_source_mesh();
+  ::laika_proto::Mesh* PROTOBUF_NONNULL mutable_source_mesh();
+  void set_allocated_source_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_source_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  ::laika_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_source_mesh();
 
   private:
-  const ::session_proto::Mesh& _internal_source_mesh() const;
-  ::session_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_source_mesh();
+  const ::laika_proto::Mesh& _internal_source_mesh() const;
+  ::laika_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_source_mesh();
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.NodeBlockElement)
@@ -353,11 +353,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeBlockElement final : public ::g
         const NodeBlockElement& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > loops_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > loops_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Plane > cuts_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
-    ::session_proto::Mesh* PROTOBUF_NULLABLE source_mesh_;
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE source_mesh_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -380,28 +380,28 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED NodeBlockElement final : public ::g
 
 // NodeBlockElement
 
-// .session_proto.Mesh source_mesh = 4;
+// .laika_proto.Mesh source_mesh = 4;
 inline bool NodeBlockElement::has_source_mesh() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.source_mesh_ != nullptr);
   return value;
 }
-inline const ::session_proto::Mesh& NodeBlockElement::_internal_source_mesh() const {
+inline const ::laika_proto::Mesh& NodeBlockElement::_internal_source_mesh() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Mesh* p = _impl_.source_mesh_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Mesh>(&::session_proto::Mesh_globals_);
+  const ::laika_proto::Mesh* p = _impl_.source_mesh_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Mesh>(&::laika_proto::Mesh_globals_);
 }
-inline const ::session_proto::Mesh& NodeBlockElement::source_mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Mesh& NodeBlockElement::source_mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.NodeBlockElement.source_mesh)
   return _internal_source_mesh();
 }
 inline void NodeBlockElement::unsafe_arena_set_allocated_source_mesh(
-    ::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.source_mesh_);
   }
-  _impl_.source_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.source_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
@@ -409,11 +409,11 @@ inline void NodeBlockElement::unsafe_arena_set_allocated_source_mesh(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.NodeBlockElement.source_mesh)
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE NodeBlockElement::release_source_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE NodeBlockElement::release_source_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* released = _impl_.source_mesh_;
+  ::laika_proto::Mesh* released = _impl_.source_mesh_;
   _impl_.source_mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -428,31 +428,31 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE NodeBlockElement::release_source
   }
   return released;
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE NodeBlockElement::unsafe_arena_release_source_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE NodeBlockElement::unsafe_arena_release_source_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.NodeBlockElement.source_mesh)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* temp = _impl_.source_mesh_;
+  ::laika_proto::Mesh* temp = _impl_.source_mesh_;
   _impl_.source_mesh_ = nullptr;
   return temp;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL NodeBlockElement::_internal_mutable_source_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL NodeBlockElement::_internal_mutable_source_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.source_mesh_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Mesh>(GetArena());
-    _impl_.source_mesh_ = reinterpret_cast<::session_proto::Mesh*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Mesh>(GetArena());
+    _impl_.source_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(p);
   }
   return _impl_.source_mesh_;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL NodeBlockElement::mutable_source_mesh()
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL NodeBlockElement::mutable_source_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Mesh* _msg = _internal_mutable_source_mesh();
+  ::laika_proto::Mesh* _msg = _internal_mutable_source_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.NodeBlockElement.source_mesh)
   return _msg;
 }
-inline void NodeBlockElement::set_allocated_source_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+inline void NodeBlockElement::set_allocated_source_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -469,7 +469,7 @@ inline void NodeBlockElement::set_allocated_source_mesh(::session_proto::Mesh* P
     ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
-  _impl_.source_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.source_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.NodeBlockElement.source_mesh)
 }
 
@@ -573,101 +573,101 @@ NodeBlockElement::_internal_mutable_plane_features() {
   return &_impl_.plane_features_;
 }
 
-// repeated .session_proto.Polyline loops = 1;
+// repeated .laika_proto.Polyline loops = 1;
 inline int NodeBlockElement::_internal_loops_size() const {
   return _internal_loops().size();
 }
 inline int NodeBlockElement::loops_size() const {
   return _internal_loops_size();
 }
-inline const ::session_proto::Polyline& NodeBlockElement::loops(int index) const
+inline const ::laika_proto::Polyline& NodeBlockElement::loops(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.NodeBlockElement.loops)
   return _internal_loops().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL NodeBlockElement::mutable_loops(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL NodeBlockElement::mutable_loops(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.NodeBlockElement.loops)
   return _internal_mutable_loops()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL NodeBlockElement::add_loops()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL NodeBlockElement::add_loops()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_loops()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.NodeBlockElement.loops)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& NodeBlockElement::loops() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& NodeBlockElement::loops() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.NodeBlockElement.loops)
   return _internal_loops();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 NodeBlockElement::mutable_loops() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.NodeBlockElement.loops)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_loops();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 NodeBlockElement::_internal_loops() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.loops_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 NodeBlockElement::_internal_mutable_loops() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.loops_;
 }
 
-// repeated .session_proto.Plane cuts = 2;
+// repeated .laika_proto.Plane cuts = 2;
 inline int NodeBlockElement::_internal_cuts_size() const {
   return _internal_cuts().size();
 }
 inline int NodeBlockElement::cuts_size() const {
   return _internal_cuts_size();
 }
-inline const ::session_proto::Plane& NodeBlockElement::cuts(int index) const
+inline const ::laika_proto::Plane& NodeBlockElement::cuts(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.NodeBlockElement.cuts)
   return _internal_cuts().Get(index);
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL NodeBlockElement::mutable_cuts(int index)
+inline ::laika_proto::Plane* PROTOBUF_NONNULL NodeBlockElement::mutable_cuts(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.NodeBlockElement.cuts)
   return _internal_mutable_cuts()->Mutable(index);
 }
-inline ::session_proto::Plane* PROTOBUF_NONNULL NodeBlockElement::add_cuts()
+inline ::laika_proto::Plane* PROTOBUF_NONNULL NodeBlockElement::add_cuts()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Plane* _add =
+  ::laika_proto::Plane* _add =
       _internal_mutable_cuts()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_add:wood_proto.NodeBlockElement.cuts)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& NodeBlockElement::cuts() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>& NodeBlockElement::cuts() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.NodeBlockElement.cuts)
   return _internal_cuts();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
 NodeBlockElement::mutable_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.NodeBlockElement.cuts)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_cuts();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>&
 NodeBlockElement::_internal_cuts() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.cuts_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Plane>* PROTOBUF_NONNULL
 NodeBlockElement::_internal_mutable_cuts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.cuts_;

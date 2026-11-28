@@ -227,24 +227,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeRawElement final : public ::goo
     kUseRawMeshFieldNumber = 6,
     kShowPointcloudFieldNumber = 7,
   };
-  // repeated .session_proto.Polyline branch_axes = 5;
+  // repeated .laika_proto.Polyline branch_axes = 5;
   [[nodiscard]] int branch_axes_size() const;
   private:
   int _internal_branch_axes_size() const;
 
   public:
   void clear_branch_axes() ;
-  [[nodiscard]] const ::session_proto::Polyline& branch_axes(int index) const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_branch_axes(int index);
-  ::session_proto::Polyline* PROTOBUF_NONNULL add_branch_axes();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  [[nodiscard]] const ::laika_proto::Polyline& branch_axes(int index) const;
+  [[nodiscard]] ::laika_proto::Polyline* PROTOBUF_NONNULL mutable_branch_axes(int index);
+  ::laika_proto::Polyline* PROTOBUF_NONNULL add_branch_axes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
   branch_axes() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
   mutable_branch_axes();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_branch_axes() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_branch_axes();
+  const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& _internal_branch_axes() const;
+  ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_branch_axes();
 
   public:
   // .wood_proto.EdgeStraightElement base = 1;
@@ -262,49 +262,49 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeRawElement final : public ::goo
   ::wood_proto::EdgeStraightElement* PROTOBUF_NONNULL _internal_mutable_base();
 
   public:
-  // .session_proto.Mesh raw_mesh = 2;
+  // .laika_proto.Mesh raw_mesh = 2;
   [[nodiscard]] bool has_raw_mesh() const;
   void clear_raw_mesh() ;
-  [[nodiscard]] const ::session_proto::Mesh& raw_mesh() const;
-  [[nodiscard]] ::session_proto::Mesh* PROTOBUF_NULLABLE release_raw_mesh();
-  ::session_proto::Mesh* PROTOBUF_NONNULL mutable_raw_mesh();
-  void set_allocated_raw_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_raw_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value);
-  ::session_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_raw_mesh();
+  [[nodiscard]] const ::laika_proto::Mesh& raw_mesh() const;
+  [[nodiscard]] ::laika_proto::Mesh* PROTOBUF_NULLABLE release_raw_mesh();
+  ::laika_proto::Mesh* PROTOBUF_NONNULL mutable_raw_mesh();
+  void set_allocated_raw_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_raw_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value);
+  ::laika_proto::Mesh* PROTOBUF_NULLABLE unsafe_arena_release_raw_mesh();
 
   private:
-  const ::session_proto::Mesh& _internal_raw_mesh() const;
-  ::session_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_raw_mesh();
+  const ::laika_proto::Mesh& _internal_raw_mesh() const;
+  ::laika_proto::Mesh* PROTOBUF_NONNULL _internal_mutable_raw_mesh();
 
   public:
-  // .session_proto.PointCloud raw_pointcloud = 3;
+  // .laika_proto.PointCloud raw_pointcloud = 3;
   [[nodiscard]] bool has_raw_pointcloud() const;
   void clear_raw_pointcloud() ;
-  [[nodiscard]] const ::session_proto::PointCloud& raw_pointcloud() const;
-  [[nodiscard]] ::session_proto::PointCloud* PROTOBUF_NULLABLE release_raw_pointcloud();
-  ::session_proto::PointCloud* PROTOBUF_NONNULL mutable_raw_pointcloud();
-  void set_allocated_raw_pointcloud(::session_proto::PointCloud* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_raw_pointcloud(::session_proto::PointCloud* PROTOBUF_NULLABLE value);
-  ::session_proto::PointCloud* PROTOBUF_NULLABLE unsafe_arena_release_raw_pointcloud();
+  [[nodiscard]] const ::laika_proto::PointCloud& raw_pointcloud() const;
+  [[nodiscard]] ::laika_proto::PointCloud* PROTOBUF_NULLABLE release_raw_pointcloud();
+  ::laika_proto::PointCloud* PROTOBUF_NONNULL mutable_raw_pointcloud();
+  void set_allocated_raw_pointcloud(::laika_proto::PointCloud* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_raw_pointcloud(::laika_proto::PointCloud* PROTOBUF_NULLABLE value);
+  ::laika_proto::PointCloud* PROTOBUF_NULLABLE unsafe_arena_release_raw_pointcloud();
 
   private:
-  const ::session_proto::PointCloud& _internal_raw_pointcloud() const;
-  ::session_proto::PointCloud* PROTOBUF_NONNULL _internal_mutable_raw_pointcloud();
+  const ::laika_proto::PointCloud& _internal_raw_pointcloud() const;
+  ::laika_proto::PointCloud* PROTOBUF_NONNULL _internal_mutable_raw_pointcloud();
 
   public:
-  // .session_proto.Xform raw_xform = 4;
+  // .laika_proto.Xform raw_xform = 4;
   [[nodiscard]] bool has_raw_xform() const;
   void clear_raw_xform() ;
-  [[nodiscard]] const ::session_proto::Xform& raw_xform() const;
-  [[nodiscard]] ::session_proto::Xform* PROTOBUF_NULLABLE release_raw_xform();
-  ::session_proto::Xform* PROTOBUF_NONNULL mutable_raw_xform();
-  void set_allocated_raw_xform(::session_proto::Xform* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_raw_xform(::session_proto::Xform* PROTOBUF_NULLABLE value);
-  ::session_proto::Xform* PROTOBUF_NULLABLE unsafe_arena_release_raw_xform();
+  [[nodiscard]] const ::laika_proto::Xform& raw_xform() const;
+  [[nodiscard]] ::laika_proto::Xform* PROTOBUF_NULLABLE release_raw_xform();
+  ::laika_proto::Xform* PROTOBUF_NONNULL mutable_raw_xform();
+  void set_allocated_raw_xform(::laika_proto::Xform* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_raw_xform(::laika_proto::Xform* PROTOBUF_NULLABLE value);
+  ::laika_proto::Xform* PROTOBUF_NULLABLE unsafe_arena_release_raw_xform();
 
   private:
-  const ::session_proto::Xform& _internal_raw_xform() const;
-  ::session_proto::Xform* PROTOBUF_NONNULL _internal_mutable_raw_xform();
+  const ::laika_proto::Xform& _internal_raw_xform() const;
+  ::laika_proto::Xform* PROTOBUF_NONNULL _internal_mutable_raw_xform();
 
   public:
   // bool use_raw_mesh = 6;
@@ -360,11 +360,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeRawElement final : public ::goo
         const EdgeRawElement& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > branch_axes_;
+    ::google::protobuf::RepeatedPtrField< ::laika_proto::Polyline > branch_axes_;
     ::wood_proto::EdgeStraightElement* PROTOBUF_NULLABLE base_;
-    ::session_proto::Mesh* PROTOBUF_NULLABLE raw_mesh_;
-    ::session_proto::PointCloud* PROTOBUF_NULLABLE raw_pointcloud_;
-    ::session_proto::Xform* PROTOBUF_NULLABLE raw_xform_;
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE raw_mesh_;
+    ::laika_proto::PointCloud* PROTOBUF_NULLABLE raw_pointcloud_;
+    ::laika_proto::Xform* PROTOBUF_NULLABLE raw_xform_;
     bool use_raw_mesh_;
     bool show_pointcloud_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -482,28 +482,28 @@ inline void EdgeRawElement::set_allocated_base(::wood_proto::EdgeStraightElement
   // @@protoc_insertion_point(field_set_allocated:wood_proto.EdgeRawElement.base)
 }
 
-// .session_proto.Mesh raw_mesh = 2;
+// .laika_proto.Mesh raw_mesh = 2;
 inline bool EdgeRawElement::has_raw_mesh() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.raw_mesh_ != nullptr);
   return value;
 }
-inline const ::session_proto::Mesh& EdgeRawElement::_internal_raw_mesh() const {
+inline const ::laika_proto::Mesh& EdgeRawElement::_internal_raw_mesh() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Mesh* p = _impl_.raw_mesh_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Mesh>(&::session_proto::Mesh_globals_);
+  const ::laika_proto::Mesh* p = _impl_.raw_mesh_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Mesh>(&::laika_proto::Mesh_globals_);
 }
-inline const ::session_proto::Mesh& EdgeRawElement::raw_mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Mesh& EdgeRawElement::raw_mesh() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeRawElement.raw_mesh)
   return _internal_raw_mesh();
 }
 inline void EdgeRawElement::unsafe_arena_set_allocated_raw_mesh(
-    ::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.raw_mesh_);
   }
-  _impl_.raw_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.raw_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
@@ -511,11 +511,11 @@ inline void EdgeRawElement::unsafe_arena_set_allocated_raw_mesh(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.EdgeRawElement.raw_mesh)
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE EdgeRawElement::release_raw_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE EdgeRawElement::release_raw_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Mesh* released = _impl_.raw_mesh_;
+  ::laika_proto::Mesh* released = _impl_.raw_mesh_;
   _impl_.raw_mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -530,31 +530,31 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE EdgeRawElement::release_raw_mesh
   }
   return released;
 }
-inline ::session_proto::Mesh* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.EdgeRawElement.raw_mesh)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Mesh* temp = _impl_.raw_mesh_;
+  ::laika_proto::Mesh* temp = _impl_.raw_mesh_;
   _impl_.raw_mesh_ = nullptr;
   return temp;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_mesh() {
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.raw_mesh_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Mesh>(GetArena());
-    _impl_.raw_mesh_ = reinterpret_cast<::session_proto::Mesh*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Mesh>(GetArena());
+    _impl_.raw_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(p);
   }
   return _impl_.raw_mesh_;
 }
-inline ::session_proto::Mesh* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_mesh()
+inline ::laika_proto::Mesh* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  ::session_proto::Mesh* _msg = _internal_mutable_raw_mesh();
+  ::laika_proto::Mesh* _msg = _internal_mutable_raw_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeRawElement.raw_mesh)
   return _msg;
 }
-inline void EdgeRawElement::set_allocated_raw_mesh(::session_proto::Mesh* PROTOBUF_NULLABLE value) {
+inline void EdgeRawElement::set_allocated_raw_mesh(::laika_proto::Mesh* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -571,32 +571,32 @@ inline void EdgeRawElement::set_allocated_raw_mesh(::session_proto::Mesh* PROTOB
     ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
-  _impl_.raw_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
+  _impl_.raw_mesh_ = reinterpret_cast<::laika_proto::Mesh*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.EdgeRawElement.raw_mesh)
 }
 
-// .session_proto.PointCloud raw_pointcloud = 3;
+// .laika_proto.PointCloud raw_pointcloud = 3;
 inline bool EdgeRawElement::has_raw_pointcloud() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
   PROTOBUF_ASSUME(!value || _impl_.raw_pointcloud_ != nullptr);
   return value;
 }
-inline const ::session_proto::PointCloud& EdgeRawElement::_internal_raw_pointcloud() const {
+inline const ::laika_proto::PointCloud& EdgeRawElement::_internal_raw_pointcloud() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::PointCloud* p = _impl_.raw_pointcloud_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::PointCloud>(&::session_proto::PointCloud_globals_);
+  const ::laika_proto::PointCloud* p = _impl_.raw_pointcloud_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::PointCloud>(&::laika_proto::PointCloud_globals_);
 }
-inline const ::session_proto::PointCloud& EdgeRawElement::raw_pointcloud() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::PointCloud& EdgeRawElement::raw_pointcloud() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeRawElement.raw_pointcloud)
   return _internal_raw_pointcloud();
 }
 inline void EdgeRawElement::unsafe_arena_set_allocated_raw_pointcloud(
-    ::session_proto::PointCloud* PROTOBUF_NULLABLE value) {
+    ::laika_proto::PointCloud* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.raw_pointcloud_);
   }
-  _impl_.raw_pointcloud_ = reinterpret_cast<::session_proto::PointCloud*>(value);
+  _impl_.raw_pointcloud_ = reinterpret_cast<::laika_proto::PointCloud*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
@@ -604,11 +604,11 @@ inline void EdgeRawElement::unsafe_arena_set_allocated_raw_pointcloud(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.EdgeRawElement.raw_pointcloud)
 }
-inline ::session_proto::PointCloud* PROTOBUF_NULLABLE EdgeRawElement::release_raw_pointcloud() {
+inline ::laika_proto::PointCloud* PROTOBUF_NULLABLE EdgeRawElement::release_raw_pointcloud() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
-  ::session_proto::PointCloud* released = _impl_.raw_pointcloud_;
+  ::laika_proto::PointCloud* released = _impl_.raw_pointcloud_;
   _impl_.raw_pointcloud_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -623,31 +623,31 @@ inline ::session_proto::PointCloud* PROTOBUF_NULLABLE EdgeRawElement::release_ra
   }
   return released;
 }
-inline ::session_proto::PointCloud* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_pointcloud() {
+inline ::laika_proto::PointCloud* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_pointcloud() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.EdgeRawElement.raw_pointcloud)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
-  ::session_proto::PointCloud* temp = _impl_.raw_pointcloud_;
+  ::laika_proto::PointCloud* temp = _impl_.raw_pointcloud_;
   _impl_.raw_pointcloud_ = nullptr;
   return temp;
 }
-inline ::session_proto::PointCloud* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_pointcloud() {
+inline ::laika_proto::PointCloud* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_pointcloud() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.raw_pointcloud_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::PointCloud>(GetArena());
-    _impl_.raw_pointcloud_ = reinterpret_cast<::session_proto::PointCloud*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::PointCloud>(GetArena());
+    _impl_.raw_pointcloud_ = reinterpret_cast<::laika_proto::PointCloud*>(p);
   }
   return _impl_.raw_pointcloud_;
 }
-inline ::session_proto::PointCloud* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_pointcloud()
+inline ::laika_proto::PointCloud* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_pointcloud()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000008U);
-  ::session_proto::PointCloud* _msg = _internal_mutable_raw_pointcloud();
+  ::laika_proto::PointCloud* _msg = _internal_mutable_raw_pointcloud();
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeRawElement.raw_pointcloud)
   return _msg;
 }
-inline void EdgeRawElement::set_allocated_raw_pointcloud(::session_proto::PointCloud* PROTOBUF_NULLABLE value) {
+inline void EdgeRawElement::set_allocated_raw_pointcloud(::laika_proto::PointCloud* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -664,32 +664,32 @@ inline void EdgeRawElement::set_allocated_raw_pointcloud(::session_proto::PointC
     ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
 
-  _impl_.raw_pointcloud_ = reinterpret_cast<::session_proto::PointCloud*>(value);
+  _impl_.raw_pointcloud_ = reinterpret_cast<::laika_proto::PointCloud*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.EdgeRawElement.raw_pointcloud)
 }
 
-// .session_proto.Xform raw_xform = 4;
+// .laika_proto.Xform raw_xform = 4;
 inline bool EdgeRawElement::has_raw_xform() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.raw_xform_ != nullptr);
   return value;
 }
-inline const ::session_proto::Xform& EdgeRawElement::_internal_raw_xform() const {
+inline const ::laika_proto::Xform& EdgeRawElement::_internal_raw_xform() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Xform* p = _impl_.raw_xform_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Xform>(&::session_proto::Xform_globals_);
+  const ::laika_proto::Xform* p = _impl_.raw_xform_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::laika_proto::Xform>(&::laika_proto::Xform_globals_);
 }
-inline const ::session_proto::Xform& EdgeRawElement::raw_xform() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+inline const ::laika_proto::Xform& EdgeRawElement::raw_xform() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeRawElement.raw_xform)
   return _internal_raw_xform();
 }
 inline void EdgeRawElement::unsafe_arena_set_allocated_raw_xform(
-    ::session_proto::Xform* PROTOBUF_NULLABLE value) {
+    ::laika_proto::Xform* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
     delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.raw_xform_);
   }
-  _impl_.raw_xform_ = reinterpret_cast<::session_proto::Xform*>(value);
+  _impl_.raw_xform_ = reinterpret_cast<::laika_proto::Xform*>(value);
   if (value != nullptr) {
     SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
@@ -697,11 +697,11 @@ inline void EdgeRawElement::unsafe_arena_set_allocated_raw_xform(
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.EdgeRawElement.raw_xform)
 }
-inline ::session_proto::Xform* PROTOBUF_NULLABLE EdgeRawElement::release_raw_xform() {
+inline ::laika_proto::Xform* PROTOBUF_NULLABLE EdgeRawElement::release_raw_xform() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Xform* released = _impl_.raw_xform_;
+  ::laika_proto::Xform* released = _impl_.raw_xform_;
   _impl_.raw_xform_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
     auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
@@ -716,31 +716,31 @@ inline ::session_proto::Xform* PROTOBUF_NULLABLE EdgeRawElement::release_raw_xfo
   }
   return released;
 }
-inline ::session_proto::Xform* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_xform() {
+inline ::laika_proto::Xform* PROTOBUF_NULLABLE EdgeRawElement::unsafe_arena_release_raw_xform() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.EdgeRawElement.raw_xform)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Xform* temp = _impl_.raw_xform_;
+  ::laika_proto::Xform* temp = _impl_.raw_xform_;
   _impl_.raw_xform_ = nullptr;
   return temp;
 }
-inline ::session_proto::Xform* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_xform() {
+inline ::laika_proto::Xform* PROTOBUF_NONNULL EdgeRawElement::_internal_mutable_raw_xform() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.raw_xform_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Xform>(GetArena());
-    _impl_.raw_xform_ = reinterpret_cast<::session_proto::Xform*>(p);
+    auto* p = Super_::DefaultConstruct<::laika_proto::Xform>(GetArena());
+    _impl_.raw_xform_ = reinterpret_cast<::laika_proto::Xform*>(p);
   }
   return _impl_.raw_xform_;
 }
-inline ::session_proto::Xform* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_xform()
+inline ::laika_proto::Xform* PROTOBUF_NONNULL EdgeRawElement::mutable_raw_xform()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
-  ::session_proto::Xform* _msg = _internal_mutable_raw_xform();
+  ::laika_proto::Xform* _msg = _internal_mutable_raw_xform();
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeRawElement.raw_xform)
   return _msg;
 }
-inline void EdgeRawElement::set_allocated_raw_xform(::session_proto::Xform* PROTOBUF_NULLABLE value) {
+inline void EdgeRawElement::set_allocated_raw_xform(::laika_proto::Xform* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -757,55 +757,55 @@ inline void EdgeRawElement::set_allocated_raw_xform(::session_proto::Xform* PROT
     ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
-  _impl_.raw_xform_ = reinterpret_cast<::session_proto::Xform*>(value);
+  _impl_.raw_xform_ = reinterpret_cast<::laika_proto::Xform*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.EdgeRawElement.raw_xform)
 }
 
-// repeated .session_proto.Polyline branch_axes = 5;
+// repeated .laika_proto.Polyline branch_axes = 5;
 inline int EdgeRawElement::_internal_branch_axes_size() const {
   return _internal_branch_axes().size();
 }
 inline int EdgeRawElement::branch_axes_size() const {
   return _internal_branch_axes_size();
 }
-inline const ::session_proto::Polyline& EdgeRawElement::branch_axes(int index) const
+inline const ::laika_proto::Polyline& EdgeRawElement::branch_axes(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeRawElement.branch_axes)
   return _internal_branch_axes().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL EdgeRawElement::mutable_branch_axes(int index)
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL EdgeRawElement::mutable_branch_axes(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.EdgeRawElement.branch_axes)
   return _internal_mutable_branch_axes()->Mutable(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL EdgeRawElement::add_branch_axes()
+inline ::laika_proto::Polyline* PROTOBUF_NONNULL EdgeRawElement::add_branch_axes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::Polyline* _add =
+  ::laika_proto::Polyline* _add =
       _internal_mutable_branch_axes()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_add:wood_proto.EdgeRawElement.branch_axes)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& EdgeRawElement::branch_axes() const
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>& EdgeRawElement::branch_axes() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.EdgeRawElement.branch_axes)
   return _internal_branch_axes();
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 EdgeRawElement::mutable_branch_axes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.EdgeRawElement.branch_axes)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_branch_axes();
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+inline const ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>&
 EdgeRawElement::_internal_branch_axes() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.branch_axes_;
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::laika_proto::Polyline>* PROTOBUF_NONNULL
 EdgeRawElement::_internal_mutable_branch_axes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.branch_axes_;

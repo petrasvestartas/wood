@@ -2,7 +2,7 @@
 #include "wood_interaction_feature_solid.h"
 #include "interaction_feature_solid.pb.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 
 namespace wood_session {
 
@@ -107,15 +107,15 @@ InteractionFeatureSolid InteractionFeatureSolid::pb_loads(const std::string& dat
     feature.mesh = Mesh::pb_loads(proto.mesh().SerializeAsString());
     feature.extrusion = Vector::pb_loads(proto.extrusion().SerializeAsString());
 
-    for (const session_proto::Polyline& ring : proto.profile())
+    for (const laika_proto::Polyline& ring : proto.profile())
         feature.profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
-    for (const session_proto::Line& drill : proto.drills())
+    for (const laika_proto::Line& drill : proto.drills())
         feature.drills.push_back(Line::pb_loads(drill.SerializeAsString()));
 
     feature.drill_radius = proto.drill_radius();
     feature.drill_tolerance = proto.drill_tolerance() > 0.0 ? proto.drill_tolerance() : 0.05;
-    for (const session_proto::Line& post : proto.posts())
+    for (const laika_proto::Line& post : proto.posts())
         feature.posts.push_back(Line::pb_loads(post.SerializeAsString()));
     feature.post_radius = proto.post_radius();
 

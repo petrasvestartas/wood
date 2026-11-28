@@ -4,7 +4,7 @@
 #include "src/templates/vidy/vidy_joint_kernel.h"
 #include "wood_element_geometry.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 namespace wood_vidy {

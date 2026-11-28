@@ -4,7 +4,7 @@
 #include "wood_brep_drill.h"
 #include "src/templates/floor/floor.h"
 
-using namespace session_cpp;
+using namespace laika_cpp;
 using namespace wood_session;
 
 /// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
@@ -35,7 +35,7 @@ size_t count_bores(const BRep& brep) {
 
     size_t bores = 0;
 
-    for (const NurbsSurface& surface : brep.m_surfaces)
+    for (const NurbsSurface& surface : nurbs(brep.m_surfaces))
         bores += surface.is_rational();
 
     return bores;
