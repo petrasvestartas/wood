@@ -798,6 +798,14 @@ BRep mesh_brep(const Mesh& mesh) {
     std::vector<std::vector<Polyline>> holes;
 
     for (const std::pair<const size_t, std::vector<size_t>>& face : mesh.face) {
+        if (face.second.size() == 3) {
+            const Point a = mesh.vertex.at(face.second[0]).position();
+            const Point b = mesh.vertex.at(face.second[1]).position();
+            const Point c = mesh.vertex.at(face.second[2]).position();
+            const double longest = std::max({Point::distance(a, b), Point::distance(b, c), Point::distance(c, a)});
+            if (longest < 1e-6 || (b - a).cross(c - a).magnitude() < 1e-4 * longest)
+                continue;
+        }
         faces.push_back(mesh_face_ring(mesh, face.second));
         holes.emplace_back();
         const auto found = mesh.face_holes.find(face.first);
@@ -940,11 +948,14 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
     const Mesh merged = manifold_solid(cut) ? solid_merged(cut) : cut;
 
     if (merged.number_of_faces() < cut.number_of_faces()) {
-        const BRep solid = mesh_brep(merged);
-        const double volume = compute_volume(cut);
+        try {
+            const BRep solid = mesh_brep(merged);
+            const double volume = compute_volume(cut);
 
-        if (std::abs(solid.volume() - volume) <= 1e-4 * volume)
-            return solid;
+            if (std::abs(solid.volume() - volume) <= 1e-4 * volume)
+                return solid;
+        } catch (const std::runtime_error&) {
+        }
     }
 
     return mesh_brep(cut);

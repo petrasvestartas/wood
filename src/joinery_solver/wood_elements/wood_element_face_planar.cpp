@@ -479,8 +479,13 @@ Mesh FacePlanarElement::trimmed_mesh() const {
 }
 
 BRep FacePlanarElement::trimmed_brep() const {
-    return features.top.empty() ? element_geometry_brep()
-                                : brep_between_loops(features.bottom, features.top);
+    if (features.top.empty())
+        return element_geometry_brep();
+    try {
+        return brep_between_loops(features.bottom, features.top);
+    } catch (const std::runtime_error&) {
+        return element_geometry_brep();
+    }
 }
 
 void FacePlanarElement::swap_planes() {
