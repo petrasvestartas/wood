@@ -316,8 +316,23 @@ std::shared_ptr<wood_session::NodeBlockElement> build_stone_element(
         std::reverse(extrados.begin(), extrados.end());
     }
 
+    bool has_reflex_or_collinear = false;
+    if (planar_cap && intrados.size() > 3) {
+        const Vector cap_dir = (Point::centroid(extrados) - centre).normalized();
+        const size_t m = intrados.size();
+        for (size_t i = 0; i < m; i++) {
+            const Vector e_prev = intrados[i] - intrados[(i + m - 1) % m];
+            const Vector e_next = intrados[(i + 1) % m] - intrados[i];
+            const double denom = e_prev.magnitude() * e_next.magnitude();
+            if (denom <= 1e-8 || e_prev.cross(e_next).dot(cap_dir) <= 0.05 * denom) {
+                has_reflex_or_collinear = true;
+                break;
+            }
+        }
+    }
+
     std::vector<std::vector<Point>> faces;
-    if (planar_cap || intrados.size() == 3) {
+    if ((planar_cap && !has_reflex_or_collinear) || intrados.size() == 3) {
         faces.emplace_back(intrados.rbegin(), intrados.rend());
         faces.push_back(extrados);
     } else {
@@ -349,7 +364,7 @@ std::shared_ptr<wood_session::NodeBlockElement> build_stone_element(
         return nullptr;
 
     Mesh solid = Mesh::from_polylines(kept, 1e-4);
-    if (planar_cap && solid.number_of_vertices() != 2 * intrados.size())
+    if (planar_cap && !has_reflex_or_collinear && solid.number_of_vertices() != 2 * intrados.size())
         return nullptr;
     solid.orient_outward();
     std::shared_ptr<wood_session::NodeBlockElement> block =

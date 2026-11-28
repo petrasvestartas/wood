@@ -178,4 +178,102 @@ struct SurfaceVaultGuide {
     static SurfaceVaultGuide shifted_chebyshev_dome();
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TileVaultGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Inputs of a field-guided or geodesic-course free-form brick/tile shell (Du et al. IASS 2023; Vaxman Directional; Adiels et al. IASS 2017).
+struct TileVaultGuide {
+    static constexpr int STAGGERED = 0; // Penalizes parallel adjacent brick joints in 2x2 quad cycles (Eq. 2).
+    static constexpr int RUNNING_BOND = 1; // Rewards 1-quad shifted parallel courses while penalizing stack joints (Eq. 3).
+    static constexpr int HERRINGBONE = 2; // Rewards 90-degree stepped perpendicular L-pairs (Section 3.4).
+    static constexpr int GEODESIC_COURSES = 3; // Constant-bed-height geodesic coordinate courses with running-bond bricks (Adiels et al. 2017).
+
+    static constexpr int STANDARD_TILES = 0; // Constant-size rectangular tiles 2h x h x t with trimmed boundary half-tiles.
+    static constexpr int MERGED_BLOCKS = 1; // Merged brick polygons extruded into watertight planar-sided blocks.
+
+    Mesh shell; // Input free-form shell surface triangle/polygon mesh in mm.
+    int pattern = RUNNING_BOND; // Brick bond / topology mode (STAGGERED, RUNNING_BOND, HERRINGBONE, GEODESIC_COURSES).
+    int materialisation = MERGED_BLOCKS; // Geometric output mode (STANDARD_TILES or MERGED_BLOCKS).
+    double tile_width = 180.0; // Target quad edge or geodesic bed-joint height h in mm (full brick length is 2 * tile_width).
+    double thickness = 90.0; // Tile or block thickness in mm.
+    double mortar_gap = 4.0; // Clearance gap around constant-size standard tiles in mm.
+    double orientation_degrees = 0.0; // Rotation offset from principal curvature directions in degrees (e.g. 0 or 45).
+    int shapeup_iterations = 50; // ShapeUp local-global squareness regularization iterations (0 disables ShapeUp).
+    double shapeup_closeness = 0.06; // Soft closeness weight retaining the quad mesh near the input shell.
+    double shapeup_smoothness = 0.02; // Laplacian fairness weight during ShapeUp regularization.
+    double penalty_weight = 0.35; // BIP penalty weight w_P against parallel stack-bond pairs.
+    double reward_weight = 0.30; // BIP reward weight w_R / w_H for running-bond or herringbone pairs.
+    double border_weight = 0.60; // BIP matching weight (< 1) on boundary quads so cut half-tiles concentrate at borders.
+    bool align_boundary = true; // Aligns the 4-RoSy orientation field to naked shell boundary curves.
+    bool polar_geodesics = true; // Seeds GEODESIC_COURSES from inner oculus holes (polar geodesic coordinates) when present.
+    bool planar_sides = true; // Planarizes shared side-joint quads in MERGED_BLOCKS mode.
+    bool trim_base = false; // Clips springing blocks along z = base_z when true.
+    double base_z = 0.0; // Horizontal springing datum plane z in mm.
+
+    /// Loads the 3.0 m x 3.0 m x 1.22 m four-corner funicular vault shell (materialisation_cm.3dm).
+    static Mesh materialisation_vault_shell();
+
+    /// Loads the 5.12 m x 6.27 m x 2.55 m cantilevered three-support free-form shell (materialisation.3dm).
+    static Mesh materialisation_tripod_shell();
+
+    /// Running-bond planar-sided brick blocks on the 3 m funicular vault shell.
+    static TileVaultGuide funicular_running_blocks();
+
+    /// Constant-size standard rectangular tiles in running bond on the 3 m funicular vault shell.
+    static TileVaultGuide funicular_standard_tiles();
+
+    /// Herringbone brick blocks on the 3 m funicular vault shell at 45-degree field orientation.
+    static TileVaultGuide funicular_herringbone_blocks();
+
+    /// Polar geodesic-coordinate constant-bed-height running-bond brick blocks around the oculus (Adiels et al. 2017).
+    static TileVaultGuide funicular_geodesic_blocks();
+
+    /// Staggered free-form brick blocks on the 5 m cantilevered three-support tripod shell.
+    static TileVaultGuide tripod_staggered_blocks();
+
+    /// Running-bond constant-size rectangular tiles on the 5 m cantilevered three-support tripod shell.
+    static TileVaultGuide tripod_running_tiles();
+
+    /// Herringbone constant-size tiles on the 5 m cantilevered three-support tripod shell.
+    static TileVaultGuide tripod_herringbone_tiles();
+
+    /// Arch-seeded geodesic-coordinate constant-bed-height running-bond brick blocks on the 5 m tripod shell (Adiels et al. 2017).
+    static TileVaultGuide tripod_geodesic_blocks();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CalgaryVaultGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Inputs of the Calgary 2025 boundary-inclusive trivalent dual & variable-thickness stereotomic shell.
+struct CalgaryVaultGuide {
+    Mesh shell; // Base thrust-network shell mesh in mm (defaults to calgary_shell_mesh.json).
+    double target_edge = 0.0; // Isotropic triangle remesh edge length in mm (0 uses mean input edge length).
+    int remesh_iterations = 35; // Boundary-preserving isotropic remeshing passes (002_remesh_compas.py).
+    double lower_pier_thickness = 300.0; // Shell thickness at lower springing supports in mm (009: 30 cm).
+    double upper_pier_thickness = 200.0; // Shell thickness at upper hillside supports in mm (009: 20 cm).
+    double arch_midspan_thickness = 150.0; // Shell thickness at free-arch midspans in mm (009: 15 cm).
+    double crown_thickness = 100.0; // Shell thickness at the five highest crown vertices in mm (009: 10 cm).
+    double chamfer_max_angle_deg = 145.0; // Maximum trivalent interior corner angle to chamfer in degrees (011).
+    double chamfer_offset = 0.0; // Interior trivalent corner chamfer offset in mm (0 disables chamfering).
+    double bevel_degrees = 0.0; // Optional alternating interlocking side-plane bevel in degrees.
+    bool smooth_arch_borders = true; // Smooths arch boundary chains via interpolated NURBS curves (006).
+    bool flatten_intrados = false; // Keeps intrados vertices flush across trivalent corners when false (010).
+    bool planar_sides = true; // Planarizes shared side rulings before flat-top intersection.
+    bool trim_supports = true; // Clips support pier blocks horizontally at z = 0 mm and z = 1500 mm.
+
+    /// Loads the 9.46 m x 11.17 m x 3.00 m four-pier asymmetric Calgary 2025 thrust shell.
+    static Mesh calgary_shell();
+
+    /// Variable-thickness flat-top & flush-intrados trivalent dual blocks (000_model/010_blocks.py).
+    static CalgaryVaultGuide variable_thickness_blocks();
+
+    /// Variable-thickness trivalent dual blocks with chamfered interior corners (000_model/011_chamfer.py).
+    static CalgaryVaultGuide chamfered_blocks();
+
+    /// Variable-thickness trivalent dual blocks with alternating interlocking side-plane bevels.
+    static CalgaryVaultGuide interlocking_bevel_blocks();
+};
+
 }

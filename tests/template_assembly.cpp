@@ -15,6 +15,7 @@
 #include "src/templates/module/cassette_shell.h"
 #include "src/templates/plaited/plaited.h"
 #include "src/templates/vault/surface_vault.h"
+#include "src/templates/vault/tile_pattern.h"
 #include "src/templates/vidy/vidy.h"
 
 using namespace laika_cpp;
@@ -313,6 +314,84 @@ int main() {
     check(bevelled_hex.side_planarity() < 1e-6 && bevelled_hex.cap_planarity() < 1e-6, "bevelled hex dome: planar bevelled side joints and caps");
     check(!bevelled_hex.get_contacts().empty(), "bevelled hex dome: coplanar bevelled contacts");
     check_template(bevelled_hex, bevelled_hex.elements().size());
+
+    // Popescu (2017) knit-course increase/decrease funnel with half-brick running-bond equalization
+    const wood_vault::SurfaceVault full_funnel(wood_vault::SurfaceVaultGuide::courses_funnel_vault(), "courses_funnel_full");
+    check(full_funnel.side_planarity() < 1e-6 && full_funnel.cap_planarity() < 1e-6, "courses funnel: planar meridian head and bed joints");
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> funnel_mid =
+        wood_vault::surface_vault_mesh(wood_vault::SurfaceVaultGuide::courses_funnel_vault()).to_vertices_and_faces();
+    double min_funnel_edge = 1e30;
+    for (const std::vector<size_t>& face : funnel_mid.second) {
+        for (size_t k = 0; k < face.size(); k++) {
+            min_funnel_edge = std::min(min_funnel_edge, funnel_mid.first[face[k]].distance(funnel_mid.first[face[(k + 1) % face.size()]]));
+        }
+    }
+    check(min_funnel_edge > 45.0, fmt::format("courses funnel: zero Vernier T-joint slivers (min edge {:.2f} mm)", min_funnel_edge));
+    wood_vault::SurfaceVaultGuide compact_funnel_guide = wood_vault::SurfaceVaultGuide::courses_funnel_vault();
+    compact_funnel_guide.size_u = 850.0;
+    compact_funnel_guide.size_v = 680.0;
+    const wood_vault::SurfaceVault compact_funnel(compact_funnel_guide, "courses_funnel");
+    check(compact_funnel.side_planarity() < 1e-6 && compact_funnel.cap_planarity() < 1e-6, "compact courses funnel: planar side and cap joints");
+    check_template(compact_funnel, compact_funnel.elements().size());
+
+    // Pure-C++ ShapeUp regularization, BIP brick matching (Du et al. 2023), and QuadriFlow field-guided remeshing
+    std::vector<Point> grid_pts;
+    for (int j = 0; j <= 10; j++) {
+        for (int i = 0; i <= 10; i++) {
+            const double jx = (i > 0 && i < 10 && j > 0 && j < 10) ? (12.0 * std::sin(static_cast<double>(i * 3 + j * 5))) : 0.0;
+            const double jy = (i > 0 && i < 10 && j > 0 && j < 10) ? (12.0 * std::cos(static_cast<double>(i * 7 - j * 2))) : 0.0;
+            grid_pts.emplace_back(static_cast<double>(i) * 100.0 + jx, static_cast<double>(j) * 100.0 + jy, 0.0);
+        }
+    }
+    std::vector<std::vector<size_t>> grid_faces;
+    for (int j = 0; j < 10; j++) {
+        for (int i = 0; i < 10; i++) {
+            const size_t v00 = static_cast<size_t>(j * 11 + i);
+            grid_faces.push_back({v00, v00 + 1, v00 + 12, v00 + 11});
+        }
+    }
+    const Mesh reg_grid = wood_vault::shapeup_regularize(Mesh::from_vertices_and_faces(grid_pts, grid_faces), 100.0, 60, 1.0, 0.0, 0.0);
+    double grid_edge_err = 0.0;
+    double grid_max_edge_err = 0.0;
+    double grid_ang_err = 0.0;
+    double grid_max_ang_err = 0.0;
+    size_t grid_sing = 0;
+    wood_vault::evaluate_quad_distortion(reg_grid, 100.0, grid_edge_err, grid_max_edge_err, grid_ang_err, grid_max_ang_err, grid_sing);
+    check(grid_edge_err < 1e-6 && grid_ang_err < 1e-4 && grid_sing == 0, "shapeup: disturbed 10x10 quad grid converges to exact 100 mm squares");
+    const wood_vault::BrickMatchingResult match_stag = wood_vault::match_brick_tiles(reg_grid, wood_vault::TileVaultGuide::STAGGERED);
+    const wood_vault::BrickMatchingResult match_run = wood_vault::match_brick_tiles(reg_grid, wood_vault::TileVaultGuide::RUNNING_BOND);
+    check(std::abs(match_stag.objective - 42.45) < 1e-6 && match_stag.matched_pairs.size() == 50 && match_stag.unmatched_interior == 0, fmt::format("bip matching: exact staggered MILP optimum on 10x10 grid (obj={:.4f}, pairs={})", match_stag.objective, match_stag.matched_pairs.size()));
+    check(std::abs(match_run.objective - 61.65) < 1e-6 && match_run.matched_pairs.size() == 50 && match_run.running_pairs >= 60 && match_run.unmatched_interior == 0, fmt::format("bip matching: exact running-bond MILP optimum on 10x10 grid (obj={:.4f}, run={})", match_run.objective, match_run.running_pairs));
+
+    wood_vault::TileVaultGuide tile_guide = wood_vault::TileVaultGuide::funicular_running_blocks();
+    tile_guide.tile_width = 300.0;
+    const wood_vault::TileVault tile_session(tile_guide, "funicular_running_test");
+    check(
+        tile_session.metrics().quad_faces > 70 &&
+            tile_session.metrics().mean_edge_error < 0.14 &&
+            tile_session.metrics().mean_angle_error_deg < 8.5 &&
+            tile_session.metrics().mean_edge_error < tile_session.metrics().raw_edge_error &&
+            tile_session.metrics().mean_angle_error_deg < tile_session.metrics().raw_angle_error_deg,
+        fmt::format(
+            "quadriflow + shapeup: low edge and corner-angle distortion on oculus shell (quads={}, edge={:.3f}->{:.3f}, ang={:.2f}->{:.2f} deg)",
+            tile_session.metrics().quad_faces,
+            tile_session.metrics().raw_edge_error,
+            tile_session.metrics().mean_edge_error,
+            tile_session.metrics().raw_angle_error_deg,
+            tile_session.metrics().mean_angle_error_deg
+        )
+    );
+    check(tile_session.metrics().parallel_pairs <= 2 && tile_session.metrics().running_pairs > 20 && tile_session.metrics().side_planarity < 1e-6, "tile vault: running-bond courses and planarized brick sides");
+    check(!tile_session.get_contacts().empty(), "tile vault: coplanar brick contacts");
+    check_template(tile_session, tile_session.elements().size());
+
+    // Calgary 2025 boundary-inclusive trivalent dual & variable-thickness chamfered blocks
+    const wood_vault::CalgaryVault calgary_session(wood_vault::CalgaryVaultGuide::chamfered_blocks(), "calgary_chamfered_test");
+    check(calgary_session.metrics().dual_faces >= 90 && calgary_session.metrics().support_blocks >= 4, "calgary dual shell: trivalent dual blocks and pier support cuts");
+    check(calgary_session.metrics().min_thickness <= 105.0 && calgary_session.metrics().max_thickness >= 295.0, "calgary dual shell: Delaunay XY variable thickness 100..300 mm");
+    check(calgary_session.metrics().chamfer_cuts >= 300 && calgary_session.metrics().side_planarity < 1e-6 && calgary_session.metrics().top_cap_planarity < 1e-6, "calgary dual shell: planar side interfaces, flat top caps, and trivalent chamfers");
+    check(!calgary_session.get_contacts().empty(), "calgary dual shell: coplanar contacts");
+    check_template(calgary_session, calgary_session.elements().size());
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

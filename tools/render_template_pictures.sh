@@ -233,6 +233,19 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
     "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name bevelled_hex_dome_bottom templates_vault_11_shifted_facets bevelled_hex_dome
     "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name shifted_groin_bottom templates_vault_11_shifted_facets shifted_groin
     "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name shifted_chebyshev_bottom templates_vault_11_shifted_facets shifted_chebyshev
+    VAULT12_SCENE="$(mktemp -d)/vault12.pb"
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" templates_vault_12_brick_tiling funicular_running funicular_tiles funicular_herringbone tripod_staggered tripod_running tripod_herringbone
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name funicular_running_bottom templates_vault_12_brick_tiling funicular_running
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name funicular_tiles_bottom templates_vault_12_brick_tiling funicular_tiles
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name funicular_herringbone_bottom templates_vault_12_brick_tiling funicular_herringbone
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name tripod_staggered_bottom templates_vault_12_brick_tiling tripod_staggered
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name tripod_running_bottom templates_vault_12_brick_tiling tripod_running
+    "${RENDER[@]}" --scene "$VAULT12_SCENE" --view bottom --name tripod_herringbone_bottom templates_vault_12_brick_tiling tripod_herringbone
+    VAULT13_SCENE="$(mktemp -d)/vault13.pb"
+    "${RENDER[@]}" --scene "$VAULT13_SCENE" templates_vault_13_calgary_dual_shell calgary_blocks calgary_chamfered calgary_bevelled
+    "${RENDER[@]}" --scene "$VAULT13_SCENE" --view bottom --name calgary_blocks_bottom templates_vault_13_calgary_dual_shell calgary_blocks
+    "${RENDER[@]}" --scene "$VAULT13_SCENE" --view bottom --name calgary_chamfered_bottom templates_vault_13_calgary_dual_shell calgary_chamfered
+    "${RENDER[@]}" --scene "$VAULT13_SCENE" --view bottom --name calgary_bevelled_bottom templates_vault_13_calgary_dual_shell calgary_bevelled
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = plaited ]; then
@@ -263,6 +276,15 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     "${RENDER[@]}" --scene "$VIDY5_SCENE" templates_vidy_5_parametric parametric_family compact_symmetric tapered_hall wide_shallow
     VIDY6_SCENE="$(mktemp -d)/vidy6.pb"
     "${RENDER[@]}" --scene "$VIDY6_SCENE" templates_vidy_6_origami_shapes prismatic_fold counter_fold
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = delorme ]; then
+    "${RENDER[@]}" --name arch_bay templates_delorme_1_arch_detail ribs+liernes+clavettes+chevilles
+    "${RENDER[@]}" --view bottom --name arch_intrados templates_delorme_1_arch_detail ribs+liernes+clavettes+chevilles
+    "${RENDER[@]}" templates_delorme_2_barrel_vault semicircular pointed_imperiale
+    "${RENDER[@]}" --name dome_extrados templates_delorme_3_dome ribs+liernes+clavettes+chevilles+curbs
+    "${RENDER[@]}" --view bottom --name dome_intrados templates_delorme_3_dome ribs+liernes+clavettes+chevilles+curbs
+    "${RENDER[@]}" templates_delorme_4_crossed_vault groin_vault funicular_catenary
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

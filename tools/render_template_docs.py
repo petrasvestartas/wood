@@ -76,42 +76,30 @@ def run_example(name: str, out: pathlib.Path) -> None:
 
 
 def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = "", attributes: bool = False, xray: bool = False, aspect: float = 0.0) -> Image.Image:
-    """The scene as a screenshot of the viewer: the Arctic look with its soft shadows, no grid, the scene fitted, 1600 wide per
-    scale step and at least 4800, cropped to what it draws by tools/crop_viewer_shot.py, which only crops."""
-    width = int(size.split("x")[0])
+    """The scene drawn headlessly by laika-viewer-cli render-pb (orthographic shaded edges, white background, no grid),
+    cropped to what it draws by tools/crop_viewer_shot.py."""
+    import render_joint_library_gifs as library
+
+    width, height = (int(side) for side in size.split("x"))
     env = dict(
         os.environ,
-        SHOT_PB=str(pb),
-        SHOT_SCALE=str(max(3, min(5, width // 1600))),
-        SHOT_QUERY=f"opacity={opacity}&nomarkers=1&thickness=0.7",
+        VIEWER_W=str(max(width, 2400)),
+        VIEWER_H=str(max(height, 1600)),
+        VIEWER_OPACITY="0.45" if xray else opacity,
+        VIEWER_VIEW=view,
+        VIEWER_NO_GRID="1",
+        VIEWER_OUTLINES="1",
     )
-    camera = {"top": "View Top", "front": "View Front", "right": "View Right", "bottom": "View Bottom", "eye": "View Front"}.get(view, "View Isometric")
-    projection = "View Perspective" if view == "eye" else "View Orthographic"
-    shown = [] if attributes else ["Element Interactions Off", "Element Attributes Off"]
-    commands = ["Layers Off", *shown, "Arctic On", "Outline Off", camera, projection, *(["View Xray"] if xray else [])]
-    if wheel:
-        env["SHOT_WHEEL"] = wheel
-    if int(os.environ.get("VIEWER_PLANE_SIZE", "0")):
-        commands.append(f"View Plane Size {os.environ['VIEWER_PLANE_SIZE']}")
-    # one selected object keeps its name bubble: a scene of one object is fitted whole, nothing selected
-    commands += ["Fit"] if os.environ.get("SHOT_ONE_OBJECT") else ["Select All", "Fit", "Escape"]
-
-    # a shot of a scene that had not loaded is taken again
     with tempfile.TemporaryDirectory() as tmp:
         shot = pathlib.Path(tmp) / "shot.png"
-        for attempt in range(3):
-            subprocess.run(
-                ["node", "--experimental-websocket", str(WOOD / "tools" / "screenshot_viewer.mjs"), str(shot), *commands],
-                env=env,
-                check=True,
-                capture_output=True,
-            )
-            try:
-                crop_viewer_shot.crop(shot, bool(wheel), aspect)
-                return Image.open(shot).convert("RGB")
-            except SystemExit:
-                if attempt == 2:
-                    raise
+        subprocess.run(
+            [str(library.RENDERER), "render-pb", str(shot), str(pb)],
+            env=env,
+            check=True,
+            capture_output=True,
+        )
+        crop_viewer_shot.crop(shot, bool(wheel), aspect)
+        return Image.open(shot).convert("RGB")
 
 
 def option(arguments: list, flag: str, default: str) -> str:

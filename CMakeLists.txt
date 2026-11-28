@@ -92,6 +92,7 @@ set(WOOD_SOURCES
     src/templates/vault/planarity.cpp
     src/templates/vault/surface_division.cpp
     src/templates/vault/surface_vault.cpp
+    src/templates/vault/tile_pattern.cpp
     src/templates/vault/arch.cpp
     src/templates/vault/barrel.cpp
     src/templates/vault/dome.cpp
@@ -119,6 +120,8 @@ set(WOOD_SOURCES
     src/templates/vidy/origami_shell.cpp
     src/templates/vidy/vidy_guide.cpp
     src/templates/vidy/vidy.cpp
+    src/templates/delorme/delorme_guide.cpp
+    src/templates/delorme/delorme.cpp
     src/templates/cylindrical_folding/reflection_fold.cpp
     src/templates/cylindrical_folding/cylinder_vault.cpp
     src/templates/cylindrical_folding/curved_folded_beam.cpp
@@ -350,6 +353,7 @@ ADD_EXE(element_tags                     tests/element_tags.cpp)
 target_compile_definitions(element_tags PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 ADD_EXE(plaited_elements                 tests/plaited_elements.cpp)
 ADD_EXE(vidy_elements                    tests/vidy_elements.cpp)
+ADD_EXE(delorme_elements                 tests/delorme_elements.cpp)
 ADD_EXE(template_assembly                tests/template_assembly.cpp)
 
 enable_testing()
@@ -371,6 +375,7 @@ set(WOOD_TEST_TARGETS
     element_tags
     plaited_elements
     vidy_elements
+    delorme_elements
     template_assembly
     joint_library
     reference_datasets
@@ -615,6 +620,8 @@ ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vau
 ADD_EXE(templates_vault_9_gothic_ribbed_vault examples/templates_vault_9_gothic_ribbed_vault.cpp)
 ADD_EXE(templates_vault_10_surface_subdivisions examples/templates_vault_10_surface_subdivisions.cpp)
 ADD_EXE(templates_vault_11_shifted_facets examples/templates_vault_11_shifted_facets.cpp)
+ADD_EXE(templates_vault_12_brick_tiling   examples/templates_vault_12_brick_tiling.cpp)
+ADD_EXE(templates_vault_13_calgary_dual_shell examples/templates_vault_13_calgary_dual_shell.cpp)
 
 ADD_EXE(templates_plaited_1_flat_floor   examples/templates_plaited_1_flat_floor.cpp)
 ADD_EXE(templates_plaited_2_arch         examples/templates_plaited_2_arch.cpp)
@@ -628,6 +635,11 @@ ADD_EXE(templates_vidy_3_panels          examples/templates_vidy_3_panels.cpp)
 ADD_EXE(templates_vidy_4_section_joints  examples/templates_vidy_4_section_joints.cpp)
 ADD_EXE(templates_vidy_5_parametric      examples/templates_vidy_5_parametric.cpp)
 ADD_EXE(templates_vidy_6_origami_shapes  examples/templates_vidy_6_origami_shapes.cpp)
+
+ADD_EXE(templates_delorme_1_arch_detail  examples/templates_delorme_1_arch_detail.cpp)
+ADD_EXE(templates_delorme_2_barrel_vault examples/templates_delorme_2_barrel_vault.cpp)
+ADD_EXE(templates_delorme_3_dome         examples/templates_delorme_3_dome.cpp)
+ADD_EXE(templates_delorme_4_crossed_vault examples/templates_delorme_4_crossed_vault.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

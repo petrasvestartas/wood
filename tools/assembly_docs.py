@@ -168,6 +168,8 @@ PAGES = {
             ("templates_vault_9_gothic_ribbed_vault", "Gothic ribbed vaults"),
             ("templates_vault_10_surface_subdivisions", "Surface subdivisions"),
             ("templates_vault_11_shifted_facets", "Shifted facets"),
+            ("templates_vault_12_brick_tiling", "Free-form brick tiling"),
+            ("templates_vault_13_calgary_dual_shell", "Calgary dual shell"),
         ],
     ),
     "plaited": (
@@ -195,6 +197,18 @@ PAGES = {
             ("templates_vidy_4_section_joints", "Pavilion: wall, roof, eleven rows"),
             ("templates_vidy_5_parametric", "Parametric family"),
             ("templates_vidy_6_origami_shapes", "Deep folded halls"),
+        ],
+    ),
+    "delorme": (
+        "First the compression oculus curb where there is one, then every multi-ply rib plank by plank in running-bond stagger "
+        "along its stub-tenon butt tangent, then the wooden chevilles across the overlapped plies, then the straight liernes "
+        "threaded endwise through the aligned rib mortises, and last the twin opposing tapered clavettes driven through the lierne "
+        "keyholes against both outer cheeks of every rib.",
+        [
+            ("templates_delorme_1_arch_detail", "1561 three-rib bay"),
+            ("templates_delorme_2_barrel_vault", "Barrel and pointed imperiale"),
+            ("templates_delorme_3_dome", "Halle au Ble cupola"),
+            ("templates_delorme_4_crossed_vault", "Crossed groin and funicular"),
         ],
     ),
 }

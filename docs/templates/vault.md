@@ -93,8 +93,20 @@ Parametric ribbed timber vaults, stereotomic masonry vaults, and subdivided NURB
     <img src="templates_vault_11_shifted_facets_shifted_chebyshev.webp" alt="Shifted Chebyshev Dome">
     <span class="wood-card-title">Shifted Chebyshev Dome</span>
   </a>
+  <a class="wood-card" href="#vault_brick_tiling">
+    <img src="templates_vault_12_brick_tiling_funicular_running.webp" alt="Funicular Brick Tiling">
+    <span class="wood-card-title">Funicular Brick Tiling</span>
+  </a>
+  <a class="wood-card" href="#vault_tripod_tiling">
+    <img src="templates_vault_12_brick_tiling_tripod_running.webp" alt="Tripod Shell Brick Tiling">
+    <span class="wood-card-title">Tripod Shell Brick Tiling</span>
+  </a>
+  <a class="wood-card" href="#vault_calgary_dual_shell">
+    <img src="templates_vault_13_calgary_dual_shell_calgary_chamfered.webp" alt="Calgary Dual Shell">
+    <span class="wood-card-title">Calgary Dual Shell</span>
+  </a>
   <a class="wood-card" href="#vault_assembly_sequence">
-    <img src="assembly_templates_vault_1_arch.gif" alt="Assembly Sequence">
+    <img src="assembly_templates_vault_10_surface_subdivisions_sewn_groin.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
   </a>
 </div>
@@ -343,6 +355,81 @@ Equal-edge Chebyshev pendentive dome with tangential extrados-intrados shift and
 
 \include{lineno} templates_vault_11_shifted_facets.cpp
 
+---
+
+## Free-Form Brick Tiling {#vault_brick_tiling}
+
+Isotropic curvature-aligned quad remeshing (`QuadriFlow` + `ShapeUp`) paired with Binary Integer Programming tile matching (Du, Van Mele &amp; Block, IASS 2023) materialises free-form doubly curved funicular and cantilevered tripod shells into running-bond, staggered, and herringbone courses of constant-width planar-sided blocks and standard tiles.
+
+### Funicular Running-Bond Blocks
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_funicular_running.webp" alt="Funicular running-bond brick vault 3D view">
+  <img src="templates_vault_12_brick_tiling_funicular_running_bottom.webp" alt="Funicular running-bond brick vault intrados view">
+</div>
+
+### Funicular Standard Tiles
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_funicular_tiles.webp" alt="Funicular standard tile vault 3D view">
+  <img src="templates_vault_12_brick_tiling_funicular_tiles_bottom.webp" alt="Funicular standard tile vault intrados view">
+</div>
+
+### Funicular Herringbone Blocks
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_funicular_herringbone.webp" alt="Funicular herringbone brick vault 3D view">
+  <img src="templates_vault_12_brick_tiling_funicular_herringbone_bottom.webp" alt="Funicular herringbone brick vault intrados view">
+</div>
+
+### Tripod Staggered, Running-Bond &amp; Herringbone Shells {#vault_tripod_tiling}
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_tripod_staggered.webp" alt="Tripod staggered brick shell 3D view">
+  <img src="templates_vault_12_brick_tiling_tripod_staggered_bottom.webp" alt="Tripod staggered brick shell intrados view">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_tripod_running.webp" alt="Tripod running-bond tile shell 3D view">
+  <img src="templates_vault_12_brick_tiling_tripod_running_bottom.webp" alt="Tripod running-bond tile shell intrados view">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_tripod_herringbone.webp" alt="Tripod herringbone tile shell 3D view">
+  <img src="templates_vault_12_brick_tiling_tripod_herringbone_bottom.webp" alt="Tripod herringbone tile shell intrados view">
+</div>
+
+\include{lineno} templates_vault_12_brick_tiling.cpp
+
+---
+
+## Calgary Dual Shell {#vault_calgary_dual_shell}
+
+Stereotomic trivalent dual-shell materialisations of the 9.5 m × 11.2 m × 3.0 m four-pier asymmetric Calgary 2025 thrust shell (`CalgaryVaultGuide` / `CalgaryVault`): boundary-inclusive trivalent dualization with NURBS-smoothed arch borders, Delaunay XY variable thickness (300 mm lower piers to 100 mm crown), flat-top stepped extrados blocks, chamfered trivalent corners, and alternating interlocking side-plane bevels.
+
+### Variable-Thickness Flat-Top Blocks
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_blocks.webp" alt="Calgary variable-thickness dual shell blocks 3D view">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_blocks_bottom.webp" alt="Calgary variable-thickness dual shell blocks intrados view">
+</div>
+
+### Chamfered Trivalent Corners
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_chamfered.webp" alt="Calgary chamfered trivalent dual shell 3D view">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_chamfered_bottom.webp" alt="Calgary chamfered trivalent dual shell intrados view">
+</div>
+
+### Interlocking Bevelled Blocks
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_bevelled.webp" alt="Calgary interlocking bevelled dual shell 3D view">
+  <img src="templates_vault_13_calgary_dual_shell_calgary_bevelled_bottom.webp" alt="Calgary interlocking bevelled dual shell intrados view">
+</div>
+
+\include{lineno} templates_vault_13_calgary_dual_shell.cpp
+
 <!-- assembly:begin -->
 ## Assembly Sequence {#vault_assembly_sequence}
 
@@ -371,5 +458,10 @@ Block by block from the springings to the crown; the Gothic bays their support b
 | **Shifted facets**, 576 elements, 572 moves | | |
 | ![bevelled hex dome, 98 pieces](assembly/assembly_templates_vault_11_shifted_facets_bevelled_hex_dome.gif) bevelled hex dome, 98 pieces | ![shifted chebyshev, 188 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_chebyshev.gif) shifted chebyshev, 188 pieces | ![shifted groin, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_groin.gif) shifted groin, 145 pieces |
 | ![shifted hex, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_hex.gif) shifted hex, 145 pieces |  |  |
+| **Free-form brick tiling**, 1001 elements, 995 moves | | |
+| ![funicular herringbone, 117 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_herringbone.gif) funicular herringbone, 117 pieces | ![funicular running, 111 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_running.gif) funicular running, 111 pieces | ![funicular tiles, 136 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_tiles.gif) funicular tiles, 136 pieces |
+| ![tripod herringbone, 243 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_herringbone.gif) tripod herringbone, 243 pieces | ![tripod running, 220 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_running.gif) tripod running, 220 pieces | ![tripod staggered, 174 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_staggered.gif) tripod staggered, 174 pieces |
+| **Calgary dual shell**, 312 elements, 309 moves | | |
+| ![calgary bevelled, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_bevelled.gif) calgary bevelled, 104 pieces | ![calgary blocks, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_blocks.gif) calgary blocks, 104 pieces | ![calgary chamfered, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_chamfered.gif) calgary chamfered, 104 pieces |
 
 <!-- assembly:end -->
