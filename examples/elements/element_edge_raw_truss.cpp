@@ -16,7 +16,7 @@ Xform stock_frame(const Point& origin, const Vector& col_x, const Vector& col_y)
 
 } // namespace
 
-/// The seven-member Rossiniere triangular tree-fork space truss: four plain scarf splices with pins and three fork-branch tenon-mortise joints.
+/// Seven-member Rossiniere triangular tree-fork space truss: hooked splayed scarf splices with folding wedges & pins, plus pegged dovetail fork-branch joints.
 int main() {
 
     WoodSession scene("element_edge_raw_truss");
@@ -28,7 +28,7 @@ int main() {
     const std::shared_ptr<EdgeRawElement> fork_0 = EdgeRawElement::from_registered_stock(
         "raw_fork_0",
         stock_frame({-77.5931, -195.8461, 81.3460}, {-0.0295057, 0.9991780, -0.0277991}, {-0.0073916, 0.0275924, 0.9995919}),
-        62.0,
+        60.0,
         Line::from_points({0.0, -177.0, 78.0}, {900.0, -177.0, 78.0}),
         "chord_1_fork_0"
     );
@@ -49,7 +49,7 @@ int main() {
         Plane::from_point_normal({2000.0, -177.0, 78.0}, {-1.0, 0.0, 0.0}),
     };
 
-    // Chord 2 (back-bottom): log_1 spliced into fork_1 on the straight butt stem before fork_1's bifurcation (x = 1140..1380)
+    // Chord 2 (back-bottom): log_1 spliced into fork_1 on the straight butt stem before fork_1's bifurcation
     const std::shared_ptr<EdgeRawElement> log_1 = EdgeRawElement::from_registered_stock(
         "raw_log_1",
         stock_frame({-197.1748, 176.6692, 78.0}, {-0.0104344, -0.0001145, 0.9999456}, {0.0109748, -0.9999398, 0.0}),
@@ -90,7 +90,7 @@ int main() {
     const std::shared_ptr<EdgeRawElement> fork_2 = EdgeRawElement::from_registered_stock(
         "raw_fork_2",
         stock_frame({394.0044, 13.9106, 393.2541}, {-0.0065739, -0.4424505, -0.8967688}, {0.0233693, 0.8964753, -0.4424770}),
-        65.0,
+        64.0,
         Line::from_points({460.0, 0.0, 384.0}, {1540.0, 0.0, 384.0}),
         "chord_3_fork_2"
     );
@@ -111,11 +111,12 @@ int main() {
         Plane::from_point_normal({2000.0, 0.0, 384.0}, {-1.0, 0.0, 0.0}),
     };
 
-    // Add in sequential assembly order from base `chord_2_log_1` to final closing member `chord_1_log_0`
-    for (const std::shared_ptr<EdgeRawElement>& member : {log_1, fork_0, fork_1, log_2, fork_2, log_3, log_0})
+    // Sequential tree assembly order from base `log_1` -> `fork_1` -> `log_2` -> `fork_2` -> `log_3` -> `log_0` -> closing `fork_0` (vertical +Z drop)
+    for (const std::shared_ptr<EdgeRawElement>& member : {log_1, fork_1, log_2, fork_2, log_3, log_0, fork_0})
         scene.add(member, chords);
 
-    // Four plain half-lap scarf splices with pairs of wooden pins (PhD Fig. 5.30 & Fig. A.7)
+    // Four interlocking stop-splayed cogged scarf splices with central tension hooks + cylindrical pins (PhD Fig. 5.27 C & Fig. 5.29 C)
+    // Ordered (moving, stationary) so `second` (`-p` insertion) lifts upward (+Z) in the exploded assembly diagram
     struct ScarfSpec {
         std::shared_ptr<EdgeRawElement> first;
         std::shared_ptr<EdgeRawElement> second;
@@ -123,14 +124,18 @@ int main() {
         double pin_dx;
     };
     const std::array<ScarfSpec, 4> splices = {{
-        {fork_0, log_0, {790.0, -177.0, 78.0}, 48.0},
-        {log_1, fork_1, {1260.0, 177.0, 78.0}, 52.0},
-        {log_3, fork_2, {620.0, 0.0, 384.0}, 65.0},
-        {fork_2, log_2, {1380.0, 0.0, 384.0}, 65.0},
+        {log_0, fork_0, {790.0, -177.0, 78.0}, 62.0},
+        {log_1, fork_1, {1260.0, 177.0, 78.0}, 68.0},
+        {fork_2, log_3, {620.0, 0.0, 384.0}, 88.0},
+        {log_2, fork_2, {1380.0, 0.0, 384.0}, 88.0},
     }};
     for (size_t i = 0; i < splices.size(); i++) {
-        const std::shared_ptr<JointBeamElement> scarf =
-            JointBeamElement::from_library("half_lap_splice", *splices[i].first, *splices[i].second);
+        const std::shared_ptr<JointBeamElement> scarf = JointBeamElement::from_library(
+            "stop_splayed_cogged_scarf",
+            *splices[i].first,
+            *splices[i].second,
+            {{"cog", 0.30}}
+        );
         scarf->name = fmt::format("chord_scarf_{}", i);
         scene.add(scarf, joints);
         scene.add_interaction(scarf, splices[i].first, scarf->interaction(0));
@@ -139,10 +144,10 @@ int main() {
         for (size_t p = 0; p < 2; p++) {
             const double dx = p == 0 ? -splices[i].pin_dx : splices[i].pin_dx;
             const Line pin_axis = Line::from_points(
-                splices[i].centre + Vector(dx, 0.0, -40.0), splices[i].centre + Vector(dx, 0.0, 40.0)
+                splices[i].centre + Vector(dx, 0.0, -44.0), splices[i].centre + Vector(dx, 0.0, 44.0)
             );
             const std::shared_ptr<JointPinElement> pin =
-                std::make_shared<JointPinElement>(pin_axis, 8.0, 0.05);
+                std::make_shared<JointPinElement>(pin_axis, 7.5, 0.05);
             pin->name = fmt::format("scarf_pin_{}_{}", i, p);
             scene.add(pin, joints);
 
@@ -150,7 +155,7 @@ int main() {
             bore_axis.extend_equally(35.0);
             for (size_t m = 0; m < 2; m++) {
                 const std::shared_ptr<EdgeRawElement>& member = m == 0 ? splices[i].first : splices[i].second;
-                const std::shared_ptr<JointElement> bore = JointElement::drill(bore_axis, 8.0);
+                const std::shared_ptr<JointElement> bore = JointElement::drill(bore_axis, 7.5);
                 bore->name = fmt::format("scarf_bore_{}_{}_{}", i, p, m);
                 bore->is_visible = false;
                 scene.add(bore, joints);
@@ -159,7 +164,7 @@ int main() {
         }
     }
 
-    // Three cyclic fork-branch tenon-mortise joints triangulating Chord 1 -> Chord 2 -> Chord 3 -> Chord 1 (PhD Fig. A.5 & A.7)
+    // Three cyclic pegged stopped-dovetail fork-branch joints triangulating Chord 1 -> Chord 2 -> Chord 3 -> Chord 1 (PhD Fig. 5.45 & Arikake fork prototype)
     struct BranchWeb {
         std::shared_ptr<EdgeRawElement> fork;
         std::shared_ptr<EdgeRawElement> chord;
@@ -171,11 +176,14 @@ int main() {
         {fork_2, log_0, Line::from_points({952.0, 0.0, 384.0}, {1389.0, -177.0, 78.0})},
     }};
     for (size_t i = 0; i < webs.size(); i++) {
-        const std::shared_ptr<EdgeRawElement> branch = webs[i].fork->branch_proxy(48.0, webs[i].axis);
+        const std::shared_ptr<EdgeRawElement> branch = webs[i].fork->branch_proxy(46.0, webs[i].axis);
         const std::shared_ptr<JointBeamElement> web_joint = JointBeamElement::from_library(
-            "fully_shouldered_blind_mortise_tenon", *branch, *webs[i].chord, {{"depth", 0.42}}
+            "pegged_angled_stopped_dovetail_half_lap",
+            *branch,
+            *webs[i].chord,
+            {{"flare", 0.25}, {"stop", 0.72}}
         );
-        web_joint->name = fmt::format("fork_branch_tenon_{}", i);
+        web_joint->name = fmt::format("fork_dovetail_{}", i);
         scene.add(web_joint, joints);
         scene.add_interaction(web_joint, webs[i].fork, web_joint->interaction(0));
         scene.add_interaction(web_joint, webs[i].chord, web_joint->interaction(1));
@@ -188,7 +196,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The Rossiniere seven-member triangular space truss reconstructed from 3D-scanned spruce forks and logs: idealized triangle chord proxies solve four plain half-lap scarf splices with pairs of cylindrical pins and three cyclic angled blind mortise-and-tenon branch joints (via EdgeRawElement::branch_proxy), carving every joint directly out of the registered raw meshes.
+The Rossiniere seven-member triangular space truss reconstructed from 3D-scanned spruce forks and logs with full interlocking joinery: four stop-splayed cogged scarf splices locked by twin opposing folding wedges and cylindrical pins along the three chords, and three cyclic pegged stopped-dovetail half-lap fork-branch joints (via EdgeRawElement::branch_proxy) triangulating the space frame.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

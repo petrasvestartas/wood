@@ -8,15 +8,15 @@ int main() {
 
     WoodSession scene("element_edge_raw_cross");
 
-    // 1. Extended six-cut conical cross-lap with central pin (PhD Fig. 5.55 B, Fig. 5.63 I & Fig. 9.16)
-    // Axis eccentricity dz = 56 mm on D = 128 mm trunks -> 36 mm conical pocket depth (0.28 D < 1/3 D, > 2/3 section kept)
+    // 1. Extended six-cut conical cross-lap with central pin at 60 degrees (PhD Fig. 5.55 B, Fig. 5.63 I & Fig. 9.16)
+    // Lower trunk aligned across screen so its flared conical saddle and side cheeks open directly towards the viewer
     const std::shared_ptr<TreeNode> extended_group = scene.group_named("extended_conical");
     const std::shared_ptr<EdgeRawElement> ext_lower = EdgeRawElement::from_stock(
-        Line::from_points({0.0, -400.0, 62.0}, {0.0, 400.0, 62.0}), 64.0, "raw_log_0", 0.0, true, "ext_lower"
+        Line::from_points({-346.0, 200.0, 62.0}, {346.0, -200.0, 62.0}), 64.0, "raw_log_0", 0.0, true, "ext_lower"
     );
     ext_lower->cuts = {
-        Plane::from_point_normal({0.0, -390.0, 62.0}, {0.0, 1.0, 0.0}),
-        Plane::from_point_normal({0.0, 390.0, 62.0}, {0.0, -1.0, 0.0}),
+        Plane::from_point_normal({-338.0, 195.0, 62.0}, Vector(346.0, -200.0, 0.0).normalized()),
+        Plane::from_point_normal({338.0, -195.0, 62.0}, Vector(-346.0, 200.0, 0.0).normalized()),
     };
     const std::shared_ptr<EdgeRawElement> ext_upper = EdgeRawElement::from_stock(
         Line::from_points({-346.0, -200.0, 118.0}, {346.0, 200.0, 118.0}), 64.0, "raw_log_2", 15.0, true, "ext_upper"
@@ -29,7 +29,7 @@ int main() {
     scene.add(ext_upper, extended_group);
 
     Settings ext_settings = scene.settings;
-    ext_settings.joint_parameters[10] = 0.54;
+    ext_settings.joint_parameters[10] = 0.72;
     ext_settings.joint_parameters[11] = JointPlateElement::cross_half_lap_id(CrossDrills::one);
     const InteractionContactAxis ext_contact(
         Line::from_points({0.0, 0.0, 62.0}, {0.0, 0.0, 118.0}), 0.5, 0.5, 0, 0, 0, 0
@@ -54,7 +54,7 @@ int main() {
     const std::shared_ptr<TreeNode> sliced_group = scene.group_named("sliced_conical");
     const Vector shift(960.0, -554.0, 0.0);
     const std::shared_ptr<EdgeRawElement> slc_lower = EdgeRawElement::from_stock(
-        Line::from_points(Point(0.0, -400.0, 62.0) + shift, Point(0.0, 400.0, 62.0) + shift),
+        Line::from_points(Point(-346.0, 200.0, 62.0) + shift, Point(346.0, -200.0, 62.0) + shift),
         64.0,
         "raw_log_2",
         95.0,
@@ -62,8 +62,8 @@ int main() {
         "slc_lower"
     );
     slc_lower->cuts = {
-        Plane::from_point_normal(Point(0.0, -390.0, 62.0) + shift, {0.0, 1.0, 0.0}),
-        Plane::from_point_normal(Point(0.0, 390.0, 62.0) + shift, {0.0, -1.0, 0.0}),
+        Plane::from_point_normal(Point(-338.0, 195.0, 62.0) + shift, Vector(346.0, -200.0, 0.0).normalized()),
+        Plane::from_point_normal(Point(338.0, -195.0, 62.0) + shift, Vector(-346.0, 200.0, 0.0).normalized()),
     };
     const std::shared_ptr<EdgeRawElement> slc_upper = EdgeRawElement::from_stock(
         Line::from_points(Point(-346.0, -200.0, 118.0) + shift, Point(346.0, 200.0, 118.0) + shift),
@@ -81,7 +81,7 @@ int main() {
     scene.add(slc_upper, sliced_group);
 
     Settings slc_settings = scene.settings;
-    slc_settings.joint_parameters[10] = 0.54;
+    slc_settings.joint_parameters[10] = 0.72;
     slc_settings.joint_parameters[11] = JointPlateElement::library_id("cross_sliced_half_lap");
     const InteractionContactAxis slc_contact(
         Line::from_points(Point(0.0, 0.0, 62.0) + shift, Point(0.0, 0.0, 118.0) + shift),

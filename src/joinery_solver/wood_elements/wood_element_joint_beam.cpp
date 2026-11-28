@@ -3286,7 +3286,17 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         // the boxes the steps cut from: the end of a or a around the crossing, b around the node through its width or as wide as a
         const double over_a = member_overshoot(a, overshoot);
         const double over_b = member_overshoot(b, overshoot);
-        const double lateral = aw >= bw - 1e-6 ? bw + over_b : aw;
+        const bool raw_pair = dynamic_cast<const EdgeRawElement*>(&a) != nullptr ||
+                              dynamic_cast<const EdgeRawElement*>(&b) != nullptr;
+        bool open_w = false;
+        if (raw_pair && !crossing) {
+            for (const std::string& pl : record.lists["planes"]) {
+                const std::string pname = split_top(pl, '=')[0];
+                if (pname == "mid" || pname == "lap" || pname == "tine_1" || pname == "tine_in_1")
+                    open_w = true;
+            }
+        }
+        const double lateral = (aw >= bw - 1e-6 || open_w) ? std::max(aw, bw) + over_b : aw;
         // across b the box reaches over the footprint of a on b, measured along t: longer where a crosses b obliquely in plan
     const double sine = std::max(t.cross(along_b).magnitude(), 0.2);
     const double t_extent = along ? span + ah + aw + over_b : (bt + aw * std::abs(t.dot(along_b))) / sine + over_b;
@@ -3438,23 +3448,61 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->steps.push_back(step);
     }
 
-    // raw roundwood shoulder surfacing (PhD Fig. A.6): shave irregular bark protruding past the shoulder plane within a's footprint
-    if (!crossing && planes.count("shoulder") &&
-        (dynamic_cast<const EdgeRawElement*>(&a) != nullptr || dynamic_cast<const EdgeRawElement*>(&b) != nullptr)) {
-        const Plane& sh = planes.at("shoulder");
-        const Plane neg_sh = Plane::from_point_normal(sh.origin(), sh.z_axis() * -1.0);
-        const Vector n_out = neg_sh.z_axis().normalized();
-        const Vector t_sh = Plane::from_point_normal(sh.origin(), n_out).x_axis();
-        const Vector w_sh = n_out.cross(t_sh).normalized();
-        const double ah_val = names.count("ah") ? names.at("ah").number : aw;
-        const double foot = std::max(aw, ah_val) * 1.45 + part_over;
-        Mesh bark_box = frame_solid(sh.origin(), {t_sh, w_sh, n_out}, {-foot, foot}, {-foot, foot}, {0.0, part_over + 25.0});
-        JointCutStep surf;
-        surf.label = "B_raw_shoulder";
-        surf.target = 1;
-        surf.planes = {neg_sh};
-        surf.removal = bark_box;
-        joint->steps.push_back(surf);
+    // raw roundwood joint-zone surfacing & squared end cheeks (PhD Fig. 5.41 D & Fig. A.6)
+    const EdgeRawElement* raw_a = dynamic_cast<const EdgeRawElement*>(&a);
+    const EdgeRawElement* raw_b = dynamic_cast<const EdgeRawElement*>(&b);
+    if (!crossing && record.fields.at("family") != "splicing" && (raw_a != nullptr || raw_b != nullptr)) {
+        const Point face_pt = origin + names.at("O").vector;
+        const Vector u_vec = names.at("u").vector.normalized();
+        const Vector n_out = names.at("n").vector.normalized();
+        const Vector t_vec = names.at("t").vector.normalized();
+        const Vector w_vec = names.at("w").vector.normalized();
+        const Vector p_vec = names.at("p").vector.normalized();
+        const double ah_val = names.at("ah").number;
+        const double bh_val = names.at("bh").number;
+        const double sin_un = std::max(std::abs(u_vec.dot(n_out)), 0.25);
+        const double t_span = ah_val / sin_un + 24.0;
+        const double w_span = aw + 18.0;
+
+        if (raw_b != nullptr && raw_b->using_raw_mesh()) {
+            const Point sh_pt = planes.count("shoulder") ? planes.at("shoulder").origin() : face_pt;
+            JointCutStep surf;
+            surf.label = "B_raw_shoulder";
+            surf.target = 1;
+            surf.planes = {Plane::from_point_normal(sh_pt, n_out)};
+            surf.removal = frame_solid(sh_pt, {t_vec, w_vec, n_out}, {-t_span, t_span}, {-w_span, w_span}, {0.0, part_over + 25.0});
+            joint->steps.push_back(surf);
+
+            if (planes.count("end") && (face_pt - planes.at("end").origin()).dot(n_out) >= 2.0 * bh_val - 1.0) {
+                const Point exit_pt = face_pt - u_vec * (2.0 * bh_val / sin_un);
+                const Vector n_back = n_out * -1.0;
+                JointCutStep back_surf;
+                back_surf.label = "B_raw_exit";
+                back_surf.target = 1;
+                back_surf.planes = {Plane::from_point_normal(exit_pt, n_back)};
+                back_surf.removal = frame_solid(exit_pt, {t_vec, w_vec, n_back}, {-t_span, t_span}, {-w_span, w_span}, {0.0, part_over + 25.0});
+                joint->steps.push_back(back_surf);
+            }
+        }
+
+        if (raw_a != nullptr && raw_a->using_raw_mesh()) {
+            const double u_min = end_reach(a, face_pt, u_vec, part_over);
+            const double u_entry = ah_val * std::abs(p_vec.dot(n_out)) / sin_un + 16.0;
+            if (u_entry > u_min + 1.0) {
+                const double ext = part_over + 25.0;
+                const std::vector<Mesh> slabs = {
+                    frame_solid(face_pt, {u_vec, w_vec, p_vec}, {u_min, u_entry}, {aw, aw + ext}, {-ah_val - ext, ah_val + ext}),
+                    frame_solid(face_pt, {u_vec, w_vec, p_vec}, {u_min, u_entry}, {-aw - ext, -aw}, {-ah_val - ext, ah_val + ext}),
+                    frame_solid(face_pt, {u_vec, w_vec, p_vec}, {u_min, u_entry}, {-aw - ext, aw + ext}, {ah_val, ah_val + ext}),
+                    frame_solid(face_pt, {u_vec, w_vec, p_vec}, {u_min, u_entry}, {-aw - ext, aw + ext}, {-ah_val - ext, -ah_val}),
+                };
+                JointCutStep trim_a;
+                trim_a.label = "A_raw_trim";
+                trim_a.target = 0;
+                trim_a.removal = shells_side_by_side(slabs);
+                joint->steps.push_back(trim_a);
+            }
+        }
     }
 
     // the ways a goes in, across only when it is as wide as b; b the opposite ways; "v; m1; m2" approaches along v, then makes

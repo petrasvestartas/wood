@@ -32,7 +32,7 @@ A Rossiniere Norway spruce trunk (`raw_log_1`) aligned onto an 1800 mm straight 
 
 ## Scan, beam proxy and attached raw timber
 
-Three stages of the raw-timber workflow side by side on the same four-member portal node: co-registered RGB laser-scan point clouds aligned onto structural axes by `raw_xform` (left), joinery solved rapidly on octagonal round-section beam proxies (`use_raw_mesh = false`, middle), and the identical four-sided shouldered mortise-and-tenon, notched oblique thrust and eccentric conical cross-lap carved through the irregular spruce trunks (`use_raw_mesh = true`, right).
+Three stages of the raw-timber workflow side by side on the same four-member portal node: co-registered RGB laser-scan point clouds aligned onto structural centreline axes by `raw_xform` (left), interlocking carpentry solved rapidly on octagonal round-section beam proxies without carrying dense bark meshes through every calculation (`use_raw_mesh = false`, middle), and the identical flared dovetail T-bridle (`dovetail_t_bridle`), pegged oblique-thrust mortise-and-tenon (`notched_oblique_thrust_pegged_mortise_tenon`) and eccentric conical cross-lap carved through the irregular spruce trunks with cutting volumes extended past scan and bark uncertainty while keeping mating faces exact (`use_raw_mesh = true`, right).
 
 ![](elements/element_edge_raw_proxy.png)
 
@@ -40,7 +40,7 @@ Three stages of the raw-timber workflow side by side on the same four-member por
 
 ## Holes
 
-Vertical, horizontal and inclined dowel bores across an irregular scanned trunk (`raw_log_0`): `JointElement::drill` cuts exact rational cylindrical NURBS surfaces through the bark overhang.
+Vertical, horizontal and inclined cylindrical bores across an irregular scanned trunk (`raw_log_0`): `JointElement::drill` cuts exact rational cylindrical NURBS surfaces cleanly past bark swell, serving both structural hardwood dowels and the three-hole local reference datums that tie a physical fork or log to its digital scan in the robot cell and on the assembly jig.
 
 ![](elements/element_edge_raw_holes.png)
 
@@ -56,7 +56,7 @@ A bifurcated spruce fork (`raw_fork_1`) trimmed flat across its butt, upper stem
 
 ## Conical cross-lap joints
 
-Eccentric crossing roundwood trunks joined by conical cross-lap tiles (`cross_half_lap` and `cross_sliced_half_lap` via `JointBeamElement::from_contact`) at an axis offset dz = 56 mm on D = 128 mm logs, keeping over two-thirds of each timber section intact while stretching the conical pocket mouth clear of the bark: a six-cut extended conical cross-lap locked by a central cylindrical wooden pin (left), and a nine-cut sliced conical cross-lap at 60° locked by two diagonal wooden pins (right).
+Eccentric crossing roundwood trunks joined at 60° by conical cross-lap tiles (`cross_half_lap` and `cross_sliced_half_lap` via `JointBeamElement::from_contact`) at an axis offset dz = 56 mm on D = 128 mm logs, keeping over two-thirds of each timber section intact while stretching the conical pocket mouth clear of the bark: a six-cut extended conical cross-lap locked by a central cylindrical wooden pin (left), and a nine-cut sliced conical cross-lap locked by two crossed diagonal wooden pins (right).
 
 | assembly | apart | still |
 |---|---|---|
@@ -64,9 +64,9 @@ Eccentric crossing roundwood trunks joined by conical cross-lap tiles (`cross_ha
 
 \include{lineno} elements/element_edge_raw_cross.cpp
 
-## Top-to-side and end-to-end scarf joints
+## Interlocking tusk tenon, dovetail brace and Jupiter scarf
 
-Top-to-side and colinear end-to-end joinery on scanned spruce trunks: a four-sided shouldered blind mortise-and-tenon post with automatic bark-seat surfacing and an inclined notched oblique thrust strut landing on one raw carrier (left), beside a plain half-lap scarf splice locked by two inclined wooden pins (right).
+Interlocking roundwood joinery on 3D-scanned spruce trunks: a horizontally wedged through tusk tenon post (`horizontally_wedged_tusk_tenon`, with spot-faced entry and exit seats and twin opposing horizontal hardwood keys) beside an inclined pegged stopped-dovetail half-lap strut (`pegged_angled_stopped_dovetail_half_lap`) on one raw carrier (left), and a colinear *Trait de Jupiter* hooked cogged scarf (`cogged_lap_folding_wedges_splice`) locked by full-height opposing folding wedges and two cylindrical pins (right).
 
 | assembly | apart | still |
 |---|---|---|
@@ -74,9 +74,9 @@ Top-to-side and colinear end-to-end joinery on scanned spruce trunks: a four-sid
 
 \include{lineno} elements/element_edge_raw_joints.cpp
 
-## Parallel flattened trunks with butterfly keys
+## Castellated shear-cog and butterfly-key slab
 
-Side-to-side slab joinery on four parallel scanned spruce trunks surfaced flat along their top plane and longitudinal contact seams while preserving natural round bark underneath and on the outer flanks, locked across every seam by staggered inlaid double-dovetail butterfly keys and transverse cylindrical wooden dowels.
+Side-to-side slab joinery on four parallel scanned spruce trunks surfaced flat along their top deck while preserving natural round bark underneath and on the outer flanks: five alternating 22 mm castellated longitudinal shear cogs interlock adjacent logs along every seam, reinforced by transverse cylindrical wooden dowels and staggered inlaid double-dovetail butterfly keys.
 
 | assembly | apart | still |
 |---|---|---|
@@ -86,7 +86,7 @@ Side-to-side slab joinery on four parallel scanned spruce trunks surfaced flat a
 
 ## Triangular tree-fork space truss
 
-The seven-member Rossiniere triangular space truss reconstructed from three 3D-scanned spruce forks (`raw_fork_0..2`) and four straight logs (`raw_log_0..3`): chord proxies solve four plain half-lap scarf splices with pairs of cylindrical wooden pins, while `EdgeRawElement::branch_proxy` solves three cyclic angled four-sided shouldered blind mortise-and-tenon web joints triangulating all three chords into a collision-free seven-step assembly sequence.
+The seven-member Rossiniere triangular space truss reconstructed from three 3D-scanned spruce forks (`raw_fork_0..2`) and four straight logs (`raw_log_0..3`): chord proxies solve four stop-splayed cogged scarf splices (`stop_splayed_cogged_scarf`) combining sloped scarf tables, central tension hooks and pairs of cylindrical wooden pins, while `EdgeRawElement::branch_proxy` solves three cyclic pegged stopped-dovetail half-lap fork-branch joints (`pegged_angled_stopped_dovetail_half_lap`) triangulating all three chords into a collision-free assembly sequence.
 
 | assembly | apart | still |
 |---|---|---|
@@ -106,7 +106,7 @@ A six-log raw-wood reciprocal nexorade where four transverse spruce logs weave a
 
 ## Bifurcated fork pavilion
 
-Four bifurcated spruce Y-columns (`raw_fork_0` and `raw_fork_2`) turned inward and trimmed level at base and crown so both stem and branch cradle two longitudinal log girders, spanned across by three raw rafters seated in eccentric conical cross-laps and pinned onto the girders.
+Four bifurcated spruce Y-columns (`raw_fork_0` and `raw_fork_2`) turned inward to support two longitudinal log girders through fourteen interlocking joints: every vertical fork stem cradles its girder in a flared dovetail T-bridle (`dovetail_t_bridle`), every inclined fork branch braces into the girder through an oblique-thrust mortise-and-tenon (`oblique_thrust_mortise_tenon`) locked by a transverse wooden pin, and three raw rafters span across above in six eccentric conical cross-laps with vertical pins.
 
 | assembly | apart | still |
 |---|---|---|
@@ -116,22 +116,23 @@ Four bifurcated spruce Y-columns (`raw_fork_0` and `raw_fork_2`) turned inward a
 
 ## Typical Dimensions
 
-Diameters D, tapers and fork angles of debarked roundwood logs and structural tree forks; bark, sweep and knot swell add 15 to 40 mm radially over the fitted proxy cylinder.
+Diameters D, tapers and fork angles of debarked roundwood logs and naturally grown structural tree forks across ground-to-crown harvesting; bark, sweep and knot swell add 15 to 40 mm radially over the fitted proxy cylinder.
 
 | Member | Species | Diameter D mm | Length m | Taper / fork angle |
 | --- | --- | --- | --- | --- |
-| Small-diameter thinnings (`data/raw/raw_log_*`) | Norway spruce (*Picea abies*) | 95 to 175 | 0.9 to 4.5 | 5 to 12 mm / m, sweep to 35 mm |
+| Small-diameter thinnings (`data/raw/raw_log_*`) | Norway spruce (*Picea abies*), fir | 95 to 175 | 0.9 to 4.5 | 5 to 12 mm / m, sweep to 35 mm |
 | Structural roundwood columns and chords | Spruce, pine, Douglas fir, larch | 140 to 360 | 3.0 to 12.0 | 6 to 10 mm / m |
-| Truss web forks (`data/raw/raw_fork_*`) | Norway spruce (*Picea abies*) | 110 to 180 stem, 80 to 140 branch | 1.0 to 2.4 | 18° to 45° between branches |
-| Heavy Y-columns and arch forks | Beech, oak, ash, Douglas fir | 220 to 500 stem, 150 to 350 branch | 2.5 to 6.5 | 25° to 60° between branches |
+| Truss web and crown forks (`data/raw/raw_fork_*`) | Norway spruce, European beech (*Fagus sylvatica*) | 110 to 220 stem, 80 to 160 branch | 1.0 to 2.8 | 18° to 45° between limbs |
+| Heavy Y-columns and arch forks | Beech, oak, ash, Douglas fir | 220 to 500 stem, 150 to 350 branch | 2.5 to 6.5 | 25° to 60° between limbs |
 
 ### Joinery allowances on irregular roundwood
 
 | Joint family | Eccentricity / cut depth | Raw-bark allowance | Fasteners |
 | --- | --- | --- | --- |
 | Conical cross-lap (`cross_half_lap`, `cross_sliced_half_lap`) | Axis offset dz = 0.44 to 0.50 D, pocket depth under D / 3 (over 2 D / 3 section preserved) | Conical pocket mouth stretched past local bark overhang | 16 to 20 mm central or crossed diagonal hardwood pins |
-| Four-sided shouldered fork tenon (`fully_shouldered_blind_mortise_tenon`) | Mortise depth 0.40 to 0.50 D, tenon thickness D / 3 | Flat carrier shoulder seat shaved within landing footprint (`raw_overshoot`) | Optional cross-peg or self-locking truss triangulation |
-| Plain half-lap scarf splice (`half_lap_splice`) | Lap length 1.8 to 2.5 D, mid-depth plane | Radial `raw_overshoot` + axial `raw_end_extension` | Pair of 16 to 20 mm cylindrical wooden pins |
-| Flared butterfly key slab (`dovetail_butterfly_key`) | Key depth 0.20 to 0.25 D, staggered across seams | Flattened top datum and milled longitudinal contact seams | Inlaid hardwood butterfly keys + transverse dowels |
+| Dovetail T-bridle & wedged tusk tenon (`dovetail_t_bridle`, `horizontally_wedged_tusk_tenon`) | Full-depth bridle tines or 0.36 D protruding through-tenon | Squared entering cheeks + spot-faced carrier entry and exit seats | Twin opposing horizontal hardwood keys or dovetail bridle |
+| Pegged dovetail & oblique-thrust branch joints (`pegged_angled_stopped_dovetail_half_lap`, `oblique_thrust_mortise_tenon`) | Stopped dovetail 0.72 to 0.75 D or mortise depth 0.42 D | Squared branch landing prism + surfaced carrier shoulder (`raw_overshoot`) | 15 to 18 mm transverse hardwood pegs or cylindrical pins |
+| Hooked cogged & Jupiter scarfs (`cogged_lap_folding_wedges_splice`, `stop_splayed_cogged_scarf`) | Lap length 2.0 to 2.9 D, central cog hook 0.25 to 0.30 D | Radial `raw_overshoot` + axial `raw_end_extension` across full bark | Opposing hardwood folding wedges and pairs of cylindrical pins |
+| Castellated shear-cog & butterfly-key slab (`castellated_longitudinal_seam`, `dovetail_butterfly_key`) | 22 mm alternating seam cogs, key depth 0.22 D | Surfaced top deck and milled longitudinal cog overlap | Inlaid flared butterfly keys + transverse cylindrical dowels |
 
-Sources: [Vestartas (2021)](https://raw.githubusercontent.com/petrasvestartas/storage/refs/heads/main/images/papers/2021_phd_thesis.pdf), chapters 5.3, 5.5, 9.4 and appendices A.3–A.4 (Rossiniere spruce fork truss and reciprocal conical cross-lap prototype); Mollica & Self (2016), *Advances in Architectural Geometry* (Hooke Park Wood Chip Barn); Bukauskas et al. (2019), *Form-Fitting Strategies for Diversity-Tolerant Design*.
+Sources: [Vestartas (2021)](https://raw.githubusercontent.com/petrasvestartas/storage/refs/heads/main/images/papers/2021_phd_thesis.pdf), chapters 2, 5.3, 5.5, 9.4 and appendices A.3–A.4 (Rossiniere spruce fork truss, side-to-side stave slab and reciprocal whole-timber nexorade); Vestartas, Rezaei Rad & Weinand (2021), *Robotically-Fabricated Nexorades from Whole Timber*; Mollica & Self (2016), *Tree Fork Truss: Geometric Strategies for Exploiting Inherent Material Form*, *Advances in Architectural Geometry* (Hooke Park Wood Chip Barn); Zachary Mollica, [*From tree scan to building component*](https://zacharymolli.ca/from-tree-scan-to-building-component/), [*Ground to Crown*](https://zacharymolli.ca/ground-to-crown/) and [*Weird Wood Index*](https://zacharymolli.ca/weird-wood-index/); Bauer & Pauli (2024), *Joinery Compendium*.

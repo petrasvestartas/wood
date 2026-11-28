@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Three stages left to right: scanned RGB point clouds + axes, octagonal beam proxies, and attached raw trunks with identical joinery.
+/// Three stages left to right: scanned RGB point clouds + axes, octagonal beam proxies, and attached raw trunks with identical interlocking joinery.
 int main() {
 
     WoodSession scene("element_edge_raw_proxy");
@@ -18,7 +18,7 @@ int main() {
             Line::from_points({0.0, 0.0, 50.0}, {0.0, 0.0, 680.0}), 56.0, "raw_log_3", 45.0, true, "scan_post"
         );
         const std::shared_ptr<EdgeRawElement> scan_brace = EdgeRawElement::from_stock(
-            Line::from_points({180.0, 0.0, 180.0}, {540.0, 0.0, 680.0}), 52.0, "raw_log_2", 20.0, true, "scan_brace"
+            Line::from_points({180.0, 0.0, 180.0}, {540.0, 0.0, 680.0}), 54.0, "raw_log_2", 20.0, true, "scan_brace"
         );
         const std::shared_ptr<EdgeRawElement> scan_rafter = EdgeRawElement::from_stock(
             Line::from_points({270.0, -320.0, 728.0}, {270.0, 320.0, 728.0}), 54.0, "raw_log_1", 90.0, true, "scan_rafter"
@@ -52,12 +52,14 @@ int main() {
             4.2,
             "post_" + tag
         );
+        post->extension = 80.0;
         const std::shared_ptr<EdgeRawElement> brace = EdgeRawElement::round(
             Line::from_points(Point(180.0, 0.0, 180.0) + shift, Point(540.0, 0.0, 680.0) + shift),
-            52.0,
+            54.0,
             4.2,
             "brace_" + tag
         );
+        brace->extension = 90.0;
         const std::shared_ptr<EdgeRawElement> rafter = EdgeRawElement::round(
             Line::from_points(Point(270.0, -320.0, 728.0) + shift, Point(270.0, 320.0, 728.0) + shift),
             54.0,
@@ -91,23 +93,24 @@ int main() {
         scene.add(brace, group);
         scene.add(rafter, group);
 
-        const std::shared_ptr<JointBeamElement> mortise = JointBeamElement::from_library(
-            "fully_shouldered_blind_mortise_tenon", *post, *girder, {{"depth", 0.45}}
+        const std::shared_ptr<JointBeamElement> bridle = JointBeamElement::from_library(
+            "dovetail_t_bridle", *post, *girder, {{"slot", 0.48}, {"inside", 0.66}}
         );
-        mortise->name = "mortise_" + tag;
-        scene.add(mortise, group);
-        scene.add_interaction(mortise, post, mortise->interaction(0));
-        scene.add_interaction(mortise, girder, mortise->interaction(1));
+        bridle->name = "bridle_" + tag;
+        scene.add(bridle, group);
+        scene.add_interaction(bridle, post, bridle->interaction(0));
+        scene.add_interaction(bridle, girder, bridle->interaction(1));
 
-        const std::shared_ptr<JointBeamElement> thrust =
-            JointBeamElement::from_library("notched_oblique_thrust", *brace, *girder);
+        const std::shared_ptr<JointBeamElement> thrust = JointBeamElement::from_library(
+            "notched_oblique_thrust_pegged_mortise_tenon", *brace, *girder
+        );
         thrust->name = "thrust_" + tag;
         scene.add(thrust, group);
         scene.add_interaction(thrust, brace, thrust->interaction(0));
         scene.add_interaction(thrust, girder, thrust->interaction(1));
 
         Settings conical = scene.settings;
-        conical.joint_parameters[10] = 0.55;
+        conical.joint_parameters[10] = 0.68;
         conical.joint_parameters[11] = JointPlateElement::cross_half_lap_id(CrossDrills::one);
         const InteractionContactAxis cross_contact(
             Line::from_points(Point(270.0, 0.0, 728.0) + shift, Point(270.0, 0.0, 680.0) + shift),
@@ -128,7 +131,7 @@ int main() {
         scene.add_interaction(cross, girder, cross->interaction(1));
 
         const std::shared_ptr<JointPinElement> pin = std::make_shared<JointPinElement>(
-            Line::from_points(Point(270.0, 0.0, 640.0) + shift, Point(270.0, 0.0, 768.0) + shift),
+            Line::from_points(Point(270.0, 0.0, 636.0) + shift, Point(270.0, 0.0, 772.0) + shift),
             9.0,
             0.05
         );
@@ -143,7 +146,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Three stages of the raw-timber workflow side by side: co-registered RGB laser-scan point clouds aligned onto structural axes (left), a four-member portal node solved on fast octagonal round-section beam proxies (`use_raw_mesh = false`, middle), and the identical mortise-and-tenon, notched oblique thrust and conical cross-lap joints carved cleanly through the attached spruce trunks (`use_raw_mesh = true`, right).
+Three stages of the raw-timber workflow side by side: co-registered RGB laser-scan point clouds aligned onto structural axes (left), a four-member portal node solved on fast octagonal round-section beam proxies (`use_raw_mesh = false`, middle), and the identical dovetail T-bridle, pegged oblique thrust mortise-and-tenon and conical cross-lap joints carved cleanly through the attached spruce trunks (`use_raw_mesh = true`, right).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
