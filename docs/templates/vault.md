@@ -2,7 +2,7 @@
 
 [TOC]
 
-Parametric ribbed timber vaults, stereotomic masonry vaults, and subdivided NURBS / sewn-BRep NGon block shells in `src/templates/vault/`: every template is a session built from its guide in `vault_guide.h` (`Arch(ArchGuide)`, `Barrel(BarrelGuide)`, `Dome(DomeGuide)`, `Wall(WallGuide)`, `CrossVault(CrossVaultGuide)`, `CloisterVault(CloisterVaultGuide)`, `GothicRibbedVault(GothicRibbedVaultGuide)`, `SurfaceVault(SurfaceVaultGuide)`), the defaults being the examples' settings. `SurfaceDivision` subdivides single NURBS patches or multi-patch sewn BRep shells across shared seams (`quads`, `diamonds`, `hexagons`, `dual_hexagons`, `bricks`, `chebyshev`), and `ngon_solids` extrudes planar-sided blocks (`planarized`) with planar projected caps (`flatten_caps`) and optional tangential or alternating-bevel shifts between top and bottom facets.
+Parametric ribbed timber vaults, stereotomic masonry vaults, subdivided NURBS / sewn-BRep NGon block shells, free-form field-guided and geodesic brick shells, and boundary-inclusive trivalent dual shells in `src/templates/vault/`: every template is a session built from its guide in `vault_guide.h` (`Arch(ArchGuide)`, `Barrel(BarrelGuide)`, `Dome(DomeGuide)`, `Wall(WallGuide)`, `CrossVault(CrossVaultGuide)`, `CloisterVault(CloisterVaultGuide)`, `GothicRibbedVault(GothicRibbedVaultGuide)`, `SurfaceVault(SurfaceVaultGuide)`, `TileVault(TileVaultGuide)`, `CalgaryVault(CalgaryVaultGuide)`), the defaults being the examples' settings. `SurfaceDivision` subdivides single NURBS patches or multi-patch sewn BRep shells across shared seams (`quads`, `diamonds`, `hexagons`, `dual_hexagons`, `bricks`, `chebyshev`, `geodesic_bricks`), `ngon_solids` extrudes planar-sided blocks (`planarized`) with planar projected caps (`flatten_caps`) and optional tangential or alternating-bevel shifts, `tile_vault` materialises free-form triangle shells via pure-C++ `Directional` field-guided quad remeshing + `ShapeUp` + `BIP` brick matching or Chalmers geodesic-coordinate constant-bed-height courses, and `calgary_vault` builds variable-thickness chamfered and bevelled trivalent dual shells.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#vault_quadripartite">
@@ -77,6 +77,10 @@ Parametric ribbed timber vaults, stereotomic masonry vaults, and subdivided NURB
     <img src="templates_vault_10_surface_subdivisions_chebyshev_dome.webp" alt="Chebyshev Dome">
     <span class="wood-card-title">Chebyshev Dome</span>
   </a>
+  <a class="wood-card" href="#vault_geodesic_dome">
+    <img src="templates_vault_10_surface_subdivisions_geodesic_dome.webp" alt="Geodesic Brick Dome">
+    <span class="wood-card-title">Geodesic Brick Dome</span>
+  </a>
   <a class="wood-card" href="#vault_shifted_hex">
     <img src="templates_vault_11_shifted_facets_shifted_hex.webp" alt="Shifted Hexagonal Vault">
     <span class="wood-card-title">Shifted Hexagonal Vault</span>
@@ -101,12 +105,16 @@ Parametric ribbed timber vaults, stereotomic masonry vaults, and subdivided NURB
     <img src="templates_vault_12_brick_tiling_tripod_running.webp" alt="Tripod Shell Brick Tiling">
     <span class="wood-card-title">Tripod Shell Brick Tiling</span>
   </a>
+  <a class="wood-card" href="#vault_geodesic_tiling">
+    <img src="templates_vault_12_brick_tiling_funicular_geodesic.webp" alt="Geodesic Oculus Shell">
+    <span class="wood-card-title">Geodesic Oculus Shell</span>
+  </a>
   <a class="wood-card" href="#vault_calgary_dual_shell">
     <img src="templates_vault_13_calgary_dual_shell_calgary_chamfered.webp" alt="Calgary Dual Shell">
     <span class="wood-card-title">Calgary Dual Shell</span>
   </a>
   <a class="wood-card" href="#vault_assembly_sequence">
-    <img src="assembly_templates_vault_10_surface_subdivisions_sewn_groin.gif" alt="Assembly Sequence">
+    <img src="assembly_templates_vault_1_arch.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
   </a>
 </div>
@@ -293,7 +301,7 @@ Four-lobed flaring funnel shell sewn across radial patch seams and dualized (`Su
 
 ### Courses Funnel Vault {#vault_courses_funnel}
 
-Funnel vault laid in staggered masonry courses (`SurfaceDivision::bricks`) whose stone count adapts per hoop to keep arc-length block widths uniform from throat to flare, splitting shared bed edges at T-joints.
+Periodic $C^2$ funnel vault laid in Popescu (2017) knit-increase/decrease masonry courses (`SurfaceDivision::bricks`) whose stone count adapts per hoop from throat to flare while golden-angle gore branching and cyclic half-brick stagger equalization eliminate Vernier stack seams across conformal T-joint bed edges.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_10_surface_subdivisions_courses_funnel.webp" alt="Courses Funnel Vault 3D view">
@@ -307,6 +315,15 @@ Pendentive sail dome tiled by a 45-degree equal-edge-length Chebyshev compass ne
 <div class="wood-pair-grid">
   <img src="templates_vault_10_surface_subdivisions_chebyshev_dome.webp" alt="Chebyshev Dome 3D view">
   <img src="templates_vault_10_surface_subdivisions_chebyshev_dome_bottom.webp" alt="Chebyshev Dome intrados view">
+</div>
+
+### Geodesic Brick Dome {#vault_geodesic_dome}
+
+Doubly-curved pendentive dome tiled in constant-bed-height geodesic coordinates (`SurfaceDivision::geodesic_bricks`, Adiels, Ander &amp; Williams, IASS 2017) by shooting surface geodesics orthogonally ($a_{12} = 0$, $a_{22} = \text{const}$ by Gauss's Lemma) from a central 35-degree geodesic and staggering constant-length running-bond bricks across conformal T-jointed courses.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_geodesic_dome.webp" alt="Geodesic Brick Dome 3D view">
+  <img src="templates_vault_10_surface_subdivisions_geodesic_dome_bottom.webp" alt="Geodesic Brick Dome intrados view">
 </div>
 
 \include{lineno} templates_vault_10_surface_subdivisions.cpp
@@ -359,7 +376,7 @@ Equal-edge Chebyshev pendentive dome with tangential extrados-intrados shift and
 
 ## Free-Form Brick Tiling {#vault_brick_tiling}
 
-Isotropic curvature-aligned quad remeshing (`QuadriFlow` + `ShapeUp`) paired with Binary Integer Programming tile matching (Du, Van Mele &amp; Block, IASS 2023) materialises free-form doubly curved funicular and cantilevered tripod shells into running-bond, staggered, and herringbone courses of constant-width planar-sided blocks and standard tiles.
+Pure-C++ seamless field-guided quad remeshing (`Directional` power-field alignment + curl-reduced seamless parameterization + exact integer-grid polygon tracing, Vaxman) and `ShapeUp` local-global squareness regularization (Bouaziz et al., SGP 2012) paired with Binary Integer Programming brick matching (Du, Van Mele &amp; Block, IASS 2023), alongside constant-bed-height geodesic-coordinate running-bond courses (`GEODESIC_COURSES`, Adiels, Ander &amp; Williams, IASS 2017), materialise free-form funicular oculus vaults and cantilevered three-support tripod shells into planar-sided stereotomic blocks and constant-size rectangular tiles.
 
 ### Funicular Running-Bond Blocks
 
@@ -382,7 +399,14 @@ Isotropic curvature-aligned quad remeshing (`QuadriFlow` + `ShapeUp`) paired wit
   <img src="templates_vault_12_brick_tiling_funicular_herringbone_bottom.webp" alt="Funicular herringbone brick vault intrados view">
 </div>
 
-### Tripod Staggered, Running-Bond &amp; Herringbone Shells {#vault_tripod_tiling}
+### Funicular Polar Geodesic Courses {#vault_geodesic_tiling}
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_funicular_geodesic.webp" alt="Funicular polar geodesic brick vault 3D view">
+  <img src="templates_vault_12_brick_tiling_funicular_geodesic_bottom.webp" alt="Funicular polar geodesic brick vault intrados view">
+</div>
+
+### Tripod Staggered, Running-Bond, Herringbone &amp; Geodesic Shells {#vault_tripod_tiling}
 
 <div class="wood-pair-grid">
   <img src="templates_vault_12_brick_tiling_tripod_staggered.webp" alt="Tripod staggered brick shell 3D view">
@@ -397,6 +421,11 @@ Isotropic curvature-aligned quad remeshing (`QuadriFlow` + `ShapeUp`) paired wit
 <div class="wood-pair-grid">
   <img src="templates_vault_12_brick_tiling_tripod_herringbone.webp" alt="Tripod herringbone tile shell 3D view">
   <img src="templates_vault_12_brick_tiling_tripod_herringbone_bottom.webp" alt="Tripod herringbone tile shell intrados view">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_12_brick_tiling_tripod_geodesic.webp" alt="Tripod parallel geodesic brick shell 3D view">
+  <img src="templates_vault_12_brick_tiling_tripod_geodesic_bottom.webp" alt="Tripod parallel geodesic brick shell intrados view">
 </div>
 
 \include{lineno} templates_vault_12_brick_tiling.cpp
@@ -452,15 +481,17 @@ Block by block from the springings to the crown; the Gothic bays their support b
 | **Gothic ribbed vaults**, 352 elements, 346 moves | | |
 | ![fan conoid gloucester, 102 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_fan_conoid_gloucester.gif) fan conoid gloucester, 102 pieces | ![lierne star ely, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_lierne_star_ely.gif) lierne star ely, 70 pieces | ![net reticulated parler, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_net_reticulated_parler.gif) net reticulated parler, 70 pieces |
 | ![quadripartite wells, 22 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_quadripartite_wells.gif) quadripartite wells, 22 pieces | ![star stellar burgos, 50 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_star_stellar_burgos.gif) star stellar burgos, 50 pieces | ![tierceron exeter, 38 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_tierceron_exeter.gif) tierceron exeter, 38 pieces |
-| **Surface subdivisions**, 1352 elements, 1346 moves | | |
-| ![chebyshev dome, 196 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_chebyshev_dome.gif) chebyshev dome, 196 pieces | ![courses funnel, 292 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_courses_funnel.gif) courses funnel, 292 pieces | ![diamond torus, 189 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_diamond_torus.gif) diamond torus, 189 pieces |
-| ![hex saddle, 242 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_hex_saddle.gif) hex saddle, 242 pieces | ![sewn funnel, 288 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_funnel.gif) sewn funnel, 288 pieces | ![sewn groin, 145 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_groin.gif) sewn groin, 145 pieces |
+| **Surface subdivisions**, 1643 elements, 1636 moves | | |
+| ![chebyshev dome, 196 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_chebyshev_dome.gif) chebyshev dome, 196 pieces | ![courses funnel, 294 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_courses_funnel.gif) courses funnel, 294 pieces | ![diamond torus, 189 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_diamond_torus.gif) diamond torus, 189 pieces |
+| ![geodesic dome, 289 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_geodesic_dome.gif) geodesic dome, 289 pieces | ![hex saddle, 242 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_hex_saddle.gif) hex saddle, 242 pieces | ![sewn funnel, 288 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_funnel.gif) sewn funnel, 288 pieces |
+| ![sewn groin, 145 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_groin.gif) sewn groin, 145 pieces |  |  |
 | **Shifted facets**, 576 elements, 572 moves | | |
 | ![bevelled hex dome, 98 pieces](assembly/assembly_templates_vault_11_shifted_facets_bevelled_hex_dome.gif) bevelled hex dome, 98 pieces | ![shifted chebyshev, 188 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_chebyshev.gif) shifted chebyshev, 188 pieces | ![shifted groin, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_groin.gif) shifted groin, 145 pieces |
 | ![shifted hex, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_hex.gif) shifted hex, 145 pieces |  |  |
-| **Free-form brick tiling**, 1001 elements, 995 moves | | |
-| ![funicular herringbone, 117 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_herringbone.gif) funicular herringbone, 117 pieces | ![funicular running, 111 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_running.gif) funicular running, 111 pieces | ![funicular tiles, 136 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_tiles.gif) funicular tiles, 136 pieces |
-| ![tripod herringbone, 243 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_herringbone.gif) tripod herringbone, 243 pieces | ![tripod running, 220 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_running.gif) tripod running, 220 pieces | ![tripod staggered, 174 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_staggered.gif) tripod staggered, 174 pieces |
+| **Free-form brick tiling**, 2001 elements, 1993 moves | | |
+| ![funicular geodesic, 250 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_geodesic.gif) funicular geodesic, 250 pieces | ![funicular herringbone, 253 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_herringbone.gif) funicular herringbone, 253 pieces | ![funicular running, 255 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_running.gif) funicular running, 255 pieces |
+| ![funicular tiles, 256 pieces](assembly/assembly_templates_vault_12_brick_tiling_funicular_tiles.gif) funicular tiles, 256 pieces | ![tripod geodesic, 242 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_geodesic.gif) tripod geodesic, 242 pieces | ![tripod herringbone, 271 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_herringbone.gif) tripod herringbone, 271 pieces |
+| ![tripod running, 261 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_running.gif) tripod running, 261 pieces | ![tripod staggered, 213 pieces](assembly/assembly_templates_vault_12_brick_tiling_tripod_staggered.gif) tripod staggered, 213 pieces |  |
 | **Calgary dual shell**, 312 elements, 309 moves | | |
 | ![calgary bevelled, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_bevelled.gif) calgary bevelled, 104 pieces | ![calgary blocks, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_blocks.gif) calgary blocks, 104 pieces | ![calgary chamfered, 104 pieces](assembly/assembly_templates_vault_13_calgary_dual_shell_calgary_chamfered.gif) calgary chamfered, 104 pieces |
 
