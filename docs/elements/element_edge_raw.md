@@ -56,7 +56,7 @@ A bifurcated spruce fork (`raw_fork_1`) trimmed flat across its butt, upper stem
 
 ## Conical cross-lap joints
 
-Eccentric crossing roundwood trunks joined by conical cross-lap tiles (`cross_half_lap` and `cross_sliced_half_lap` via `JointBeamElement::from_contact`) at an axis offset $\Delta z = 56\text{ mm}$ on $D = 128\text{ mm}$ logs, keeping over two-thirds of each timber section intact while stretching the conical pocket mouth clear of the bark: a six-cut extended conical cross-lap locked by a central cylindrical wooden pin (left), and a nine-cut sliced conical cross-lap at $60^\circ$ locked by two diagonal wooden pins (right).
+Eccentric crossing roundwood trunks joined by conical cross-lap tiles (`cross_half_lap` and `cross_sliced_half_lap` via `JointBeamElement::from_contact`) at an axis offset dz = 56 mm on D = 128 mm logs, keeping over two-thirds of each timber section intact while stretching the conical pocket mouth clear of the bark: a six-cut extended conical cross-lap locked by a central cylindrical wooden pin (left), and a nine-cut sliced conical cross-lap at 60° locked by two diagonal wooden pins (right).
 
 | assembly | apart | still |
 |---|---|---|
@@ -96,7 +96,7 @@ The seven-member Rossiniere triangular space truss reconstructed from three 3D-s
 
 ## Reciprocal conical nexorade
 
-A six-log raw-wood reciprocal nexorade where four transverse spruce logs weave alternately over and under two tip-to-butt longitudinal trunks around three cyclic windows. All eight eccentric crossings ($\Delta z = \pm 54\text{ mm}$, pocket depth $< \frac{1}{3} D$) use six-cut conical cross-lap joints whose sloped cheeks allow each woven rung to rotate $30^\circ$ into seat about its midpoint before locking with cylindrical wooden pins.
+A six-log raw-wood reciprocal nexorade where four transverse spruce logs weave alternately over and under two tip-to-butt longitudinal trunks around three cyclic windows. All eight eccentric crossings (dz = ±54 mm, pocket depth under D / 3) use six-cut conical cross-lap joints whose sloped cheeks allow each woven rung to rotate 30° into seat about its midpoint before locking with cylindrical wooden pins.
 
 | assembly | apart | still |
 |---|---|---|
@@ -116,7 +116,7 @@ Four bifurcated spruce Y-columns (`raw_fork_0` and `raw_fork_2`) turned inward a
 
 ## Typical Dimensions
 
-Diameters $D$, tapers and fork angles of debarked roundwood logs and structural tree forks; bark, sweep and knot swell add 15 to 40 mm radially over the fitted proxy cylinder.
+Diameters D, tapers and fork angles of debarked roundwood logs and structural tree forks; bark, sweep and knot swell add 15 to 40 mm radially over the fitted proxy cylinder.
 
 | Member | Species | Diameter D mm | Length m | Taper / fork angle |
 | --- | --- | --- | --- | --- |
@@ -129,9 +129,9 @@ Diameters $D$, tapers and fork angles of debarked roundwood logs and structural 
 
 | Joint family | Eccentricity / cut depth | Raw-bark allowance | Fasteners |
 | --- | --- | --- | --- |
-| Conical cross-lap (`cross_half_lap`, `cross_sliced_half_lap`) | Axis offset $\Delta z \approx 0.44\text{–}0.50\,D$, pocket depth $< \frac{1}{3}\,D$ ($> \frac{2}{3}$ section preserved) | Conical pocket mouth stretched past local bark overhang | 16 to 20 mm central or crossed diagonal hardwood pins |
-| Four-sided shouldered fork tenon (`fully_shouldered_blind_mortise_tenon`) | Mortise depth $0.40\text{–}0.50\,D$, tenon thickness $\frac{1}{3}\,D$ | Flat carrier shoulder seat shaved within landing footprint (`raw_overshoot`) | Optional cross-peg or self-locking truss triangulation |
-| Plain half-lap scarf splice (`half_lap_splice`) | Lap length $1.8\text{–}2.5\,D$, mid-depth plane | Radial `raw_overshoot` + axial `raw_end_extension` | Pair of 16 to 20 mm cylindrical wooden pins |
-| Flared butterfly key slab (`dovetail_butterfly_key`) | Key depth $0.20\text{–}0.25\,D$, staggered across seams | Flattened top datum and milled longitudinal contact seams | Inlaid hardwood butterfly keys + transverse dowels |
+| Conical cross-lap (`cross_half_lap`, `cross_sliced_half_lap`) | Axis offset dz = 0.44 to 0.50 D, pocket depth under D / 3 (over 2 D / 3 section preserved) | Conical pocket mouth stretched past local bark overhang | 16 to 20 mm central or crossed diagonal hardwood pins |
+| Four-sided shouldered fork tenon (`fully_shouldered_blind_mortise_tenon`) | Mortise depth 0.40 to 0.50 D, tenon thickness D / 3 | Flat carrier shoulder seat shaved within landing footprint (`raw_overshoot`) | Optional cross-peg or self-locking truss triangulation |
+| Plain half-lap scarf splice (`half_lap_splice`) | Lap length 1.8 to 2.5 D, mid-depth plane | Radial `raw_overshoot` + axial `raw_end_extension` | Pair of 16 to 20 mm cylindrical wooden pins |
+| Flared butterfly key slab (`dovetail_butterfly_key`) | Key depth 0.20 to 0.25 D, staggered across seams | Flattened top datum and milled longitudinal contact seams | Inlaid hardwood butterfly keys + transverse dowels |
 
 Sources: [Vestartas (2021)](https://raw.githubusercontent.com/petrasvestartas/storage/refs/heads/main/images/papers/2021_phd_thesis.pdf), chapters 5.3, 5.5, 9.4 and appendices A.3–A.4 (Rossiniere spruce fork truss and reciprocal conical cross-lap prototype); Mollica & Self (2016), *Advances in Architectural Geometry* (Hooke Park Wood Chip Barn); Bukauskas et al. (2019), *Form-Fitting Strategies for Diversity-Tolerant Design*.
