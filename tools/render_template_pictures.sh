@@ -193,9 +193,17 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
     "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --view front --aspect 1.5 --name stammhaus_elevation templates_grid_4_developed_facade stammhaus_headquarters
     "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --wheel 8,0.26,0.58 --aspect 1.5 --name stammhaus_detail templates_grid_4_developed_facade stammhaus_headquarters
     "${RENDER[@]}" --scene "$GRID_SCENES/multistorey.pb" --aspect 1.5 templates_grid_5_multistorey five_bay shifted_floors tapered_tower twisted_tower setback_tower cylindrical_rotunda oblique_flatiron core_and_facade
-    "${RENDER[@]}" --scene "$GRID_SCENES/beam_grids.pb" --aspect 1.5 templates_grid_6_beam_grids built_up_profiles belly_spans haunched_cantilever gerber_hall diagonal_grillage concentric_lantern ramified_floor
-    "${RENDER[@]}" --scene "$GRID_SCENES/frames_slabs.pb" --opacity 0.52 --aspect 1.5 templates_grid_7_frames_and_slabs mushroom_drop_slab ribbed_cantilever_slab waffle_coffered_slab
-    "${RENDER[@]}" --scene "$GRID_SCENES/frames_slabs.pb" --aspect 1.5 templates_grid_7_frames_and_slabs umbrella_canopies tapered_portal_hall shear_vierendeel concentric_vierendeel mega_transfer_tower
+    "${RENDER[@]}" --scene "$GRID_SCENES/beam_grids.pb" --aspect 1.5 templates_grid_6_beam_grids built_up_profiles belly_spans haunched_cantilever gerber_hall zigzag_floor diagonal_grillage concentric_lantern ramified_floor
+    "${RENDER[@]}" --scene "$GRID_SCENES/slabs.pb" --opacity 0.52 --aspect 1.5 templates_grid_7_slabs one_way_girder_slab three_sided_slab ribbed_cantilever_slab t_beam_slab mushroom_drop_slab waffle_coffered_slab diagonal_waffle_slab
+    "${RENDER[@]}" --scene "$GRID_SCENES/slabs.pb" --aspect 1.5 templates_grid_7_slabs umbrella_canopies
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = frame ]; then
+    FRAME_SCENES="$(mktemp -d)"
+    "${RENDER[@]}" --scene "$FRAME_SCENES/portal.pb" --aspect 1.5 templates_frame_1_portal_frames two_hinged_portal three_hinged_gable cantilever_t_frame doubled_column_cantilever
+    "${RENDER[@]}" --scene "$FRAME_SCENES/tiered.pb" --aspect 1.5 templates_frame_2_tiered_frames coupled_two_hinged coupled_three_hinged tiered_clerestory_hall tiered_outward_hall
+    "${RENDER[@]}" --scene "$FRAME_SCENES/vierendeel.pb" --aspect 1.5 templates_frame_3_vierendeel_frames column_gradated_vierendeel bay_gradated_vierendeel concentric_vierendeel_grid crosswise_stacked_vierendeel
+    "${RENDER[@]}" --scene "$FRAME_SCENES/boxes.pb" --aspect 1.5 templates_frame_4_box_frames open_box_frames closed_pilotis_box cantilevered_multi_box crosswise_stacked_boxes
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then

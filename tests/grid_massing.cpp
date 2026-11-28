@@ -443,23 +443,59 @@ int main() {
         )
     );
 
-    // 10. Engel section-active beam, grillage, portal frame, Vierendeel, and slab systems.
+    // 10. Engel section-active beam, grillage, and slab systems (`0.000 mm3` overlap + symmetry invariants).
     verify_grid("built_up_profiles", Grid(Plan::double_bay(), Framing::built_up_profiles()));
     verify_grid("belly_spans", Grid(Plan::five_span_beams(), Framing::belly_beams()));
     verify_grid("haunched_cantilever", Grid(Plan::cantilever_hall(), Framing::haunched_cantilever()));
     verify_grid("gerber_hall", Grid(Plan::gerber_hall(), Framing::gerber_hall()));
-    verify_grid("diagonal_grillage", Grid(Plan::diagonal_floor(), Framing::diagonal_floor()));
-    verify_grid("concentric_lantern", Grid(Plan::concentric_floor(), Framing::concentric_floor()));
+    verify_grid("zigzag_floor", Grid(Plan::zigzag_floor(), Framing::zigzag_floor()));
+
+    const Plan diag_plan = Plan::diagonal_floor();
+    int stand_x0 = 0;
+    int stand_x1 = 0;
+    int stand_y0 = 0;
+    int stand_y1 = 0;
+    for (size_t i = 0; i < diag_plan.nodes.size(); ++i) {
+        if (!diag_plan.standing[i])
+            continue;
+        if (diag_plan.nodes[i][0] < 20.0)
+            ++stand_x0;
+        if (diag_plan.nodes[i][0] > 15980.0)
+            ++stand_x1;
+        if (diag_plan.nodes[i][1] < 20.0)
+            ++stand_y0;
+        if (diag_plan.nodes[i][1] > 15980.0)
+            ++stand_y1;
+    }
+    check(
+        stand_x0 == 4 && stand_x1 == 4 && stand_y0 == 4 && stand_y1 == 4,
+        fmt::format(
+            "diagonal_floor: expected 4 symmetric K-node columns on all 4 edges, got {},{},{},{}",
+            stand_x0,
+            stand_x1,
+            stand_y0,
+            stand_y1
+        )
+    );
+    verify_grid("diagonal_grillage", Grid(diag_plan, Framing::diagonal_floor()));
+
+    const Plan conc_plan = Plan::concentric_floor();
+    int conc_cols = 0;
+    for (bool st : conc_plan.standing)
+        if (st)
+            ++conc_cols;
+    check(conc_cols == 8, fmt::format("concentric_floor: expected 8 symmetric fin columns, got {}", conc_cols));
+    verify_grid("concentric_lantern", Grid(conc_plan, Framing::concentric_floor()));
+
     verify_grid("ramified_floor", Grid(Plan::ramified_floor(), Framing::ramified_floor()));
+    verify_grid("one_way_girder_slab", Grid(Plan::one_way_girder_floor(), Framing::one_way_girder_slab()));
+    verify_grid("three_sided_slab", Grid(Plan::three_sided_floor(), Framing::three_sided_slab()));
+    verify_grid("t_beam_slab", Grid(Plan::t_beam_floor(), Framing::t_beam_slab()));
     verify_grid("mushroom_drop_slab", Grid(Plan::mushroom_floor(), Framing::mushroom_drop_slab()));
     verify_grid("ribbed_cantilever_slab", Grid(Plan::ribbed_floor(), Framing::ribbed_cantilever_slab()));
     verify_grid("waffle_coffered_slab", Grid(Plan::waffle_floor(), Framing::waffle_coffered_slab()));
-    verify_grid("shear_vierendeel", Grid(Plan::shear_vierendeel(), Framing::shear_vierendeel()));
-    verify_grid("shear_vierendeel_bridge", Grid(Stack::shear_vierendeel()));
+    verify_grid("diagonal_waffle_slab", Grid(Plan::diagonal_waffle_floor(), Framing::diagonal_waffle_slab()));
     verify_grid("umbrella_canopies", Grid(Stack::umbrella_canopies()));
-    verify_grid("tapered_portal_hall", Grid(Stack::tapered_portal_hall()));
-    verify_grid("concentric_vierendeel", Grid(Stack::concentric_vierendeel()));
-    verify_grid("mega_transfer_tower", Grid(Stack::mega_transfer_tower()));
 
     std::cout << "grid checks passed" << std::endl;
     return 0;

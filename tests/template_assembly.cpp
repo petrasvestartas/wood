@@ -10,6 +10,7 @@
 #include "src/templates/developable_folding/space_curve_fold.h"
 #include "src/templates/folding/counter_fold.h"
 #include "src/templates/folding/folded_frame.h"
+#include "src/templates/frame/frame.h"
 #include "src/templates/grid/grid.h"
 #include "src/templates/module/cassette_shell.h"
 #include "src/templates/plaited/plaited.h"
@@ -228,17 +229,33 @@ int main() {
     for (const wood_developable_folding::FoldMeasures& preset : {wood_developable_folding::SpaceCurveFold(wave).measures(), wood_developable_folding::CurvedMiura(wavy).measures(), wood_developable_folding::CurvedMiura(wood_developable_folding::CurvedMiuraGuide::zigzag_miura()).measures()})
         check(preset.planarity < 1e-9 && preset.kawasaki < 1e-9 && preset.crossings == 0, "space curve presets: planar, flat-foldable, no quads crossing");
 
-    // section-active grid systems: haunched cantilevers, concentric grillage, mushroom & waffle drop-panel slabs, and tapered hinged portal frames
+    // section-active grid systems: haunched cantilevers, Gerber step-hinges, concentric grillage, mushroom & waffle drop-panel slabs, and umbrella slabs
     const wood_grid::Grid haunched_grid(wood_grid::Plan::cantilever_hall(), wood_grid::Framing::haunched_cantilever(), "haunched_cantilever");
     check_template(haunched_grid, haunched_grid.elements().size());
+    const wood_grid::Grid gerber_grid(wood_grid::Plan::gerber_hall(), wood_grid::Framing::gerber_hall(), "gerber_hall");
+    check_template(gerber_grid, gerber_grid.elements().size());
     const wood_grid::Grid concentric_grid(wood_grid::Plan::concentric_floor(), wood_grid::Framing::concentric_floor(), "concentric_lantern");
     check_template(concentric_grid, concentric_grid.elements().size());
     const wood_grid::Grid mushroom_grid(wood_grid::Plan::mushroom_floor(), wood_grid::Framing::mushroom_drop_slab(), "mushroom_drop_slab");
     check_template(mushroom_grid, mushroom_grid.elements().size());
     const wood_grid::Grid waffle_grid(wood_grid::Plan::waffle_floor(), wood_grid::Framing::waffle_coffered_slab(), "waffle_coffered_slab");
     check_template(waffle_grid, waffle_grid.elements().size());
+    const wood_grid::Grid diag_waffle_grid(wood_grid::Plan::diagonal_waffle_floor(), wood_grid::Framing::diagonal_waffle_slab(), "diagonal_waffle_slab");
+    check_template(diag_waffle_grid, diag_waffle_grid.elements().size());
     const wood_grid::Grid umbrella_grid(wood_grid::Stack::umbrella_canopies(), "umbrella_canopies");
     check_template(umbrella_grid, umbrella_grid.elements().size());
+
+    // section-active frame systems: gable 3-hinged portal, articulated T-frame, tiered clerestory, concentric Vierendeel, and crosswise box frames
+    const wood_frame::Frame gable_frame(wood_frame::FrameGuide(wood_frame::ThreeHingedGable{}), "three_hinged_gable");
+    check_template(gable_frame, gable_frame.elements().size());
+    const wood_frame::Frame t_frame(wood_frame::FrameGuide(wood_frame::ArticulatedTFrame{}), "cantilever_t_frame");
+    check_template(t_frame, t_frame.elements().size());
+    const wood_frame::Frame tiered_frame(wood_frame::FrameGuide(wood_frame::TieredClerestoryHall{}), "tiered_clerestory_hall");
+    check_template(tiered_frame, tiered_frame.elements().size());
+    const wood_frame::Frame vierendeel_frame(wood_frame::FrameGuide(wood_frame::ConcentricVierendeelGrid{}), "concentric_vierendeel_grid");
+    check_template(vierendeel_frame, vierendeel_frame.elements().size());
+    const wood_frame::Frame box_frame(wood_frame::FrameGuide(wood_frame::CrosswiseStackedBoxes{}), "crosswise_stacked_boxes");
+    check_template(box_frame, box_frame.elements().size());
 
     // NURBS periodic C2 continuity on closed cylindrical/funnel/toroidal vaults and multi-patch sewn funnels
     const NurbsSurface funnel_surf = wood_vault::funnel_vault_surface(3400.0, 920.0, 2700.0);

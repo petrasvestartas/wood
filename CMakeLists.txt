@@ -100,6 +100,8 @@ set(WOOD_SOURCES
     src/templates/grid/grid_guide.cpp
     src/templates/grid/grid_designs.cpp
     src/templates/grid/grid.cpp
+    src/templates/frame/frame_guide.cpp
+    src/templates/frame/frame.cpp
     src/templates/vault/vault.cpp
     src/templates/vault/planarity.cpp
     src/templates/vault/surface_division.cpp
@@ -346,6 +348,7 @@ ADD_EXE(joint_border                     tests/joint_border.cpp)
 ADD_EXE(joint_butt                       tests/joint_butt.cpp)
 ADD_EXE(joint_assembly                   tests/joint_assembly.cpp)
 ADD_EXE(grid_massing                     tests/grid_massing.cpp)
+ADD_EXE(frame_massing                    tests/frame_massing.cpp)
 ADD_EXE(plate_assignment                 tests/plate_assignment.cpp)
 ADD_EXE(rust_elements                    tests/rust_elements.cpp)
 target_compile_definitions(rust_elements PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
@@ -376,6 +379,7 @@ set(WOOD_TEST_TARGETS
     joint_butt
     joint_assembly
     grid_massing
+    frame_massing
     plate_assignment
     rust_elements
     element_tags
@@ -478,7 +482,11 @@ ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp
 ADD_EXE(templates_grid_4_developed_facade  examples/templates_grid_4_developed_facade.cpp)
 ADD_EXE(templates_grid_5_multistorey       examples/templates_grid_5_multistorey.cpp)
 ADD_EXE(templates_grid_6_beam_grids        examples/templates_grid_6_beam_grids.cpp)
-ADD_EXE(templates_grid_7_frames_and_slabs  examples/templates_grid_7_frames_and_slabs.cpp)
+ADD_EXE(templates_grid_7_slabs             examples/templates_grid_7_slabs.cpp)
+ADD_EXE(templates_frame_1_portal_frames    examples/templates_frame_1_portal_frames.cpp)
+ADD_EXE(templates_frame_2_tiered_frames    examples/templates_frame_2_tiered_frames.cpp)
+ADD_EXE(templates_frame_3_vierendeel_frames examples/templates_frame_3_vierendeel_frames.cpp)
+ADD_EXE(templates_frame_4_box_frames       examples/templates_frame_4_box_frames.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_truss_5_carpentry_assembly examples/templates_truss_5_carpentry_assembly.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)

@@ -169,10 +169,28 @@ const std::vector<Polyline>& secondary_beam_profile(const Profiles& p) {
     return p.beam.empty() ? p.girder : p.beam;
 }
 
-EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
+EdgeSpec classify_edge(const Plan& plan, const PlanEdge& edge, const Framing& framing) {
     EdgeSpec spec;
     if (edge.core || framing.system == 0)
         return spec;
+
+    // Suppress unsupported perimeter fascia edges when `open_perimeter` is enabled (Engel p207-03..08 cantilevered slabs & ribs).
+    if (framing.open_perimeter && framing.system != 4) {
+        if (edge.family < 0)
+            return spec;
+        if (edge.boundary) {
+            const int primary_fam = std::max(0, framing.span);
+            const bool stand_a = edge.a < plan.standing.size() && plan.standing[edge.a] && framing.height > TOL;
+            const bool stand_b = edge.b < plan.standing.size() && plan.standing[edge.b] && framing.height > TOL;
+            if (framing.system == 3) {
+                if (edge.family == primary_fam && !(stand_a && stand_b))
+                    return spec;
+            } else {
+                if (!(stand_a && stand_b))
+                    return spec;
+            }
+        }
+    }
 
     if (framing.system == 4) {
         if (edge.boundary) {
@@ -199,14 +217,20 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
 
     if (framing.system == 1) {
         if (framing.span == -2) {
-            if (edge.family <= 0) {
+            if (edge.family == 0) {
                 spec.role = Role::Girder;
                 spec.profile = framing.profiles.girder;
-                spec.tier = (edge.boundary && edge.family < 0) ? 7 : 6;
+                spec.tier = 6;
             } else if (edge.family == 1) {
                 spec.role = Role::Beam;
                 spec.profile = secondary_beam_profile(framing.profiles);
                 spec.tier = 5;
+            } else if (edge.family < 0) {
+                spec.role = Role::Purlin;
+                spec.profile = framing.profiles.purlin.empty()
+                                   ? secondary_beam_profile(framing.profiles)
+                                   : framing.profiles.purlin;
+                spec.tier = 7;
             } else {
                 spec.role = Role::Purlin;
                 spec.profile = framing.profiles.purlin.empty()
@@ -240,6 +264,18 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
     const bool stacked = (framing.system == 3);
     const int primary_fam = std::max(0, framing.span);
     const auto [gw, gd] = wood_session::compute_size(framing.profiles.girder);
+    if (framing.profiles.purlin.empty()) {
+        if (edge.family == primary_fam) {
+            spec.role = Role::Girder;
+            spec.profile = framing.profiles.girder;
+            spec.width = gw;
+            spec.depth = gd;
+            spec.w_top = 0.0;
+            spec.w_bot = -gd;
+            spec.tier = 3;
+        }
+        return spec;
+    }
     const auto [pw, pd] = wood_session::compute_size(framing.profiles.purlin);
 
     if (edge.family == primary_fam) {
@@ -371,29 +407,18 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
         if (area_2d(cf.raw_uv) < 0.0)
             std::reverse(cf.raw_uv.begin(), cf.raw_uv.end());
 
-        // Seat elevation under highest-priority supported member at v.
+        // Seat elevation under lowest supported member at v so columns never poke into deeper girders.
         if (framing.system == 0) {
             cf.seat_w = framing.deck_flush ? -framing.deck : 0.0;
         } else {
             double lowest = 0.0;
-            int best_tier = -1;
             for (size_t ei : adj[v]) {
                 const EdgeSpec& es = edge_specs[ei];
                 if (es.role == Role::None)
                     continue;
                 const double w_bot_here =
                     es.w_bot - (es.role == Role::Girder && framing.haunch > TOL ? framing.haunch : 0.0);
-                if (framing.system == 3 && es.role == Role::Girder) {
-                    lowest = std::min(lowest, w_bot_here);
-                    best_tier = 100;
-                } else if (best_tier < 100) {
-                    if (es.tier > best_tier) {
-                        best_tier = es.tier;
-                        lowest = w_bot_here;
-                    } else if (es.tier == best_tier) {
-                        lowest = std::min(lowest, w_bot_here);
-                    }
-                }
+                lowest = std::min(lowest, w_bot_here);
             }
             cf.seat_w = lowest;
         }
@@ -417,15 +442,26 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
             inner_bnd_halfplanes_uv.emplace_back(plan.nodes[v] + n_in * half_w, n_in);
         }
 
-        // Solid shear drop-panel (`system 0` mushroom slab or `system 4` waffle slab).
+        // Solid shear drop-panel (`system 0` mushroom slab or `system 4` waffle slab, aligned with rib axes!).
         if (framing.drop_width > TOL && (framing.system == 0 || framing.system == 4)) {
             const double hd = 0.5 * framing.drop_width;
             const Point& nv = plan.nodes[v];
+            Vector drop_x(1.0, 0.0, 0.0);
+            if (framing.system == 4) {
+                for (size_t ei : adj[v]) {
+                    if (!plan.edges[ei].boundary && edge_specs[ei].role == Role::Purlin) {
+                        const size_t ov = (plan.edges[ei].a == v) ? plan.edges[ei].b : plan.edges[ei].a;
+                        drop_x = (plan.nodes[ov] - nv).normalized();
+                        break;
+                    }
+                }
+            }
+            const Vector drop_y = left_2d(drop_x);
             std::vector<Point> dpoly = {
-                Point(nv[0] - hd, nv[1] - hd, 0.0),
-                Point(nv[0] + hd, nv[1] - hd, 0.0),
-                Point(nv[0] + hd, nv[1] + hd, 0.0),
-                Point(nv[0] - hd, nv[1] + hd, 0.0),
+                nv - drop_x * hd - drop_y * hd,
+                nv + drop_x * hd - drop_y * hd,
+                nv + drop_x * hd + drop_y * hd,
+                nv - drop_x * hd + drop_y * hd,
             };
             const std::vector<std::pair<Point, Vector>>& clip_planes =
                 framing.system == 4 ? inner_bnd_halfplanes_uv : bnd_halfplanes_uv;
@@ -1092,7 +1128,8 @@ std::shared_ptr<wood_session::EdgeVariableElement> make_variable_girder(
     const double head_ext =
         (framing.node == 2 && framing.system != 0 && framing.system != 4) ? framing.reach : 0.0;
     const double col_flat = 0.5 * std::max(es.width, col_w) + head_ext + 15.0;
-    const double tip_flat = 0.5 * std::max(es.width, sec_sz.first) + 15.0;
+    const double tip_flat =
+        std::max(0.5 * std::max(es.width, sec_sz.first) + 15.0, 0.5 * framing.gerber_lap + 35.0);
     const double d_tip = std::min(es.depth, std::max(sec_sz.second, 0.56 * es.depth));
 
     const std::function<double(double)> depth_at = [&](double u) -> double {
@@ -1185,6 +1222,109 @@ std::shared_ptr<wood_session::EdgeVariableElement> make_variable_girder(
         std::make_shared<wood_session::EdgeVariableElement>(axis, sections, name);
     beam->cuts = cuts;
     return beam;
+}
+
+/// Returns +1 for an anchor cantilever girder at a Gerber hinge node, -1 for the suspended drop-in girder, or 0 otherwise.
+int classify_gerber_hinge(
+    const Plan& plan,
+    const Framing& framing,
+    const std::vector<EdgeSpec>& specs,
+    const std::vector<std::vector<size_t>>& node_adj,
+    size_t nv,
+    size_t ei
+) {
+    if (framing.gerber_lap <= TOL || specs[ei].role != Role::Girder || specs[ei].profile.size() != 1)
+        return 0;
+    if (nv < plan.standing.size() && plan.standing[nv] && framing.height > TOL)
+        return 0;
+
+    std::vector<size_t> girders;
+    for (size_t adj_ei : node_adj[nv]) {
+        if (specs[adj_ei].role == Role::Girder)
+            girders.push_back(adj_ei);
+        else if (specs[adj_ei].role != Role::None && layers_overlap(specs[ei], specs[adj_ei]))
+            return 0;
+    }
+    if (girders.size() != 2)
+        return 0;
+
+    const size_t other_ei = (girders[0] == ei) ? girders[1] : girders[0];
+    const size_t far_self = (plan.edges[ei].a == nv) ? plan.edges[ei].b : plan.edges[ei].a;
+    const size_t far_other = (plan.edges[other_ei].a == nv) ? plan.edges[other_ei].b : plan.edges[other_ei].a;
+    const Vector d_self = (plan.nodes[far_self] - plan.nodes[nv]).normalized();
+    const Vector d_other = (plan.nodes[far_other] - plan.nodes[nv]).normalized();
+    if (d_self.dot(d_other) > -0.995)
+        return 0;
+
+    const bool self_anchored = far_self < plan.standing.size() && plan.standing[far_self] && framing.height > TOL;
+    const bool other_anchored = far_other < plan.standing.size() && plan.standing[far_other] && framing.height > TOL;
+    if (self_anchored && !other_anchored)
+        return 1;
+    if (!self_anchored && other_anchored)
+        return -1;
+    return 0;
+}
+
+/// Sloped complementary half-lap cutter (`Gerbergelenk`) so the drop-in span lifts straight up (+Z) with zero binding.
+wood_session::InteractionFeatureSolid make_gerber_lap_cutter(
+    const Plan& plan,
+    const Framing& framing,
+    const EdgeSpec& es,
+    const Point& hinge_uv,
+    const Vector& into_drop_uv,
+    int hinge_role
+) {
+    const std::pair<double, double> sec_sz =
+        wood_session::compute_size(secondary_beam_profile(framing.profiles));
+    const double d_tip = std::min(es.depth, std::max(sec_sz.second, 0.56 * es.depth));
+    const double hl = 0.5 * framing.gerber_lap;
+    const double splay = std::min(22.0, 0.25 * hl);
+    const double pad = 25.0;
+    const Vector side_uv = left_2d(into_drop_uv);
+    const double hw = 0.5 * es.width + pad;
+    const double w_top = es.w_top;
+    const double w_mid = es.w_top - 0.5 * d_tip;
+    const double w_bot = es.w_top - d_tip;
+
+    // Sloped saddle profile in (u, w): top shoulder at `-hl`, mid step from `-hl + splay` to `+hl - splay`, bottom shoulder at `+hl`.
+    Polyline bot_loop;
+    Polyline top_loop;
+    if (hinge_role > 0) {
+        // Anchor cantilever keeps LOWER corbel nib -> subtract UPPER trapezoid `[-hl, +hl + pad]` above `w_mid`.
+        const Point b0 = hinge_uv + into_drop_uv * (-hl + splay);
+        const Point b1 = hinge_uv + into_drop_uv * (hl + pad);
+        const Point t0 = hinge_uv + into_drop_uv * (-hl) - into_drop_uv * (splay * pad / (0.5 * d_tip));
+        const Point t1 = hinge_uv + into_drop_uv * (hl + pad);
+        bot_loop = lift_polyline(
+            plan,
+            close_ring({b0 - side_uv * hw, b1 - side_uv * hw, b1 + side_uv * hw, b0 + side_uv * hw}),
+            w_mid
+        );
+        top_loop = lift_polyline(
+            plan,
+            close_ring({t0 - side_uv * hw, t1 - side_uv * hw, t1 + side_uv * hw, t0 + side_uv * hw}),
+            w_top + pad
+        );
+    } else {
+        // Drop-in beam keeps UPPER dapped nib -> subtract LOWER trapezoid `[-hl - pad, +hl]` below `w_mid`.
+        const Point b0 = hinge_uv - into_drop_uv * (hl + pad);
+        const Point b1 = hinge_uv + into_drop_uv * hl + into_drop_uv * (splay * pad / (0.5 * d_tip));
+        const Point t0 = hinge_uv - into_drop_uv * (hl + pad);
+        const Point t1 = hinge_uv + into_drop_uv * (hl - splay);
+        bot_loop = lift_polyline(
+            plan,
+            close_ring({b0 - side_uv * hw, b1 - side_uv * hw, b1 + side_uv * hw, b0 + side_uv * hw}),
+            w_bot - pad
+        );
+        top_loop = lift_polyline(
+            plan,
+            close_ring({t0 - side_uv * hw, t1 - side_uv * hw, t1 + side_uv * hw, t0 + side_uv * hw}),
+            w_mid
+        );
+    }
+    return wood_session::InteractionFeatureSolid(
+        Mesh::loft({bot_loop}, {top_loop}), wood_session::SolidOperation::subtract
+    );
 }
 
 /// Core wall ring expanded by `wall / 2` in (u, v) for trimming beams reaching a shear core.
@@ -1830,7 +1970,7 @@ std::vector<std::shared_ptr<Element>> build_decks(
                 } else if (pe.boundary) {
                     if (es.role != Role::None)
                         off = 0.5 * es.width;
-                    else if (!framing.profiles.column.empty())
+                    else if (!framing.open_perimeter && !framing.profiles.column.empty())
                         off = 0.5 * wood_session::compute_size(framing.profiles.column).first;
                 }
             }
@@ -1994,7 +2134,7 @@ void populate_plan_unit(
     // 2. Classify edges & standing column footprints.
     std::vector<EdgeSpec> edge_specs(plan.edges.size());
     for (size_t ei = 0; ei < plan.edges.size(); ++ei)
-        edge_specs[ei] = classify_edge(plan.edges[ei], framing);
+        edge_specs[ei] = classify_edge(plan, plan.edges[ei], framing);
 
     const std::map<size_t, ColumnFootprint> columns =
         compute_column_footprints(plan, framing, edge_specs);
@@ -2071,6 +2211,50 @@ void populate_plan_unit(
         EndTrim trim_a = compute_node_trim(plan, framing, edge_specs, columns, node_adj, e.a, ei);
         EndTrim trim_b = compute_node_trim(plan, framing, edge_specs, columns, node_adj, e.b, ei);
 
+        const int gerber_a = classify_gerber_hinge(plan, framing, edge_specs, node_adj, e.a, ei);
+        const int gerber_b = classify_gerber_hinge(plan, framing, edge_specs, node_adj, e.b, ei);
+        auto apply_gerber_end_trim = [&](EndTrim& trim, const Point& hinge_uv, const Vector& into_self, int role) {
+            const std::pair<double, double> sec_sz =
+                wood_session::compute_size(secondary_beam_profile(framing.profiles));
+            const double d_tip = std::min(es.depth, std::max(sec_sz.second, 0.56 * es.depth));
+            const double h_half = 0.5 * d_tip;
+            const double hl = 0.5 * framing.gerber_lap;
+            const double splay = std::min(22.0, 0.25 * hl);
+            const Vector into_drop = (role > 0) ? -into_self : into_self;
+            trim.overrun = hl + 5.0;
+            if (role > 0) {
+                // Anchor lower nib ends on sloped plane through `(hl - splay, w_mid)` and `(hl, w_bot)`.
+                const Point p_mid_w = plan.to_world(
+                    hinge_uv[0] + into_drop[0] * (hl - splay),
+                    hinge_uv[1] + into_drop[1] * (hl - splay),
+                    es.w_top - h_half
+                );
+                const Vector n_uv_w = (-into_drop * h_half - Vector(0.0, 0.0, splay)).normalized();
+                const Vector keep_w =
+                    (plan.frame.x_axis() * n_uv_w[0] + plan.frame.y_axis() * n_uv_w[1] +
+                     plan.frame.z_axis() * n_uv_w[2])
+                        .normalized();
+                trim.planes = {Plane::from_point_normal(p_mid_w, keep_w)};
+            } else {
+                // Drop-in upper nib ends on parallel sloped plane through `(-hl, w_top)` and `(-hl + splay, w_mid)`.
+                const Point p_mid_w = plan.to_world(
+                    hinge_uv[0] + into_drop[0] * (-hl + splay),
+                    hinge_uv[1] + into_drop[1] * (-hl + splay),
+                    es.w_top - h_half
+                );
+                const Vector n_uv_w = (into_drop * h_half + Vector(0.0, 0.0, splay)).normalized();
+                const Vector keep_w =
+                    (plan.frame.x_axis() * n_uv_w[0] + plan.frame.y_axis() * n_uv_w[1] +
+                     plan.frame.z_axis() * n_uv_w[2])
+                        .normalized();
+                trim.planes = {Plane::from_point_normal(p_mid_w, keep_w)};
+            }
+        };
+        if (gerber_a != 0)
+            apply_gerber_end_trim(trim_a, plan.nodes[e.a], dir, gerber_a);
+        if (gerber_b != 0)
+            apply_gerber_end_trim(trim_b, plan.nodes[e.b], -dir, gerber_b);
+
         // In `StackedPurlin` mode, extend terminal upper-layer purlins across the full top width of girders!
         if (framing.system == 3 && es.role == Role::Purlin &&
             framing.node != 1) {
@@ -2106,7 +2290,8 @@ void populate_plan_unit(
         const std::vector<Polyline>& blockers_here =
             (framing.system == 4 && !e.boundary) ? rib_blockers : outer_cores;
         const bool use_var_girder =
-            es.role == Role::Girder && (framing.haunch > TOL || framing.belly > TOL) &&
+            es.role == Role::Girder &&
+            (framing.haunch > TOL || framing.belly > TOL || gerber_a != 0 || gerber_b != 0) &&
             es.profile.size() == 1;
 
         for (const auto& [sub_line, core_cuts] :
@@ -2119,9 +2304,24 @@ void populate_plan_unit(
 
             std::shared_ptr<Element> elem;
             if (use_var_girder) {
-                elem = make_variable_girder(
+                std::shared_ptr<wood_session::EdgeVariableElement> var_elem = make_variable_girder(
                     plan, framing, e, es, sub_line.start(), sub_line.end(), cuts, elem_name
                 );
+                if (var_elem) {
+                    if (gerber_a != 0 && sub_line.start().distance(ext_a) < TOL * 2.0) {
+                        const Vector into_drop = (gerber_a > 0) ? -dir : dir;
+                        var_elem->solid_features.push_back(
+                            make_gerber_lap_cutter(plan, framing, es, plan.nodes[e.a], into_drop, gerber_a)
+                        );
+                    }
+                    if (gerber_b != 0 && sub_line.end().distance(ext_b) < TOL * 2.0) {
+                        const Vector into_drop = (gerber_b > 0) ? dir : -dir;
+                        var_elem->solid_features.push_back(
+                            make_gerber_lap_cutter(plan, framing, es, plan.nodes[e.b], into_drop, gerber_b)
+                        );
+                    }
+                }
+                elem = var_elem;
             } else {
                 elem = make_plane_member(
                     plan, sub_line.start(), sub_line.end(), w_mid, es.profile, cuts, elem_name
@@ -2270,7 +2470,7 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
             if (above.framing.node == 1 && above.framing.height > TOL) {
                 std::vector<EdgeSpec> above_specs(above.plan.edges.size());
                 for (size_t ei = 0; ei < above.plan.edges.size(); ++ei)
-                    above_specs[ei] = classify_edge(above.plan.edges[ei], above.framing);
+                    above_specs[ei] = classify_edge(above.plan, above.plan.edges[ei], above.framing);
                 for (const auto& [av, cf] :
                      compute_column_footprints(above.plan, above.framing, above_specs)) {
                     const Point top_d =

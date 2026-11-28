@@ -30,8 +30,8 @@ Planar, facade, and multi-storey timber grid generator: the inputs in `src/templ
     <span class="wood-card-title">6 Beam &amp; Grillage Systems</span>
   </a>
   <a class="wood-card" href="#grid_example_7">
-    <img src="templates_grid_7_frames_and_slabs_waffle_coffered_slab.webp" alt="Slab, Portal and Vierendeel Systems">
-    <span class="wood-card-title">7 Slabs, Frames &amp; Vierendeel</span>
+    <img src="templates_grid_7_slabs_diagonal_waffle_slab.webp" alt="Section-Active Structural Slab Systems">
+    <span class="wood-card-title">7 Structural Slab Systems</span>
   </a>
   <a class="wood-card" href="#grid_assembly_sequence">
     <img src="assembly_templates_grid_1_bay_framing_slab_head.gif" alt="Assembly Sequence">
@@ -79,18 +79,16 @@ Following Heino Engel (*Structure Systems / Tragsysteme*, Chapter 3: *Section-Ac
 | **`NodeSupportElement`** | Parametric steel-and-pin base connector (`base_plate`, `rod`, `head_plate` as exact BRep cylinders). | **3.2 Hinged Frame Bearings**: pinned base shoes (`pinned_feet = true`) at the narrow feet of two-hinged portal frames and central-column umbrella canopies. |
 | **Planar `cuts` &amp; `compute_face_contact`** | Multi-tier angular sector miter solver (`sector_miter_ccw`), girder/drop-panel face clipping (`split_outside_cores_uv`), and face-to-face contact graph (`WoodSession::graph`). | **Continuity &amp; Load-Transmission Hierarchy**: continuous primary girders with T-butted secondary beams/purlins (`span >= 0`), gradated ring/branch hierarchies (`span = -2`), symmetric 3-/4-/6-way grillage miters (`span = -1`), and waffle ribs butted flush to solid column drop-panels. |
 
-### Mapping Engel's Four Sub-Chapters in `wood_grid`
+### Mapping Engel's Beam, Grillage and Slab Sub-Chapters in `wood_grid`
 
-1. **Beam Structures (Engel §3.1)**:
+1. **Beam Structures (Engel §3.1, pp. 177–185)**:
    - *Cross-section efficiency*: `Profiles::built_up()` pairs glulam girders with `profile_w` I-beam purlins and `profile_hss` hollow box edge beams (`Framing::built_up_profiles`).
-   - *Multi-span moment shaping*: `Framing::belly_beams()` matches the positive parabolic moment of discontinuous simple spans; `Framing::haunched_cantilever()` deepens negative-moment zones over inset columns while tapering balanced end overhangs (`0.35 L`); `Plan::gerber_hall()` + `Framing::gerber_hall()` places zero-moment hinges at tapered cantilever tips carrying a parabolic drop-in span; and `Pattern::ramified()` branches six perimeter trunks into three-way Y-forks (`Framing::ramified_floor`).
-2. **Rigid &amp; Multi-Panel Vierendeel Frames (Engel §3.2)**:
-   - *Two-hinged &amp; cantilevered portal halls*: `Stack::tapered_portal_hall` combines `NodeSupportElement` base shoes, 3-station tapered `EdgeVariableElement` legs with vertical rigid knees, haunched main-span girders, and inward-tapering corridor cantilevers meeting at a central pin.
-   - *Vierendeel shear gradation &amp; mega-frames*: `compute_gradated_bays` narrows Vierendeel panel widths where transverse chord shear peaks (`Plan::shear_vierendeel`), `Stack::concentric_vierendeel` crosses four story-deep Vierendeel frames over a column-free `24 m` hall, and `Stack::mega_transfer_tower` alternates full-span Vierendeel transfer storeys with lighter office floors.
-3. **Beam Grids / Grillages (Engel §3.3)**:
-   - *Homogeneous, diagonal &amp; concentric grillages*: besides `orthogonal`, `skewed`, `triangular`, and `hexagonal`, `Pattern::diagonal` rotates a square grillage `45°` inside a continuous orthogonal perimeter rim so short corner triangles restrain midspan deflection (`Framing::diagonal_floor`), while `Pattern::concentric` (`span = -2`) nests four chiral rotated rings of decreasing depth on eight inset perimeter fin columns with cantilevered corners (`Framing::concentric_floor`).
-4. **Slab Structures (Engel §3.4)**:
-   - *Mushroom, ribbed, waffle &amp; umbrella slabs*: `Framing::mushroom_drop_slab` stacks flared capitals and rectangular shear drop-panels under a cantilevered two-way slab; `Framing::ribbed_cantilever_slab` cantilevers closely spaced one-way ribs over inset girders; `Framing::waffle_coffered_slab` (`system = 4`) forms a four-sided cantilevered two-way coffered rib grid whose ribs terminate flush against solid `2 x 2`-coffer drop-panels over four inset columns; and `Stack::umbrella_canopies` steps four single-column cantilevered umbrellas at alternating clerestory heights.
+   - *Multi-span moment shaping &amp; Gerber step-hinges*: `Framing::belly_beams()` matches the positive parabolic moment of five discontinuous simple spans; `Framing::haunched_cantilever()` deepens negative-moment zones over inset columns while tapering balanced end overhangs (`0.35 L`); `Plan::gerber_hall()` + `Framing::gerber_hall()` (`gerber_lap = 260 mm`) models Engel's five-span articulated **Gerber** hall where anchor cantilevers carry two parabolic drop-in spans on four sloped dapped-end half-lap hinges (`Gerbergelenke`); `Pattern::zigzag()` couples inclined beams in herringbone V-chains across both edges and a spine (`Framing::zigzag_floor`); and `Pattern::ramified()` branches six perimeter trunks at three-way Y-forks around an open central hexagonal ring (`Framing::ramified_floor`).
+2. **Beam Grids / Grillages (Engel §3.3, pp. 200–205)**:
+   - *Commensurate diagonal &amp; four-fold concentric grillages*: besides `orthogonal`, `skewed`, `triangular`, and `hexagonal`, `Pattern::diagonal` snaps integer module counts (`nu, nv`) along `u` and `v` so `+45°` and `-45°` beams meet at **single symmetric K-nodes on all four facades** with cantilevered corners (`Framing::diagonal_floor`), while `Pattern::concentric` (`span = -2`) constructs Engel's **four-fold mirror-symmetric gradated concentric beam grid** (`Abgestufter Zentralrost`) on eight perimeter fin columns, stepping down in depth from primary octagonal `45°` corner girders through alternating midspan squares and corner girders to a central `45°` diamond lantern (`Framing::concentric_floor`).
+3. **Slab Structures (Engel §3.4, pp. 206–208)**:
+   - *One-way, three-sided, T-beam, ribbed, mushroom, waffle &amp; umbrella slabs*: `Framing::one_way_girder_slab` and `Framing::three_sided_slab` (`open_perimeter = true`) cantilever continuous CLT plates over two parallel girders or a three-sided U-beam frame; `Framing::ribbed_cantilever_slab` and `Framing::t_beam_slab` (`profile_t`) expose open-ended cantilevered ribs beneath thin top decks; `Framing::mushroom_drop_slab` stacks flared capitals and square shear drop-panels under a two-way slab; `Framing::waffle_coffered_slab` and `Framing::diagonal_waffle_slab` (`system = 4`) orient solid square or `45°` diamond shear drop-panels flush with orthogonal or diagonal coffered rib grids; and `Stack::umbrella_canopies` steps four single-column cantilevered umbrellas at alternating heights.
+   - *(Rigid portal frames, tiered hinged frames, shear-gradated/concentric/stacked Vierendeel frames, and cellular slab box frames `Plattenrahmen` from Engel §§3.2 &amp; 3.4 are modeled in the dedicated @ref templates_frame template.)*
 
 ---
 
@@ -116,14 +114,14 @@ Storey by storey, in each the base supports, columns and walls, their heads and 
 | ![core and facade, 504 pieces](assembly/assembly_templates_grid_5_multistorey_core_and_facade.gif) core and facade, 504 pieces | ![cylindrical rotunda, 640 pieces](assembly/assembly_templates_grid_5_multistorey_cylindrical_rotunda.gif) cylindrical rotunda, 640 pieces | ![five bay, 84 pieces](assembly/assembly_templates_grid_5_multistorey_five_bay.gif) five bay, 84 pieces |
 | ![oblique flatiron, 424 pieces](assembly/assembly_templates_grid_5_multistorey_oblique_flatiron.gif) oblique flatiron, 424 pieces | ![setback tower, 948 pieces](assembly/assembly_templates_grid_5_multistorey_setback_tower.gif) setback tower, 948 pieces | ![shifted floors, 666 pieces](assembly/assembly_templates_grid_5_multistorey_shifted_floors.gif) shifted floors, 666 pieces |
 | ![tapered tower, 429 pieces](assembly/assembly_templates_grid_5_multistorey_tapered_tower.gif) tapered tower, 429 pieces | ![twisted tower, 406 pieces](assembly/assembly_templates_grid_5_multistorey_twisted_tower.gif) twisted tower, 406 pieces |  |
-| **Beam and grillage systems**, 347 elements, 340 moves | | |
-| ![belly spans, 38 pieces](assembly/assembly_templates_grid_6_beam_grids_belly_spans.gif) belly spans, 38 pieces | ![built up profiles, 17 pieces](assembly/assembly_templates_grid_6_beam_grids_built_up_profiles.gif) built up profiles, 17 pieces | ![concentric lantern, 32 pieces](assembly/assembly_templates_grid_6_beam_grids_concentric_lantern.gif) concentric lantern, 32 pieces |
-| ![diagonal grillage, 120 pieces](assembly/assembly_templates_grid_6_beam_grids_diagonal_grillage.gif) diagonal grillage, 120 pieces | ![gerber hall, 65 pieces](assembly/assembly_templates_grid_6_beam_grids_gerber_hall.gif) gerber hall, 65 pieces | ![haunched cantilever, 43 pieces](assembly/assembly_templates_grid_6_beam_grids_haunched_cantilever.gif) haunched cantilever, 43 pieces |
-| ![ramified floor, 32 pieces](assembly/assembly_templates_grid_6_beam_grids_ramified_floor.gif) ramified floor, 32 pieces |  |  |
-| **Slabs, portal and Vierendeel frames**, 1454 elements, 1446 moves | | |
-| ![concentric vierendeel, 252 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_concentric_vierendeel.gif) concentric vierendeel, 252 pieces | ![mega transfer tower, 422 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_mega_transfer_tower.gif) mega transfer tower, 422 pieces | ![mushroom drop slab, 51 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_mushroom_drop_slab.gif) mushroom drop slab, 51 pieces |
-| ![ribbed cantilever slab, 83 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_ribbed_cantilever_slab.gif) ribbed cantilever slab, 83 pieces | ![shear vierendeel, 88 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_shear_vierendeel.gif) shear vierendeel, 88 pieces | ![tapered portal hall, 198 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_tapered_portal_hall.gif) tapered portal hall, 198 pieces |
-| ![umbrella canopies, 76 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_umbrella_canopies.gif) umbrella canopies, 76 pieces | ![waffle coffered slab, 284 pieces](assembly/assembly_templates_grid_7_frames_and_slabs_waffle_coffered_slab.gif) waffle coffered slab, 284 pieces |  |
+| **Beam and grillage systems**, 361 elements, 353 moves | | |
+| ![belly spans, 38 pieces](assembly/assembly_templates_grid_6_beam_grids_belly_spans.gif) belly spans, 38 pieces | ![built up profiles, 17 pieces](assembly/assembly_templates_grid_6_beam_grids_built_up_profiles.gif) built up profiles, 17 pieces | ![concentric lantern, 60 pieces](assembly/assembly_templates_grid_6_beam_grids_concentric_lantern.gif) concentric lantern, 60 pieces |
+| ![diagonal grillage, 100 pieces](assembly/assembly_templates_grid_6_beam_grids_diagonal_grillage.gif) diagonal grillage, 100 pieces | ![gerber hall, 48 pieces](assembly/assembly_templates_grid_6_beam_grids_gerber_hall.gif) gerber hall, 48 pieces | ![haunched cantilever, 43 pieces](assembly/assembly_templates_grid_6_beam_grids_haunched_cantilever.gif) haunched cantilever, 43 pieces |
+| ![ramified floor, 28 pieces](assembly/assembly_templates_grid_6_beam_grids_ramified_floor.gif) ramified floor, 28 pieces | ![zigzag floor, 27 pieces](assembly/assembly_templates_grid_6_beam_grids_zigzag_floor.gif) zigzag floor, 27 pieces |  |
+| **Structural slab systems**, 998 elements, 990 moves | | |
+| ![diagonal waffle slab, 396 pieces](assembly/assembly_templates_grid_7_slabs_diagonal_waffle_slab.gif) diagonal waffle slab, 396 pieces | ![mushroom drop slab, 51 pieces](assembly/assembly_templates_grid_7_slabs_mushroom_drop_slab.gif) mushroom drop slab, 51 pieces | ![one way girder slab, 25 pieces](assembly/assembly_templates_grid_7_slabs_one_way_girder_slab.gif) one way girder slab, 25 pieces |
+| ![ribbed cantilever slab, 77 pieces](assembly/assembly_templates_grid_7_slabs_ribbed_cantilever_slab.gif) ribbed cantilever slab, 77 pieces | ![t beam slab, 68 pieces](assembly/assembly_templates_grid_7_slabs_t_beam_slab.gif) t beam slab, 68 pieces | ![three sided slab, 21 pieces](assembly/assembly_templates_grid_7_slabs_three_sided_slab.gif) three sided slab, 21 pieces |
+| ![umbrella canopies, 76 pieces](assembly/assembly_templates_grid_7_slabs_umbrella_canopies.gif) umbrella canopies, 76 pieces | ![waffle coffered slab, 284 pieces](assembly/assembly_templates_grid_7_slabs_waffle_coffered_slab.gif) waffle coffered slab, 284 pieces |  |
 
 <!-- assembly:end -->
 
@@ -318,7 +316,7 @@ Eight multi-storey timber building topologies composed via `Stack`: a two-storey
 
 ### 6 Section-Active Beam and Grillage Systems {#grid_example_6}
 
-Seven beam and grillage systems after Heino Engel (*Structure Systems*, §§3.1 &amp; 3.3): **(1)** built-up timber I-beam purlins (`profile_w`) and hollow box edge beams (`profile_hss`) on glulam girders; **(2)** five simple spans with parabolic midspan `belly` depth increase under stacked purlins; **(3)** continuous multi-span girders with support `haunch` deepening over inset columns and tapered balanced cantilevers; **(4)** an articulated **Gerber** hall whose paired-column girders taper to zero-moment hinges supporting a parabolic drop-in span; **(5)** a homogeneous `45°` **diagonal** square grillage restrained at the corners by a continuous orthogonal perimeter rim; **(6)** a gradated four-ring chiral **concentric** lantern grillage (`span = -2`) with cantilevered corners on perimeter fin columns; and **(7)** a three-way **ramified** branching beam floor on six perimeter round timber columns.
+Eight beam and grillage systems after Heino Engel (*Structure Systems*, §§3.1 &amp; 3.3): **(1)** built-up timber I-beam purlins (`profile_w`) and hollow box edge beams (`profile_hss`) on glulam girders; **(2)** five simple spans with parabolic midspan `belly` depth increase under stacked purlins; **(3)** continuous multi-span girders with support `haunch` deepening over inset columns and tapered balanced cantilevers; **(4)** a five-span articulated **Gerber** hall whose anchor cantilevers carry two parabolic drop-in spans on four sloped dapped-end half-lap hinges (`gerber_lap = 260 mm`); **(5)** a herringbone skew-coupled **zigzag** beam floor meeting at symmetric V-nodes on both edges and a central spine; **(6)** a commensurate `45°` **diagonal** square grillage with symmetric single-column K-nodes on all four facades and cantilevered corners; **(7)** a four-fold symmetric gradated **concentric** beam grid (`span = -2`) on eight perimeter fin columns; and **(8)** a three-way **ramified** branching tree floor around an open central hexagonal ring on six perimeter round timber columns.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_grid_6_beam_grids_built_up_profiles.webp">
@@ -334,16 +332,20 @@ Seven beam and grillage systems after Heino Engel (*Structure Systems*, §§3.1 
     <span class="wood-card-title">Haunched Cantilever</span>
   </a>
   <a class="wood-card" href="templates_grid_6_beam_grids_gerber_hall.webp">
-    <img src="templates_grid_6_beam_grids_gerber_hall.webp" alt="Articulated Gerber Hall">
+    <img src="templates_grid_6_beam_grids_gerber_hall.webp" alt="Articulated Gerber Hall with Step Hinges">
     <span class="wood-card-title">Articulated Gerber</span>
+  </a>
+  <a class="wood-card" href="templates_grid_6_beam_grids_zigzag_floor.webp">
+    <img src="templates_grid_6_beam_grids_zigzag_floor.webp" alt="Herringbone Skew-Coupled Zigzag Floor">
+    <span class="wood-card-title">Herringbone Zigzag</span>
   </a>
   <a class="wood-card" href="templates_grid_6_beam_grids_diagonal_grillage.webp">
     <img src="templates_grid_6_beam_grids_diagonal_grillage.webp" alt="45-Degree Diagonal Square Grillage">
     <span class="wood-card-title">Diagonal Grillage (45°)</span>
   </a>
   <a class="wood-card" href="templates_grid_6_beam_grids_concentric_lantern.webp">
-    <img src="templates_grid_6_beam_grids_concentric_lantern.webp" alt="Gradated Concentric Lantern Grid">
-    <span class="wood-card-title">Concentric Lantern</span>
+    <img src="templates_grid_6_beam_grids_concentric_lantern.webp" alt="Symmetric Gradated Concentric Grid">
+    <span class="wood-card-title">Concentric Grid</span>
   </a>
   <a class="wood-card" href="templates_grid_6_beam_grids_ramified_floor.webp">
     <img src="templates_grid_6_beam_grids_ramified_floor.webp" alt="Ramified Branching Beam Floor">
@@ -355,43 +357,43 @@ Seven beam and grillage systems after Heino Engel (*Structure Systems*, §§3.1 
 
 ---
 
-### 7 Slab, Rigid Portal and Vierendeel Frame Systems {#grid_example_7}
+### 7 Section-Active Structural Slab Systems {#grid_example_7}
 
-Eight slab, rigid portal frame, and multi-panel Vierendeel systems after Heino Engel (*Structure Systems*, §§3.2 &amp; 3.4): **(1)** a cantilevered two-way CLT **mushroom slab** (`Pilzdecke`) on inset columns with two-stage flared capitals and square shear drop-panels; **(2)** a one-way closely **ribbed slab** cantilevering past two inset primary girder lines; **(3)** a four-sided cantilevered two-way coffered **waffle slab** (`system = 4`) on four inset columns with solid `2 x 2`-coffer shear drop-panels; **(4)** four staggered single-column cantilevered **umbrella canopies** on `NodeSupportElement` base shoes, tapered shafts, and chamfered capitals; **(5)** a three-storey coupled two-hinged **portal hall** with base shoes, tapered legs, rigid knees, and tapered corridor cantilevers; **(6)** a double-cantilevered eight-panel **Vierendeel** frame with shear-gradated bay widths; **(7)** four biaxial intersecting story-deep **concentric Vierendeel** frames spanning a `24 m` hall on eight perimeter columns; and **(8)** a six-storey **mega-frame** alternating full-span five-panel Vierendeel transfer storeys with lighter office floors.
+Eight structural slab systems after Heino Engel (*Structure Systems*, §3.4): **(1)** a four-sided cantilevered **one-way CLT slab** carried on two parallel haunched glulam girders (`open_perimeter = true`); **(2)** a **three-sided** U-beam supported CLT slab with one free cantilevered open edge; **(3)** a one-way closely **ribbed cantilever slab** with exposed cantilevered joist ends beneath a thin top deck; **(4)** an integral **T-beam slab** (`Plattenbalkendecke`, `profile_t`) cantilevering over inset primary girders; **(5)** a cantilevered two-way CLT **mushroom slab** (`Pilzdecke`) on inset columns with flared capitals and square shear drop-panels; **(6)** an orthogonal two-way coffered **waffle slab** (`system = 4`) on four inset columns with solid square shear drop-panels; **(7)** a `45°` **diagonal coffered waffle slab** (`system = 4, span = -1`) with diamond shear drop-panels aligned squarely with the diagonal ribs; and **(8)** four staggered single-column cantilevered **umbrella canopies** on `NodeSupportElement` base shoes, tapered shafts, and chamfered capitals.
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_mushroom_drop_slab.webp">
-    <img src="templates_grid_7_frames_and_slabs_mushroom_drop_slab.webp" alt="Mushroom Slab with Drop Panels">
-    <span class="wood-card-title">Mushroom Drop Slab</span>
+  <a class="wood-card" href="templates_grid_7_slabs_one_way_girder_slab.webp">
+    <img src="templates_grid_7_slabs_one_way_girder_slab.webp" alt="One-Way Cantilevered Slab on Two Girders">
+    <span class="wood-card-title">One-Way Girder Slab</span>
   </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_ribbed_cantilever_slab.webp">
-    <img src="templates_grid_7_frames_and_slabs_ribbed_cantilever_slab.webp" alt="One-Way Ribbed Cantilever Slab">
+  <a class="wood-card" href="templates_grid_7_slabs_three_sided_slab.webp">
+    <img src="templates_grid_7_slabs_three_sided_slab.webp" alt="Three-Sided U-Beam Supported Slab">
+    <span class="wood-card-title">Three-Sided Slab</span>
+  </a>
+  <a class="wood-card" href="templates_grid_7_slabs_ribbed_cantilever_slab.webp">
+    <img src="templates_grid_7_slabs_ribbed_cantilever_slab.webp" alt="One-Way Ribbed Cantilever Slab">
     <span class="wood-card-title">Ribbed Cantilever Slab</span>
   </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_waffle_coffered_slab.webp">
-    <img src="templates_grid_7_frames_and_slabs_waffle_coffered_slab.webp" alt="Two-Way Waffle Coffered Slab">
-    <span class="wood-card-title">Waffle Coffered Slab</span>
+  <a class="wood-card" href="templates_grid_7_slabs_t_beam_slab.webp">
+    <img src="templates_grid_7_slabs_t_beam_slab.webp" alt="Integral T-Beam Ribbed Slab">
+    <span class="wood-card-title">T-Beam Ribbed Slab</span>
   </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_umbrella_canopies.webp">
-    <img src="templates_grid_7_frames_and_slabs_umbrella_canopies.webp" alt="Staggered Single-Column Umbrella Canopies">
+  <a class="wood-card" href="templates_grid_7_slabs_mushroom_drop_slab.webp">
+    <img src="templates_grid_7_slabs_mushroom_drop_slab.webp" alt="Mushroom Slab with Drop Panels">
+    <span class="wood-card-title">Mushroom Drop Slab</span>
+  </a>
+  <a class="wood-card" href="templates_grid_7_slabs_waffle_coffered_slab.webp">
+    <img src="templates_grid_7_slabs_waffle_coffered_slab.webp" alt="Orthogonal Waffle Coffered Slab">
+    <span class="wood-card-title">Orthogonal Waffle Slab</span>
+  </a>
+  <a class="wood-card" href="templates_grid_7_slabs_diagonal_waffle_slab.webp">
+    <img src="templates_grid_7_slabs_diagonal_waffle_slab.webp" alt="45-Degree Diagonal Waffle Coffered Slab">
+    <span class="wood-card-title">Diagonal Waffle Slab</span>
+  </a>
+  <a class="wood-card" href="templates_grid_7_slabs_umbrella_canopies.webp">
+    <img src="templates_grid_7_slabs_umbrella_canopies.webp" alt="Staggered Single-Column Umbrella Canopies">
     <span class="wood-card-title">Umbrella Canopies</span>
-  </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_tapered_portal_hall.webp">
-    <img src="templates_grid_7_frames_and_slabs_tapered_portal_hall.webp" alt="Tapered Hinged Portal Frame Hall">
-    <span class="wood-card-title">Tapered Portal Hall</span>
-  </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_shear_vierendeel.webp">
-    <img src="templates_grid_7_frames_and_slabs_shear_vierendeel.webp" alt="Shear-Gradated Vierendeel Frame">
-    <span class="wood-card-title">Shear-Gradated Vierendeel</span>
-  </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_concentric_vierendeel.webp">
-    <img src="templates_grid_7_frames_and_slabs_concentric_vierendeel.webp" alt="Biaxial Concentric Vierendeel Space Frame">
-    <span class="wood-card-title">Concentric Vierendeel</span>
-  </a>
-  <a class="wood-card" href="templates_grid_7_frames_and_slabs_mega_transfer_tower.webp">
-    <img src="templates_grid_7_frames_and_slabs_mega_transfer_tower.webp" alt="Vierendeel Mega-Frame Transfer Tower">
-    <span class="wood-card-title">Mega-Frame Transfer</span>
   </a>
 </div>
 
-\include{lineno} templates_grid_7_frames_and_slabs.cpp
+\include{lineno} templates_grid_7_slabs.cpp

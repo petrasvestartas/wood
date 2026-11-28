@@ -13,7 +13,7 @@ SIZE = (540, 360)
 CARDS = {
     "shells": "shells_1_translation_shell", "folding": "folding_1_reflex_fold", "cylindrical_folding": "cylindrical_folding_8_groin_vault",
     "developable_folding": "developable_folding_11_corrugated_dome", "chevron": "chevron_1_chevron_chevron", "cross": "cross_2_assembly",
-    "module": "module_3_cassette_house", "reciprocal": "reciprocal_2_move", "grid": "grid_5_multistorey_five_bay",
+    "module": "module_3_cassette_house", "reciprocal": "reciprocal_2_move", "grid": "grid_5_multistorey_five_bay", "frame": "frame_2_tiered_frames_tiered_clerestory_hall",
     "floor": "floor_7_contacts_cantilevers", "timber_floor": "timber_floor_1_structures_box", "truss": "truss_1_pratt", "vault": "vault_9_gothic_ribbed_vault_quadripartite_wells",
     "plaited": "plaited_4_hotwire_blocks_sphera_open", "vidy": "vidy_4_section_joints",
 }

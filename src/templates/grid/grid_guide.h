@@ -60,10 +60,12 @@ struct Framing {
     double reach = 180.0; // Outward projection of a head's chamfer.
     double haunch = 0.0; // Extra girder depth over standing columns, tapering into spans and along cantilevers.
     double belly = 0.0; // Parabolic extra girder depth at the midspan of simple spans.
+    double gerber_lap = 0.0; // Stepped half-lap length at zero-moment Gerber girder hinges.
     double drop_width = 0.0; // Square solid shear drop-panel side over standing columns under a slab or waffle grid.
     double drop_depth = 0.0; // Drop-panel thickness, 0 for head height under slabs or rib depth in waffle grids.
-    double foot_scale = 1.0; // Scale of a standing column's foot section, below 1 for tapered hinged frame legs.
+    double foot_scale = 1.0; // Scale of a standing column's foot section, below 1 for tapered column shafts.
     bool pinned_feet = false; // Base support shoe under each standing column foot.
+    bool open_perimeter = false; // Suppresses unsupported perimeter fascia beams so slabs and ribs cantilever with open ends.
     Profiles profiles; // Member sections.
 
     /// Girders and beams of 240 columns under a 160 deck, for the L-shaped floor.
@@ -132,29 +134,41 @@ struct Framing {
     /// Continuous girders with haunches over inset columns and tapered end cantilevers.
     static Framing haunched_cantilever();
 
-    /// Articulated Gerber girders tapering to hinge tips with a drop-in midspan belly beam.
+    /// Articulated five-span Gerber girders with stepped half-lap hinges carrying two parabolic drop-in spans.
     static Framing gerber_hall();
 
-    /// Homogeneous 45-degree diagonal square grillage inside a continuous perimeter rim.
+    /// Herringbone skew-coupled zigzag girders meeting at symmetric V-nodes on both edges.
+    static Framing zigzag_floor();
+
+    /// Commensurate 45-degree diagonal square grillage with symmetric perimeter K-nodes and cantilevered corners.
     static Framing diagonal_floor();
 
-    /// Gradated concentric nested-ring grillage on perimeter fin columns.
+    /// Four-fold symmetric gradated concentric beam grid on eight perimeter fin columns.
     static Framing concentric_floor();
 
-    /// Branching three-way ramified beam layout on perimeter columns.
+    /// Branching three-way ramified beam layout on six perimeter round columns.
     static Framing ramified_floor();
+
+    /// One-way continuous CLT slab cantilevering on all four sides over two parallel haunched girders.
+    static Framing one_way_girder_slab();
+
+    /// Three-sided U-beam supported CLT slab with one free cantilevered open edge.
+    static Framing three_sided_slab();
+
+    /// Integral T-beam ribbed floor (`profile_t`) cantilevering over inset primary girders under a thin CLT flange.
+    static Framing t_beam_slab();
 
     /// Point-supported CLT mushroom slab on two-stage flared capitals and square drop-panels.
     static Framing mushroom_drop_slab();
 
-    /// Closely spaced one-way ribs cantilevering over inset primary girders under a thin top deck.
+    /// Closely spaced one-way ribs cantilevering with open ends over inset primary girders under a thin top deck.
     static Framing ribbed_cantilever_slab();
 
-    /// Two-way coffered waffle slab with solid column shear drop-panels under a thin top deck.
+    /// Orthogonal two-way coffered waffle slab with solid column shear drop-panels under a thin top deck.
     static Framing waffle_coffered_slab();
 
-    /// Double-cantilevered multi-panel Vierendeel frame with shear-gradated bays.
-    static Framing shear_vierendeel();
+    /// Diagonal 45-degree coffered waffle slab with diamond column shear drop-panels under a thin top deck.
+    static Framing diagonal_waffle_slab();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -189,13 +203,16 @@ struct Pattern {
     /// Hexagons of side, nu by nv.
     static Pattern hexagonal(double side, int nu, int nv);
 
-    /// Two families at +/-45 degrees of pitch, half-module shifted inside width by depth.
-    static Pattern diagonal(double width, double depth, double pitch);
+    /// Two commensurate diagonal axis families inside width by depth, half-module shifted unless corner_anchored.
+    static Pattern diagonal(double width, double depth, double pitch, bool corner_anchored = false);
 
-    /// Nested inscribed quadrangles from width by depth inward, each corner at ratio along the enclosing side.
-    static Pattern concentric(double width, double depth, int rings = 3, double ratio = 0.35);
+    /// Four-fold symmetric gradated concentric squares and 45-degree corner girders inside width by depth.
+    static Pattern concentric(double width, double depth, int rings = 3, double corner_ratio = 0.292893);
 
-    /// Branching primary trunks from the perimeter forking at Y-nodes into an interior spine.
+    /// Herringbone skew-coupled zigzag axes across strips longitudinal bays and waves full V-cycles.
+    static Pattern zigzag(double width, double depth, int strips = 2, int waves = 2);
+
+    /// Branching primary trunks from the perimeter forking at three-way Y-nodes into a central hexagonal spine.
     static Pattern ramified(double width, double depth, int bays = 2);
 
     /// Any lines, their families from their direction when not given.
@@ -335,29 +352,41 @@ struct Plan {
     /// Three interior spans of 6000 with 2100 cantilevered ends across 6000 depth, at 4200.
     static Plan cantilever_hall();
 
-    /// Paired column bays of 5400 with 1900 inward cantilevers carrying a 3800 drop-in central span, at 4200.
+    /// Five column bays carrying two suspended drop-in Gerber spans on four stepped cantilever hinges, at 4200.
     static Plan gerber_hall();
 
-    /// A 16000 x 16000 hall on a 45-degree diagonal square grillage of 2800 pitch, columns on the perimeter, at 4200.
+    /// A 12000 x 16000 hall of herringbone skew-coupled zigzag girders meeting on both edges and spine, at 4200.
+    static Plan zigzag_floor();
+
+    /// A 16000 x 16000 hall on a commensurate 45-degree diagonal grillage with symmetric perimeter K-nodes, at 4200.
     static Plan diagonal_floor();
 
-    /// An 18000 x 18000 hall of four concentric rotated rings on eight inset perimeter columns, at 4400.
+    /// An 18000 x 18000 four-fold symmetric gradated concentric hall on eight perimeter fin columns, at 4400.
     static Plan concentric_floor();
 
-    /// An 18000 x 12000 hall of branching three-way tree girders on perimeter columns, at 4200.
+    /// An 18000 x 12000 hall of three-way branching Y-trunks and an open central hexagonal ring, at 4200.
     static Plan ramified_floor();
+
+    /// A 9600 x 10000 one-way slab cantilevered past two parallel haunched girders on four inset columns, at 4200.
+    static Plan one_way_girder_floor();
+
+    /// A 9600 x 8400 three-sided U-beam supported slab with one free cantilevered open edge, at 4200.
+    static Plan three_sided_floor();
+
+    /// A 14400 x 10800 integral T-beam floor cantilevering 1800 past two inset girder lines, at 4200.
+    static Plan t_beam_floor();
 
     /// A 16000 x 16000 mushroom slab cantilevered 2000 on all sides over 3 x 3 inset columns, at 4200.
     static Plan mushroom_floor();
 
-    /// A 14400 x 10800 one-way ribbed floor cantilevering 1800 past two inset girder lines, at 4200.
+    /// A 14400 x 10800 one-way closely ribbed floor cantilevering 1800 past two inset girder lines, at 4200.
     static Plan ribbed_floor();
 
-    /// A 14400 x 14400 coffered waffle grid of 1200 pitch cantilevered 2400 over four inset columns, at 4200.
+    /// A 12000 x 12000 orthogonal coffered waffle grid of 1200 pitch cantilevered over four inset columns, at 4200.
     static Plan waffle_floor();
 
-    /// A 24000-wide double-cantilevered eight-panel Vierendeel elevation with shear-gradated bays on central columns.
-    static Plan shear_vierendeel();
+    /// A 14400 x 14400 diagonal 45-degree coffered waffle grid cantilevered over four inset columns, at 4200.
+    static Plan diagonal_waffle_floor();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -437,18 +466,6 @@ struct Stack {
 
     /// Four staggered single-column cantilevered umbrella canopies at alternating heights, starting at x.
     static Stack umbrella_canopies(double x = 0.0);
-
-    /// Three storeys of coupled two-hinged portal frames with tapered legs, base shoes and corridor cantilevers, starting at x.
-    static Stack tapered_portal_hall(double x = 0.0);
-
-    /// Double-cantilevered eight-panel Vierendeel bridge with shear-gradated bays on central tapered piers, starting at x.
-    static Stack shear_vierendeel(double x = 0.0);
-
-    /// Four intersecting story-deep Vierendeel frames spanning a 24000 x 24000 column-free hall on eight perimeter columns, starting at x.
-    static Stack concentric_vierendeel(double x = 0.0);
-
-    /// Six-storey mega-frame alternating full-span five-panel Vierendeel transfer storeys with lighter office floors, starting at x.
-    static Stack mega_transfer_tower(double x = 0.0);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

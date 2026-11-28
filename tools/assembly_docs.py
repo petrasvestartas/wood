@@ -139,7 +139,18 @@ PAGES = {
             ("templates_grid_3_facades", "Facades"),
             ("templates_grid_5_multistorey", "Multi-storey"),
             ("templates_grid_6_beam_grids", "Beam and grillage systems"),
-            ("templates_grid_7_frames_and_slabs", "Slabs, portal and Vierendeel frames"),
+            ("templates_grid_7_slabs", "Structural slab systems"),
+        ],
+    ),
+    "frame": (
+        "Stage by stage from the foundation up: steel base shoes, tapered legs and central piers, haunched and pitched rafters down their "
+        "knee miters and half-lap seats, Vierendeel bottom chords, shear posts and top chords, floor and roof purlins, and cellular box-frame "
+        "bottom slabs, side walls and top slabs.",
+        [
+            ("templates_frame_1_portal_frames", "Portal, gable and articulated T-frames"),
+            ("templates_frame_2_tiered_frames", "Coupled and tiered hinged frames"),
+            ("templates_frame_3_vierendeel_frames", "Shear-gradated and concentric Vierendeel frames"),
+            ("templates_frame_4_box_frames", "Cellular slab box frames"),
         ],
     ),
     "vault": (

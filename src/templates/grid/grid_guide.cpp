@@ -292,10 +292,16 @@ Plan build_plan_uv(
     }
 
     // Collect canonical family directions so pure boundary segments aligned with an axis inherit its family.
-    std::map<int, Vector> canonical_dirs;
+    std::map<int, std::vector<Vector>> canonical_dirs;
     for (size_t i = 0; i < clipped_lines.size(); ++i) {
-        if (!canonical_dirs.count(clipped_families[i]))
-            canonical_dirs[clipped_families[i]] = clipped_lines[i].to_vector().normalized();
+        const Vector fdir = clipped_lines[i].to_vector().normalized();
+        std::vector<Vector>& vecs = canonical_dirs[clipped_families[i]];
+        bool seen = false;
+        for (const Vector& existing : vecs)
+            if (std::abs(existing.dot(fdir)) > 0.999)
+                seen = true;
+        if (!seen)
+            vecs.push_back(fdir);
     }
 
     for (const std::pair<size_t, size_t>& raw_e : arr.edges()) {
@@ -330,11 +336,15 @@ Plan build_plan_uv(
             family = clipped_families[src_idx];
         } else {
             const Vector dir = (result.nodes[v] - result.nodes[u]).normalized();
-            for (const auto& [fam, fdir] : canonical_dirs) {
-                if (std::abs(dir.dot(fdir)) > 0.999) {
-                    family = fam;
-                    break;
+            for (const std::pair<const int, std::vector<Vector>>& kv : canonical_dirs) {
+                for (const Vector& fdir : kv.second) {
+                    if (std::abs(dir.dot(fdir)) > 0.999) {
+                        family = kv.first;
+                        break;
+                    }
                 }
+                if (family >= 0)
+                    break;
             }
         }
 
@@ -522,28 +532,37 @@ Pattern Pattern::hexagonal(double side, int nu, int nv) {
     return pat;
 }
 
-Pattern Pattern::diagonal(double width, double depth, double pitch) {
+Pattern Pattern::diagonal(double width, double depth, double pitch, bool corner_anchored) {
     Pattern pat;
     if (width <= PLAN_TOL || depth <= PLAN_TOL || pitch <= PLAN_TOL)
         return pat;
 
-    const double step = pitch * std::sqrt(2.0);
-    const double reach = width + depth + step;
+    // Snap module counts to integers so +slope and -slope axes meet at identical symmetric nodes on ALL four edges!
+    const double raw_step = pitch * std::sqrt(2.0);
+    const int nu = std::max(1, static_cast<int>(std::round(width / raw_step)));
+    const int nv = std::max(1, static_cast<int>(std::round(depth / raw_step)));
+    const double du = width / static_cast<double>(nu);
+    const double dv = depth / static_cast<double>(nv);
+    const double phase = corner_anchored ? 0.0 : 0.5;
+    const double v0 = -dv;
+    const double v1 = depth + dv;
+    const double eta1 = static_cast<double>(nv) + 1.0;
 
-    // Family 0: +45 deg axes (u - v = const), half-step shifted so corners form stiff triangles.
-    const int k0_min = static_cast<int>(std::floor(-depth / step)) - 1;
-    const int k0_max = static_cast<int>(std::ceil(width / step)) + 1;
-    for (int k = k0_min; k <= k0_max; ++k) {
-        const double c = (k + 0.5) * step;
-        pat.lines.push_back(Line::from_points(Point(c - reach, -reach, 0.0), Point(c + reach, reach, 0.0)));
+    // Family 0: +slope axes (u / du - v / dv = k + phase).
+    for (int k = -nv - 1; k <= nu + 1; ++k) {
+        const double c = static_cast<double>(k) + phase;
+        pat.lines.push_back(
+            Line::from_points(Point((c - 1.0) * du, v0, 0.0), Point((c + eta1) * du, v1, 0.0))
+        );
         pat.families.push_back(0);
     }
 
-    // Family 1: -45 deg axes (u + v = const), half-step shifted symmetrically.
-    const int k1_max = static_cast<int>(std::ceil((width + depth) / step)) + 1;
-    for (int k = -1; k <= k1_max; ++k) {
-        const double c = (k + 0.5) * step;
-        pat.lines.push_back(Line::from_points(Point(c + reach, -reach, 0.0), Point(c - reach, reach, 0.0)));
+    // Family 1: -slope axes (u / du + v / dv = m + phase).
+    for (int m = -1; m <= nu + nv + 1; ++m) {
+        const double c = static_cast<double>(m) + phase;
+        pat.lines.push_back(
+            Line::from_points(Point((c + 1.0) * du, v0, 0.0), Point((c - eta1) * du, v1, 0.0))
+        );
         pat.families.push_back(1);
     }
 
@@ -553,41 +572,105 @@ Pattern Pattern::diagonal(double width, double depth, double pitch) {
     return pat;
 }
 
-Pattern Pattern::concentric(double width, double depth, int rings, double ratio) {
+Pattern Pattern::concentric(double width, double depth, int rings, double corner_ratio) {
     Pattern pat;
     if (width <= PLAN_TOL || depth <= PLAN_TOL || rings < 1)
         return pat;
 
-    const double alpha = std::clamp(ratio, 0.15, 0.85);
-    std::array<Point, 4> quad = {
-        Point(0.0, 0.0, 0.0),
-        Point(width, 0.0, 0.0),
-        Point(width, depth, 0.0),
-        Point(0.0, depth, 0.0),
-    };
-    pat.boundary.push_back(close_loop({quad[0], quad[1], quad[2], quad[3]}));
+    const double alpha = std::clamp(corner_ratio, 0.20, 0.45);
+    pat.boundary.push_back(
+        Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), width, depth)
+    );
 
-    for (int r = 0; r <= rings; ++r) {
-        for (size_t k = 0; k < 4; ++k) {
-            const Point& a = quad[k];
-            const Point& b = quad[(k + 1) % 4];
-            if (a.distance(b) > PLAN_TOL) {
-                pat.lines.push_back(Line::from_points(a, b));
-                pat.families.push_back(r);
-            }
-        }
-        std::array<Point, 4> next_quad;
-        for (size_t k = 0; k < 4; ++k) {
-            const Point& a = quad[k];
-            const Point& b = quad[(k + 1) % 4];
-            next_quad[k] = Point(
-                (1.0 - alpha) * a[0] + alpha * b[0],
-                (1.0 - alpha) * a[1] + alpha * b[1],
-                0.0
-            );
-        }
-        quad = next_quad;
+    auto add_rect = [&](double u0, double v0, double u1, double v1, int fam) {
+        pat.lines.push_back(Line::from_points(Point(u0, v0, 0.0), Point(u1, v0, 0.0)));
+        pat.families.push_back(fam);
+        pat.lines.push_back(Line::from_points(Point(u1, v0, 0.0), Point(u1, v1, 0.0)));
+        pat.families.push_back(fam);
+        pat.lines.push_back(Line::from_points(Point(u1, v1, 0.0), Point(u0, v1, 0.0)));
+        pat.families.push_back(fam);
+        pat.lines.push_back(Line::from_points(Point(u0, v1, 0.0), Point(u0, v0, 0.0)));
+        pat.families.push_back(fam);
+    };
+
+    // Outer perimeter ring (`family = 0`, cantilevered corners on 8 symmetric fin columns).
+    double u0 = 0.0;
+    double v0 = 0.0;
+    double u1 = width;
+    double v1 = depth;
+    add_rect(u0, v0, u1, v1, 0);
+
+    for (int r = 0; r < rings; ++r) {
+        if (r > 0)
+            add_rect(u0, v0, u1, v1, r);
+
+        const double w = u1 - u0;
+        const double d = v1 - v0;
+        if (w <= PLAN_TOL * 4.0 || d <= PLAN_TOL * 4.0)
+            break;
+
+        const bool innermost = (r == rings - 1);
+        const double cu = (innermost ? 0.5 : alpha) * w;
+        const double cv = (innermost ? 0.5 : alpha) * d;
+        const int diag_fam = (r == 0) ? 0 : (innermost ? r + 1 : r);
+
+        // Four mirror-symmetric corner girders: two hits on EVERY edge!
+        pat.lines.push_back(Line::from_points(Point(u0 + cu, v0, 0.0), Point(u0, v0 + cv, 0.0)));
+        pat.families.push_back(diag_fam);
+        pat.lines.push_back(Line::from_points(Point(u1 - cu, v0, 0.0), Point(u1, v0 + cv, 0.0)));
+        pat.families.push_back(diag_fam);
+        pat.lines.push_back(Line::from_points(Point(u1, v1 - cv, 0.0), Point(u1 - cu, v1, 0.0)));
+        pat.families.push_back(diag_fam);
+        pat.lines.push_back(Line::from_points(Point(u0 + cu, v1, 0.0), Point(u0, v1 - cv, 0.0)));
+        pat.families.push_back(diag_fam);
+
+        // Next axis-aligned square bears at the exact midpoints of the four corner girders.
+        u0 += 0.5 * cu;
+        u1 -= 0.5 * cu;
+        v0 += 0.5 * cv;
+        v1 -= 0.5 * cv;
     }
+    return pat;
+}
+
+Pattern Pattern::zigzag(double width, double depth, int strips, int waves) {
+    Pattern pat;
+    if (width <= PLAN_TOL || depth <= PLAN_TOL || strips < 1 || waves < 1)
+        return pat;
+
+    const int ns = std::max(1, strips);
+    const int half_steps = 2 * std::max(1, waves);
+    const double du = width / static_cast<double>(ns);
+    const double dv = depth / static_cast<double>(half_steps);
+
+    // Family 0: herringbone / zigzag skew-coupled girders bouncing symmetrically across each longitudinal strip.
+    for (int s = 0; s < ns; ++s) {
+        const double u_left = s * du;
+        const double u_right = (s + 1) * du;
+        const bool mirror = (s % 2) == 1;
+        for (int k = 0; k < half_steps; ++k) {
+            const bool go_right = ((k % 2) == 0) != mirror;
+            const Point a(go_right ? u_left : u_right, k * dv, 0.0);
+            const Point b(go_right ? u_right : u_left, (k + 1) * dv, 0.0);
+            pat.lines.push_back(Line::from_points(a, b));
+            pat.families.push_back(0);
+        }
+    }
+
+    // Family 1: longitudinal edge and spine ties restraining horizontal thrust at V-vertices.
+    for (int s = 0; s <= ns; ++s) {
+        const double u = s * du;
+        pat.lines.push_back(Line::from_points(Point(u, 0.0, 0.0), Point(u, depth, 0.0)));
+        pat.families.push_back(1);
+    }
+    pat.lines.push_back(Line::from_points(Point(0.0, 0.0, 0.0), Point(width, 0.0, 0.0)));
+    pat.families.push_back(1);
+    pat.lines.push_back(Line::from_points(Point(0.0, depth, 0.0), Point(width, depth, 0.0)));
+    pat.families.push_back(1);
+
+    pat.boundary.push_back(
+        Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), width, depth)
+    );
     return pat;
 }
 
@@ -597,12 +680,12 @@ Pattern Pattern::ramified(double width, double depth, int bays) {
         return pat;
 
     const int n = std::max(1, bays);
-    const double bay_u = width / (n + 1);
-    const double y_lo = 0.27 * depth;
-    const double y_hi = 0.73 * depth;
+    const double bay_u = width / static_cast<double>(n + 1);
+    const double y_lo = 0.28 * depth;
+    const double y_hi = 0.72 * depth;
     const double y_mid = 0.5 * depth;
 
-    // Family 0: short primary trunks stepping inward from perimeter supports to Y-fork nodes.
+    // Family 0: primary radial trunks stepping inward from perimeter columns to three-way Y-fork nodes (Engel p183-07).
     for (int i = 1; i <= n; ++i) {
         const double u = i * bay_u;
         pat.lines.push_back(Line::from_points(Point(u, 0.0, 0.0), Point(u, y_lo, 0.0)));
@@ -610,14 +693,14 @@ Pattern Pattern::ramified(double width, double depth, int bays) {
         pat.lines.push_back(Line::from_points(Point(u, depth, 0.0), Point(u, y_hi, 0.0)));
         pat.families.push_back(0);
     }
-    const double u_end_l = 0.5 * bay_u;
-    const double u_end_r = width - 0.5 * bay_u;
+    const double u_end_l = 0.52 * bay_u;
+    const double u_end_r = width - 0.52 * bay_u;
     pat.lines.push_back(Line::from_points(Point(0.0, y_mid, 0.0), Point(u_end_l, y_mid, 0.0)));
     pat.families.push_back(0);
     pat.lines.push_back(Line::from_points(Point(width, y_mid, 0.0), Point(u_end_r, y_mid, 0.0)));
     pat.families.push_back(0);
 
-    // Family 1: interior branching Y-arms and central hexagonal/diamond rings.
+    // Family 1: central elongated hexagonal ring connecting the Y-forks around an open two-way slab bay.
     pat.lines.push_back(Line::from_points(Point(u_end_l, y_mid, 0.0), Point(bay_u, y_lo, 0.0)));
     pat.families.push_back(1);
     pat.lines.push_back(Line::from_points(Point(u_end_l, y_mid, 0.0), Point(bay_u, y_hi, 0.0)));
@@ -630,19 +713,14 @@ Pattern Pattern::ramified(double width, double depth, int bays) {
     for (int i = 1; i < n; ++i) {
         const double u0 = i * bay_u;
         const double u1 = (i + 1) * bay_u;
-        const double um = 0.5 * (u0 + u1);
         pat.lines.push_back(Line::from_points(Point(u0, y_lo, 0.0), Point(u1, y_lo, 0.0)));
         pat.families.push_back(1);
         pat.lines.push_back(Line::from_points(Point(u0, y_hi, 0.0), Point(u1, y_hi, 0.0)));
         pat.families.push_back(1);
-        pat.lines.push_back(Line::from_points(Point(u0, y_lo, 0.0), Point(um, y_mid, 0.0)));
-        pat.families.push_back(2);
-        pat.lines.push_back(Line::from_points(Point(u1, y_lo, 0.0), Point(um, y_mid, 0.0)));
-        pat.families.push_back(2);
-        pat.lines.push_back(Line::from_points(Point(u0, y_hi, 0.0), Point(um, y_mid, 0.0)));
-        pat.families.push_back(2);
-        pat.lines.push_back(Line::from_points(Point(u1, y_hi, 0.0), Point(um, y_mid, 0.0)));
-        pat.families.push_back(2);
+        if (i < n - 1) {
+            pat.lines.push_back(Line::from_points(Point(u1, y_lo, 0.0), Point(u1, y_hi, 0.0)));
+            pat.families.push_back(2);
+        }
     }
 
     pat.boundary.push_back(

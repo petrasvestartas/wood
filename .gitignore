@@ -3,6 +3,7 @@ build/
 build*/
 cmake/build/
 out/
+rust/target/
 docs/output/
 session_data/
 .buildlock

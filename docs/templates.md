@@ -37,6 +37,10 @@
     <img src="card_grid.gif" alt="Grid">
     <span class="wood-card-title">Grid</span>
   </a>
+  <a class="wood-card" href="templates_frame.html">
+    <img src="card_frame.gif" alt="Frame">
+    <span class="wood-card-title">Frame</span>
+  </a>
   <a class="wood-card" href="templates_floor.html">
     <img src="card_floor.gif" alt="Floor">
     <span class="wood-card-title">Floor</span>
@@ -73,6 +77,7 @@
 - @subpage templates_module
 - @subpage templates_reciprocal
 - @subpage templates_grid
+- @subpage templates_frame
 - @subpage templates_floor
 - @subpage templates_timber_floor
 - @subpage templates_truss
