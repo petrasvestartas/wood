@@ -55,7 +55,7 @@ Profiles Profiles::built_up() {
     return Profiles{
         .column = profile_rectangle(260.0, 260.0),
         .girder = profile_rectangle(260.0, 560.0),
-        .beam = profile_hss(240.0, 460.0, 55.0),
+        .beam = profile_hss(260.0, 460.0, 55.0),
         .purlin = profile_w(180.0, 380.0, 65.0, 65.0),
     };
 }
@@ -383,9 +383,9 @@ Framing Framing::zigzag_floor() {
         .span = 0,
         .height = 4200.0,
         .profiles = {
-            .column = profile_rectangle(260.0, 260.0),
+            .column = profile_rectangle(240.0, 240.0),
             .girder = profile_rectangle(240.0, 500.0),
-            .beam = profile_rectangle(220.0, 420.0),
+            .beam = profile_rectangle(240.0, 420.0),
         },
     };
 }
@@ -397,7 +397,7 @@ Framing Framing::diagonal_floor() {
         .span = -1,
         .height = 4200.0,
         .profiles = {
-            .column = profile_rectangle(260.0, 260.0),
+            .column = profile_rectangle(220.0, 220.0),
             .girder = profile_rectangle(220.0, 480.0),
         },
     };
@@ -410,7 +410,7 @@ Framing Framing::concentric_floor() {
         .span = -2,
         .height = 4400.0,
         .profiles = {
-            .column = profile_rectangle(260.0, 560.0),
+            .column = profile_rectangle(280.0, 280.0),
             .girder = profile_rectangle(280.0, 580.0),
             .beam = profile_rectangle(240.0, 460.0),
             .purlin = profile_rectangle(200.0, 360.0),
