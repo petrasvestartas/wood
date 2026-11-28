@@ -240,6 +240,38 @@ int main() {
     const wood_grid::Grid umbrella_grid(wood_grid::Stack::umbrella_canopies(), "umbrella_canopies");
     check_template(umbrella_grid, umbrella_grid.elements().size());
 
+    // NURBS periodic C2 continuity on closed cylindrical/funnel/toroidal vaults and multi-patch sewn funnels
+    const NurbsSurface funnel_surf = wood_vault::funnel_vault_surface(3400.0, 920.0, 2700.0);
+    check(funnel_surf.is_periodic(0), "funnel vault surface: periodic C2 NURBS in u");
+    const std::pair<double, double> f_du = funnel_surf.domain(0);
+    const std::pair<double, double> f_dv = funnel_surf.domain(1);
+    for (int j = 0; j <= 8; j++) {
+        const double v = f_dv.first + (f_dv.second - f_dv.first) * (static_cast<double>(j) / 8.0);
+        const Point p0 = funnel_surf.point_at(f_du.first, v);
+        const Point p1 = funnel_surf.point_at(f_du.second, v);
+        const Vector n0 = funnel_surf.normal_at(f_du.first, v).normalized();
+        const Vector n1 = funnel_surf.normal_at(f_du.second, v).normalized();
+        check(p0.distance(p1) < 1e-9 && n0.dot(n1) > 1.0 - 1e-12, "funnel vault surface: zero seam kink");
+    }
+    const NurbsSurface closed_torus = wood_vault::torus_vault_surface(3200.0, 1450.0, 1650.0, 360.0);
+    check(closed_torus.is_periodic(0), "closed torus surface: periodic C2 NURBS in u");
+    const std::vector<NurbsSurface> petals = wood_vault::sewn_funnel_surfaces(3400.0, 920.0, 2700.0, 480.0, 4);
+    for (size_t k = 0; k < petals.size(); k++) {
+        const NurbsSurface& sa = petals[k];
+        const NurbsSurface& sb = petals[(k + 1) % petals.size()];
+        const std::pair<double, double> ua = sa.domain(0);
+        const std::pair<double, double> ub = sb.domain(0);
+        const std::pair<double, double> va = sa.domain(1);
+        for (int j = 0; j <= 8; j++) {
+            const double v = va.first + (va.second - va.first) * (static_cast<double>(j) / 8.0);
+            const Point pa = sa.point_at(ua.second, v);
+            const Point pb = sb.point_at(ub.first, v);
+            const Vector na = sa.normal_at(ua.second, v).normalized();
+            const Vector nb = sb.normal_at(ub.first, v).normalized();
+            check(pa.distance(pb) < 1e-9 && na.dot(nb) > 1.0 - 1e-12, "sewn funnel patches: exact C2 seam continuity");
+        }
+    }
+
     // NURBS and sewn multi-surface NGon vaults: planarized side joints, planar caps, shifted and bevelled facets
     wood_vault::SurfaceVaultGuide groin_guide = wood_vault::SurfaceVaultGuide::sewn_groin_vault();
     groin_guide.size_u = 1100.0;

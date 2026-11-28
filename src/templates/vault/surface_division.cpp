@@ -622,6 +622,62 @@ NurbsSurface pillow_dome_surface(double span_x, double span_y, double rise) {
     return bicubic_from_grid(grid);
 }
 
+/// Solves 1D clamped cubic Greville collocation along n >= 4 points so the cubic spline interpolates targets at its Greville abscissae.
+std::vector<Point> solve_clamped_cubic_1d(const std::vector<Point>& targets) {
+
+    const int n = static_cast<int>(targets.size());
+    if (n < 4)
+        return targets;
+
+    const double span = static_cast<double>(n - 3);
+    std::vector<double> greville(static_cast<size_t>(n), 0.0);
+    for (int i = 0; i < n; i++) {
+        const double k0 = std::clamp(static_cast<double>(i - 2), 0.0, span);
+        const double k1 = std::clamp(static_cast<double>(i - 1), 0.0, span);
+        const double k2 = std::clamp(static_cast<double>(i), 0.0, span);
+        greville[static_cast<size_t>(i)] = (k0 + k1 + k2) / 3.0;
+    }
+
+    NurbsSurface dummy = NurbsSurface::create(
+        false,
+        false,
+        3,
+        1,
+        n,
+        2,
+        std::vector<Point>(static_cast<size_t>(2 * n), Point(0.0, 0.0, 0.0))
+    );
+    std::vector<Point> cvs = targets;
+    for (int iter = 0; iter < 36; iter++) {
+        for (int i = 0; i < n; i++) {
+            dummy.set_cv(i, 0, cvs[static_cast<size_t>(i)]);
+            dummy.set_cv(i, 1, cvs[static_cast<size_t>(i)]);
+        }
+        for (int i = 1; i + 1 < n; i++) {
+            const Point eval = dummy.point_at(greville[static_cast<size_t>(i)], 0.0);
+            const Vector err = targets[static_cast<size_t>(i)] - eval;
+            cvs[static_cast<size_t>(i)] = cvs[static_cast<size_t>(i)] + err;
+        }
+    }
+
+    return cvs;
+}
+
+/// Evaluates clamped uniform cubic Greville fractions in [0, 1] for n >= 4 control points.
+std::vector<double> clamped_cubic_fractions(int n) {
+
+    const double span = static_cast<double>(std::max(1, n - 3));
+    std::vector<double> fracs(static_cast<size_t>(n), 0.0);
+    for (int i = 0; i < n; i++) {
+        const double k0 = std::clamp(static_cast<double>(i - 2), 0.0, span);
+        const double k1 = std::clamp(static_cast<double>(i - 1), 0.0, span);
+        const double k2 = std::clamp(static_cast<double>(i), 0.0, span);
+        fracs[static_cast<size_t>(i)] = (k0 + k1 + k2) / (3.0 * span);
+    }
+
+    return fracs;
+}
+
 NurbsSurface torus_vault_surface(
     double major_radius,
     double half_width,
@@ -629,46 +685,101 @@ NurbsSurface torus_vault_surface(
     double sector_degrees
 ) {
 
-    const int n_around = std::max(8, static_cast<int>(std::ceil(sector_degrees / 25.0)) + 1);
+    const bool full_circle = std::abs(sector_degrees - 360.0) <= 1e-4;
     const int n_across = 7;
-    const double total_rad = sector_degrees * Tolerance::TO_RADIANS;
+    const std::vector<double> v_fracs = clamped_cubic_fractions(n_across);
     const double max_theta = 66.0 * Tolerance::TO_RADIANS;
     const double cos_base = std::cos(max_theta);
+
+    // Collocate the cross-arch profile in (r_offset, z) so the clamped v-direction has exact circular curvature.
+    std::vector<Point> profile_targets(static_cast<size_t>(n_across));
+    for (int j = 0; j < n_across; j++) {
+        const double s = -1.0 + 2.0 * v_fracs[static_cast<size_t>(j)];
+        const double theta = s * max_theta;
+        const double r = major_radius + half_width * (std::sin(theta) / std::sin(max_theta));
+        const double z = arch_rise * (std::cos(theta) - cos_base) / (1.0 - cos_base);
+        profile_targets[static_cast<size_t>(j)] = Point(r, 0.0, z);
+    }
+    const std::vector<Point> profile_cvs = solve_clamped_cubic_1d(profile_targets);
+
+    if (full_circle) {
+        const int n_unique = 16;
+        const int n_around = n_unique + 3;
+        const double dphi = Tolerance::TWO_PI / static_cast<double>(n_unique);
+        const double radial_comp = 3.0 / (2.0 + std::cos(dphi));
+        std::vector<Point> pts;
+        pts.reserve(static_cast<size_t>(n_around * n_across));
+        for (int i = 0; i < n_around; i++) {
+            const double phi = dphi * static_cast<double>(i % n_unique);
+            for (int j = 0; j < n_across; j++) {
+                const double r = profile_cvs[static_cast<size_t>(j)][0] * radial_comp;
+                const double z = profile_cvs[static_cast<size_t>(j)][2];
+                pts.emplace_back(r * std::cos(phi), r * std::sin(phi), z);
+            }
+        }
+        return NurbsSurface::create(true, false, 3, 3, n_around, n_across, pts);
+    }
+
+    const int n_around = std::max(9, static_cast<int>(std::ceil(sector_degrees / 22.5)) + 1);
+    const std::vector<double> u_fracs = clamped_cubic_fractions(n_around);
+    const double total_rad = sector_degrees * Tolerance::TO_RADIANS;
+
+    // Collocate each constant-v hoop arc at Greville abscissae so open sector ends have zero clamped B-spline bulge.
+    std::vector<std::vector<Point>> cols(
+        static_cast<size_t>(n_around), std::vector<Point>(static_cast<size_t>(n_across))
+    );
+    for (int j = 0; j < n_across; j++) {
+        const double r = profile_cvs[static_cast<size_t>(j)][0];
+        const double z = profile_cvs[static_cast<size_t>(j)][2];
+        std::vector<Point> hoop_targets(static_cast<size_t>(n_around));
+        for (int i = 0; i < n_around; i++) {
+            const double phi = total_rad * u_fracs[static_cast<size_t>(i)];
+            hoop_targets[static_cast<size_t>(i)] = Point(r * std::cos(phi), r * std::sin(phi), z);
+        }
+        const std::vector<Point> hoop_cvs = solve_clamped_cubic_1d(hoop_targets);
+        for (int i = 0; i < n_around; i++)
+            cols[static_cast<size_t>(i)][static_cast<size_t>(j)] = hoop_cvs[static_cast<size_t>(i)];
+    }
+
     std::vector<Point> pts;
     pts.reserve(static_cast<size_t>(n_around * n_across));
-
-    for (int i = 0; i < n_around; i++) {
-        const double phi = total_rad * static_cast<double>(i) / static_cast<double>(n_around - 1);
-        for (int j = 0; j < n_across; j++) {
-            const double s = -1.0 + 2.0 * static_cast<double>(j) / static_cast<double>(n_across - 1);
-            const double theta = s * max_theta;
-            const double r = major_radius + half_width * (std::sin(theta) / std::sin(max_theta));
-            const double z = arch_rise * (std::cos(theta) - cos_base) / (1.0 - cos_base);
-            pts.emplace_back(r * std::cos(phi), r * std::sin(phi), z);
-        }
-    }
+    for (int i = 0; i < n_around; i++)
+        for (int j = 0; j < n_across; j++)
+            pts.push_back(cols[static_cast<size_t>(i)][static_cast<size_t>(j)]);
 
     return NurbsSurface::create(false, false, 3, 3, n_around, n_across, pts);
 }
 
 NurbsSurface funnel_vault_surface(double outer_radius, double throat_radius, double height) {
 
-    const int n_around = 17;
+    const int n_unique = 16;
+    const int n_around = n_unique + 3;
     const int n_up = 7;
+    const std::vector<double> v_fracs = clamped_cubic_fractions(n_up);
+    const double dphi = Tolerance::TWO_PI / static_cast<double>(n_unique);
+    const double radial_comp = 3.0 / (2.0 + std::cos(dphi));
+
+    std::vector<Point> meridian_targets(static_cast<size_t>(n_up));
+    for (int j = 0; j < n_up; j++) {
+        const double t = v_fracs[static_cast<size_t>(j)];
+        const double r = throat_radius + (outer_radius - throat_radius) * std::pow(t, 1.75);
+        const double z = height * std::sin(0.5 * Tolerance::PI * t);
+        meridian_targets[static_cast<size_t>(j)] = Point(r, 0.0, z);
+    }
+    const std::vector<Point> meridian_cvs = solve_clamped_cubic_1d(meridian_targets);
+
     std::vector<Point> pts;
     pts.reserve(static_cast<size_t>(n_around * n_up));
-
     for (int i = 0; i < n_around; i++) {
-        const double phi = Tolerance::TWO_PI * static_cast<double>(i) / static_cast<double>(n_around - 1);
+        const double phi = dphi * static_cast<double>(i % n_unique);
         for (int j = 0; j < n_up; j++) {
-            const double t = static_cast<double>(j) / static_cast<double>(n_up - 1);
-            const double r = throat_radius + (outer_radius - throat_radius) * std::pow(t, 1.75);
-            const double z = height * std::sin(0.5 * Tolerance::PI * t);
+            const double r = meridian_cvs[static_cast<size_t>(j)][0] * radial_comp;
+            const double z = meridian_cvs[static_cast<size_t>(j)][2];
             pts.emplace_back(r * std::cos(phi), r * std::sin(phi), z);
         }
     }
 
-    return NurbsSurface::create(false, false, 3, 3, n_around, n_up, pts);
+    return NurbsSurface::create(true, false, 3, 3, n_around, n_up, pts);
 }
 
 std::vector<NurbsSurface> groin_vault_surfaces(double span, double crown_rise, double arch_rise) {
@@ -708,30 +819,96 @@ std::vector<NurbsSurface> sewn_funnel_surfaces(
     int lobes
 ) {
 
+    // Build a single C2-periodic uniform cubic spline of M = 4 * count spans around 2*pi, then extract
+    // each petal [4*k, 4*(k+1)] via exact Bohm knot clamping so all radial patch seams are C2-continuous.
     const int count = std::max(3, lobes);
+    const int spans_per_lobe = 4;
+    const int total_spans = count * spans_per_lobe;
+    const int n_up = 7;
+    const std::vector<double> v_fracs = clamped_cubic_fractions(n_up);
+    const double dphi = Tolerance::TWO_PI / static_cast<double>(total_spans);
+    const double radial_comp = 3.0 / (2.0 + std::cos(dphi));
+    const double lobe_comp = 3.0 / (2.0 + std::cos(static_cast<double>(count) * dphi));
+
+    std::vector<std::vector<Point>> periodic_cols(
+        static_cast<size_t>(total_spans), std::vector<Point>(static_cast<size_t>(n_up))
+    );
+    for (int m = 0; m < total_spans; m++) {
+        const double phi = dphi * static_cast<double>(m);
+        const double cos_wave = std::cos(static_cast<double>(count) * phi) * lobe_comp;
+        const double lobe = 0.5 * (1.0 - cos_wave);
+
+        std::vector<Point> meridian_targets(static_cast<size_t>(n_up));
+        for (int j = 0; j < n_up; j++) {
+            const double v = v_fracs[static_cast<size_t>(j)];
+            const double flare = std::pow(v, 1.65);
+            const double r =
+                (throat_radius + (outer_radius * (0.84 + 0.22 * lobe) - throat_radius) * flare) *
+                radial_comp;
+            const double z =
+                height * std::sin(0.5 * Tolerance::PI * v) + petal_rise * flare * lobe;
+            meridian_targets[static_cast<size_t>(j)] = Point(r * std::cos(phi), r * std::sin(phi), z);
+        }
+        periodic_cols[static_cast<size_t>(m)] = solve_clamped_cubic_1d(meridian_targets);
+    }
+
     std::vector<NurbsSurface> patches;
     patches.reserve(static_cast<size_t>(count));
+    const int patch_u_cvs = 7;
 
     for (int k = 0; k < count; k++) {
-        const double phi0 = Tolerance::TWO_PI * static_cast<double>(k) / static_cast<double>(count);
-        const double phi1 = Tolerance::TWO_PI * static_cast<double>(k + 1) / static_cast<double>(count);
-
-        std::array<std::array<Point, 4>, 4> grid;
-        for (int i = 0; i < 4; i++) {
-            const double u = static_cast<double>(i) / 3.0;
-            const double phi = phi0 + u * (phi1 - phi0);
-            const double lobe = std::sin(Tolerance::PI * u);
-            for (int j = 0; j < 4; j++) {
-                const double v = static_cast<double>(j) / 3.0;
-                const double flare = std::pow(v, 1.65);
-                const double r =
-                    throat_radius + (outer_radius * (0.84 + 0.22 * lobe) - throat_radius) * flare;
-                const double z =
-                    height * std::sin(0.5 * Tolerance::PI * v) + petal_rise * flare * lobe;
-                grid[i][j] = Point(r * std::cos(phi), r * std::sin(phi), z);
-            }
+        const int base = k * spans_per_lobe;
+        std::array<int, 7> ring_ids;
+        for (int offset = -1; offset <= 5; offset++) {
+            const int wrapped = (base + offset + total_spans) % total_spans;
+            ring_ids[static_cast<size_t>(offset + 1)] = wrapped;
         }
-        patches.push_back(bicubic_from_grid(grid));
+
+        std::vector<Point> flat;
+        flat.reserve(static_cast<size_t>(patch_u_cvs * n_up));
+        std::array<std::vector<Point>, 7> clamped_u;
+        for (int c = 0; c < 7; c++)
+            clamped_u[static_cast<size_t>(c)].resize(static_cast<size_t>(n_up));
+
+        for (int j = 0; j < n_up; j++) {
+            const Point& q_m1 = periodic_cols[static_cast<size_t>(ring_ids[0])][static_cast<size_t>(j)];
+            const Point& q_0 = periodic_cols[static_cast<size_t>(ring_ids[1])][static_cast<size_t>(j)];
+            const Point& q_1 = periodic_cols[static_cast<size_t>(ring_ids[2])][static_cast<size_t>(j)];
+            const Point& q_2 = periodic_cols[static_cast<size_t>(ring_ids[3])][static_cast<size_t>(j)];
+            const Point& q_3 = periodic_cols[static_cast<size_t>(ring_ids[4])][static_cast<size_t>(j)];
+            const Point& q_4 = periodic_cols[static_cast<size_t>(ring_ids[5])][static_cast<size_t>(j)];
+            const Point& q_5 = periodic_cols[static_cast<size_t>(ring_ids[6])][static_cast<size_t>(j)];
+
+            clamped_u[0][static_cast<size_t>(j)] = Point(
+                (q_m1[0] + 4.0 * q_0[0] + q_1[0]) / 6.0,
+                (q_m1[1] + 4.0 * q_0[1] + q_1[1]) / 6.0,
+                (q_m1[2] + 4.0 * q_0[2] + q_1[2]) / 6.0
+            );
+            clamped_u[1][static_cast<size_t>(j)] = Point(
+                (2.0 * q_0[0] + q_1[0]) / 3.0,
+                (2.0 * q_0[1] + q_1[1]) / 3.0,
+                (2.0 * q_0[2] + q_1[2]) / 3.0
+            );
+            clamped_u[2][static_cast<size_t>(j)] = q_1;
+            clamped_u[3][static_cast<size_t>(j)] = q_2;
+            clamped_u[4][static_cast<size_t>(j)] = q_3;
+            clamped_u[5][static_cast<size_t>(j)] = Point(
+                (q_3[0] + 2.0 * q_4[0]) / 3.0,
+                (q_3[1] + 2.0 * q_4[1]) / 3.0,
+                (q_3[2] + 2.0 * q_4[2]) / 3.0
+            );
+            clamped_u[6][static_cast<size_t>(j)] = Point(
+                (q_3[0] + 4.0 * q_4[0] + q_5[0]) / 6.0,
+                (q_3[1] + 4.0 * q_4[1] + q_5[1]) / 6.0,
+                (q_3[2] + 4.0 * q_4[2] + q_5[2]) / 6.0
+            );
+        }
+
+        for (int i = 0; i < patch_u_cvs; i++)
+            for (int j = 0; j < n_up; j++)
+                flat.push_back(clamped_u[static_cast<size_t>(i)][static_cast<size_t>(j)]);
+
+        patches.push_back(NurbsSurface::create(false, false, 3, 3, patch_u_cvs, n_up, flat));
     }
 
     return patches;
@@ -1475,6 +1652,8 @@ Mesh SurfaceDivision::bricks(double length, double stagger) const {
         const int min_bricks = closed_u ? 10 : 3;
 
         std::vector<std::vector<double>> course_joints(static_cast<size_t>(courses));
+        double prev_off = 0.0;
+        int prev_count = 0;
         for (int j = 0; j < courses; j++) {
             const double gj_mid = static_cast<double>(j) + 0.5;
             double hoop_len = 0.0;
@@ -1489,9 +1668,44 @@ Mesh SurfaceDivision::bricks(double length, double stagger) const {
             const int count =
                 std::max(min_bricks, static_cast<int>(std::lround(hoop_len / target_len)));
             const double step = static_cast<double>(g.u) / count;
-            const double off = (j % 2 == 1) ? shift_frac * step : 0.0;
+            double off = (j % 2 == 1) ? shift_frac * step : 0.0;
 
             if (closed_u) {
+                if (j == 0) {
+                    off = 0.0;
+                } else if (count == prev_count) {
+                    off = std::fmod(prev_off + shift_frac * step, step);
+                } else {
+                    // Maximize minimum circular joint separation from the previous course so head joints never align.
+                    const double span_u = static_cast<double>(g.u);
+                    const double desired = std::fmod(prev_off + shift_frac * step, step);
+                    double best_score = -1.0;
+                    double best_off = desired;
+                    const int candidates = 120;
+                    for (int c = 0; c < candidates; c++) {
+                        const double cand = step * static_cast<double>(c) / static_cast<double>(candidates);
+                        double min_sep = span_u;
+                        for (int k = 0; k < count; k++) {
+                            const double j_pos = cand + k * step;
+                            for (size_t m = 0; m + 1 < course_joints[static_cast<size_t>(j - 1)].size(); m++) {
+                                double diff = std::abs(j_pos - course_joints[static_cast<size_t>(j - 1)][m]);
+                                diff = std::fmod(diff, span_u);
+                                diff = std::min(diff, span_u - diff);
+                                min_sep = std::min(min_sep, diff);
+                            }
+                        }
+                        double phase_bias = std::abs(cand - desired);
+                        phase_bias = std::min(phase_bias, step - phase_bias);
+                        const double score = min_sep - 1e-3 * phase_bias;
+                        if (score > best_score) {
+                            best_score = score;
+                            best_off = cand;
+                        }
+                    }
+                    off = best_off;
+                }
+                prev_off = off;
+                prev_count = count;
                 for (int k = 0; k <= count; k++)
                     course_joints[j].push_back(off + k * step);
             } else {
