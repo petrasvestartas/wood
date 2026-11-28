@@ -638,7 +638,13 @@ void resolve_planar_block_overlaps(std::vector<std::shared_ptr<Element>>& elemen
                 continue;
             }
             const Point cm = Point::centroid(cpts);
-            Vector sep = centres[j] - centres[i];
+            // Use the wafer-thin intersection's minimum-variance PCA axis (the true shared joint normal!)
+            // rather than centres[j] - centres[i] so staggered running-bond bricks never get 45-degree corner chops!
+            const Plane sliver_pca = Plane::from_points_pca(cpts);
+            Vector sep = sliver_pca.z_axis();
+            if (sep.dot(centres[j] - centres[i]) < 0.0) {
+                sep = -sep;
+            }
             if (!sep.normalize_self()) {
                 continue;
             }
@@ -2102,8 +2108,8 @@ TileVaultGuide TileVaultGuide::funicular_running_blocks() {
     guide.shell = materialisation_vault_shell();
     guide.pattern = RUNNING_BOND;
     guide.materialisation = MERGED_BLOCKS;
-    guide.tile_width = 180.0;
-    guide.thickness = 110.0;
+    guide.tile_width = 130.0;
+    guide.thickness = 70.0;
     guide.shapeup_iterations = 50;
     guide.planar_sides = true;
     guide.trim_base = true;
@@ -2117,9 +2123,9 @@ TileVaultGuide TileVaultGuide::funicular_standard_tiles() {
     guide.shell = materialisation_vault_shell();
     guide.pattern = RUNNING_BOND;
     guide.materialisation = STANDARD_TILES;
-    guide.tile_width = 160.0;
-    guide.thickness = 28.0;
-    guide.mortar_gap = 6.0;
+    guide.tile_width = 130.0;
+    guide.thickness = 26.0;
+    guide.mortar_gap = 5.0;
     guide.shapeup_iterations = 50;
     guide.trim_base = false;
 
@@ -2132,8 +2138,8 @@ TileVaultGuide TileVaultGuide::funicular_herringbone_blocks() {
     guide.shell = materialisation_vault_shell();
     guide.pattern = HERRINGBONE;
     guide.materialisation = MERGED_BLOCKS;
-    guide.tile_width = 180.0;
-    guide.thickness = 100.0;
+    guide.tile_width = 135.0;
+    guide.thickness = 70.0;
     guide.orientation_degrees = 45.0;
     guide.shapeup_iterations = 50;
     guide.planar_sides = true;
@@ -2148,8 +2154,8 @@ TileVaultGuide TileVaultGuide::funicular_geodesic_blocks() {
     guide.shell = materialisation_vault_shell();
     guide.pattern = GEODESIC_COURSES;
     guide.materialisation = MERGED_BLOCKS;
-    guide.tile_width = 175.0;
-    guide.thickness = 105.0;
+    guide.tile_width = 135.0;
+    guide.thickness = 70.0;
     guide.polar_geodesics = true;
     guide.planar_sides = true;
     guide.trim_base = true;
@@ -5824,7 +5830,7 @@ Mesh geodesic_brick_pattern(
     std::vector<bool> w_bnd;
     std::vector<bool> w_sharp;
     std::vector<size_t> pt_remap(brick_pts.size(), 0);
-    const double weld_tol = std::max(1.5, 0.045 * h_bed);
+    const double weld_tol = std::max(2.0, 0.095 * h_bed);
     const double weld_sq = weld_tol * weld_tol;
     for (size_t i = 0; i < brick_pts.size(); i++) {
         size_t found = w_pts.size();
@@ -5951,9 +5957,113 @@ Mesh geodesic_brick_pattern(
         b = std::move(expanded);
     }
 
+    // Merge any tiny sliver polygons (< 0.16 * h_bed^2) into their longest-shared-edge neighbor so zero holes appear!
+    for (int merge_pass = 0; merge_pass < 16; merge_pass++) {
+        bool merged_any = false;
+        for (size_t bi = 0; bi < clean_bricks.size(); bi++) {
+            const std::vector<size_t>& b = clean_bricks[bi];
+            if (b.size() < 3) {
+                continue;
+            }
+            Point ctr(0.0, 0.0, 0.0);
+            for (const size_t vid : b) {
+                ctr = ctr + Vector(w_pts[vid][0], w_pts[vid][1], w_pts[vid][2]);
+            }
+            ctr = Point(
+                ctr[0] / static_cast<double>(b.size()),
+                ctr[1] / static_cast<double>(b.size()),
+                ctr[2] / static_cast<double>(b.size())
+            );
+            Vector avec(0.0, 0.0, 0.0);
+            for (size_t k = 0; k < b.size(); k++) {
+                avec = avec + (w_pts[b[k]] - ctr).cross(w_pts[b[(k + 1) % b.size()]] - ctr);
+            }
+            const double area_b = 0.5 * avec.magnitude();
+            if (area_b >= 0.16 * h_bed * h_bed) {
+                continue;
+            }
+
+            // Find neighbor brick bj sharing the longest edge with bi
+            std::set<std::pair<size_t, size_t>> bi_edges;
+            for (size_t k = 0; k < b.size(); k++) {
+                bi_edges.insert(ordered_pair(b[k], b[(k + 1) % b.size()]));
+            }
+            size_t best_bj = clean_bricks.size();
+            double best_shared_len = -1.0;
+            for (size_t bj = 0; bj < clean_bricks.size(); bj++) {
+                if (bj == bi || clean_bricks[bj].size() < 3) {
+                    continue;
+                }
+                const std::vector<size_t>& nb = clean_bricks[bj];
+                double sh_len = 0.0;
+                for (size_t k = 0; k < nb.size(); k++) {
+                    const std::pair<size_t, size_t> ek = ordered_pair(nb[k], nb[(k + 1) % nb.size()]);
+                    if (bi_edges.count(ek)) {
+                        sh_len += w_pts[ek.first].distance(w_pts[ek.second]);
+                    }
+                }
+                if (sh_len > best_shared_len && sh_len > 1e-3) {
+                    best_shared_len = sh_len;
+                    best_bj = bj;
+                }
+            }
+            if (best_bj == clean_bricks.size()) {
+                continue;
+            }
+
+            // Dissolve shared half-edges between bi and best_bj
+            std::set<std::pair<size_t, size_t>> hes;
+            for (const size_t src : {bi, best_bj}) {
+                const std::vector<size_t>& lp = clean_bricks[src];
+                for (size_t k = 0; k < lp.size(); k++) {
+                    const std::pair<size_t, size_t> opp = {lp[(k + 1) % lp.size()], lp[k]};
+                    if (hes.count(opp)) {
+                        hes.erase(opp);
+                    } else {
+                        hes.insert({lp[k], lp[(k + 1) % lp.size()]});
+                    }
+                }
+            }
+            std::map<size_t, size_t> nxt;
+            bool simple_loop = (hes.size() >= 3);
+            for (const std::pair<size_t, size_t>& he : hes) {
+                if (nxt.count(he.first)) {
+                    simple_loop = false;
+                    break;
+                }
+                nxt[he.first] = he.second;
+            }
+            if (!simple_loop) {
+                continue;
+            }
+            std::vector<size_t> cyc;
+            size_t cur_v = hes.begin()->first;
+            for (size_t s = 0; s < hes.size(); s++) {
+                cyc.push_back(cur_v);
+                if (!nxt.count(cur_v)) {
+                    simple_loop = false;
+                    break;
+                }
+                cur_v = nxt[cur_v];
+            }
+            if (simple_loop && cur_v == hes.begin()->first && cyc.size() == hes.size()) {
+                clean_bricks[best_bj] = std::move(cyc);
+                clean_bricks[bi].clear();
+                merged_any = true;
+                break;
+            }
+        }
+        if (!merged_any) {
+            break;
+        }
+    }
+
     std::vector<std::vector<Point>> out_rings;
     std::vector<std::vector<Vector>> out_norms;
     for (const std::vector<size_t>& b : clean_bricks) {
+        if (b.size() < 3) {
+            continue;
+        }
         Point ctr(0.0, 0.0, 0.0);
         for (const size_t vid : b) {
             ctr = ctr + Vector(w_pts[vid][0], w_pts[vid][1], w_pts[vid][2]);
@@ -5967,7 +6077,7 @@ Mesh geodesic_brick_pattern(
         for (size_t k = 0; k < b.size(); k++) {
             avec = avec + (w_pts[b[k]] - ctr).cross(w_pts[b[(k + 1) % b.size()]] - ctr);
         }
-        if (0.5 * avec.magnitude() < 0.04 * h_bed * h_bed) {
+        if (0.5 * avec.magnitude() < 0.01 * h_bed * h_bed) {
             continue;
         }
         std::vector<Point> r;
@@ -6347,7 +6457,7 @@ std::vector<std::shared_ptr<Element>> tile_vault(
             }
         }
     } else if (guide.pattern == TileVaultGuide::GEODESIC_COURSES) {
-        // Extrude conformal T-jointed geodesic-coordinate brick polygons (including concave polar oculus rings)
+        // Extrude conformal T-jointed geodesic-coordinate brick courses via exact planarized ngon_solids
         NgonSolidMetrics ngon_m;
         const std::vector<std::shared_ptr<NodeBlockElement>> solids = ngon_solids(
             brick_mesh,
@@ -6372,48 +6482,6 @@ std::vector<std::shared_ptr<Element>> tile_vault(
             Mesh wm = gm.weld(0.1);
             if (wm.number_of_faces() >= 4 && manifold_solid(wm)) {
                 elements.push_back(std::make_shared<NodeBlockElement>(wm, blk->name));
-                continue;
-            }
-            // Convex planar half-space fallback when a curved boundary sliver twists under offset
-            const std::vector<Point> pts_b = gm.to_vertices_and_faces().first;
-            if (pts_b.size() < 4) {
-                continue;
-            }
-            const Point cb = Point::centroid(pts_b);
-            const Plane pca_b = Plane::from_points_pca(pts_b);
-            std::vector<Plane> fcuts;
-            for (const Polyline& ol : gm.face_outlines()) {
-                std::vector<Point> op = ol.get_points();
-                if (op.size() < 4) {
-                    continue;
-                }
-                op.pop_back();
-                const Plane fp = Plane::from_points_pca(op);
-                const Point oc = Point::centroid(op);
-                Vector in_n = fp.z_axis();
-                if ((cb - oc).dot(in_n) < 0.0) {
-                    in_n = -in_n;
-                }
-                fcuts.push_back(plane_with_normal(oc, in_n));
-            }
-            const std::shared_ptr<NodeBlockElement> fbox = make_box_tile_element(
-                cb,
-                pca_b.x_axis(),
-                pca_b.y_axis(),
-                pca_b.z_axis(),
-                6.0 * guide.tile_width,
-                6.0 * guide.tile_width,
-                4.0 * guide.thickness,
-                false,
-                0.0,
-                blk->name
-            );
-            if (fbox) {
-                const Mesh csolid = cut_mesh(fbox->element_geometry_mesh(), fcuts);
-                if (csolid.number_of_faces() >= 4 && manifold_solid(csolid) &&
-                    compute_volume(csolid) > 50.0) {
-                    elements.push_back(std::make_shared<NodeBlockElement>(csolid, blk->name));
-                }
             }
         }
         resolve_planar_block_overlaps(elements);
