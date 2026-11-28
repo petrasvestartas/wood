@@ -21,7 +21,24 @@ from PIL import Image, ImageChops
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 PYTHON = WOOD.parent / "laika/laika_py/.venv/bin/python"
-RENDERER = WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+RENDERER = pathlib.Path(
+    os.environ["LAIKA_VIEWER_CLI"]
+    if "LAIKA_VIEWER_CLI" in os.environ
+    else next(
+        (
+            str(p)
+            for p in (
+                WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/laika-viewer-cli",
+                WOOD.parent / "laika/laika_viewer/target/release/laika-viewer-cli",
+                WOOD.parent / "laika/laika_viewer/target/x86_64-pc-windows-msvc/release/laika-viewer-cli.exe",
+                pathlib.Path.home() / "code/code_rust/laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/laika-viewer-cli",
+                pathlib.Path.home() / "code/code_rust/laika/laika_viewer/target/release/laika-viewer-cli",
+            )
+            if p.exists()
+        ),
+        str(WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/laika-viewer-cli"),
+    )
+)
 PICTURES = WOOD / "docs/images/joint_library"
 RECORDS = "".join(path.read_text() for path in sorted((WOOD / "data/joints").glob("*.yaml")))  # Every record, for its family.
 SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, so a row of the page reads as one.
@@ -59,72 +76,76 @@ joints = plan.get("joints", [variant])
 def is_part(name):
     return name in plan["parts"] if "parts" in plan else re.search(r"_(part|pin)(_[0-9]+)?$", name) is not None
 
-def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
-    branch = Session.pb_load(scene_path)
-    if design != "-":
-        branch = branch.get_branch(design)
-    for edge in list(branch.interactions):
-        branch.interactions[edge] = []
-    # no arrows, no base planes and no joint element: undrawn, they would still widen the camera's framing (the joint's empty
-    # box sits at the origin); the joint's parts, which hang under it, go back in at the root
-    for line in list(branch.objects.lines) + list(branch.objects.planes) + list(branch.objects.polylines) + [pc for pc in branch.objects.pointclouds if not pc.is_visible]:
-        branch.remove_object(line.guid)
-    for pc in list(branch.objects.pointclouds):
-        if design != "-" or not pc.name.startswith(variant):
-            branch.remove_object(pc.guid)
-        else:
-            pc.transform(Xform.translation(*shift))
-    for element in list(branch.objects.elements):
-        if element.name in joints:
-            branch.remove_object(element.guid)
-    for element in list(branch.objects.elements):
-        if element.name.startswith(variant) and is_part(element.name):
-            branch.remove_object(element.guid)
-            branch.add_element(element)
-    for element in list(branch.objects.elements):
-        # the corner's members and parts only
-        if not element.name.startswith(variant):
-            branch.remove_object(element.guid)
-            continue
-        element.set_features([])
-        # its moves, then the shift that centres every frame's bounds on the origin, where the renderer frames best
-        placed = Xform.translation(*shift) * placement(frame["moves"].get(element.name) or [])
-        element.place(placed)
-        part = is_part(element.name)
-        # the moving piece and the parts brown in both passes, the solid one laying it over the see-through drawing
-        moving = element.name == frame["moving"]
-        colour = [0.4196, 0.2667, 0.1373, 1.0] if part or moving else [0.55, 0.55, 0.55, 1.0] if solid else None
-        if colour:
-            branch.set_node_color(branch.get_node(element.guid), Color(*colour))
-    return branch
+branch = Session.pb_load(scene_path)
+if design != "-":
+    branch = branch.get_branch(design)
+for edge in list(branch.interactions):
+    branch.interactions[edge] = []
+# no arrows, no base planes and no joint element: undrawn, they would still widen the camera's framing (the joint's empty
+# box sits at the origin); the joint's parts, which hang under it, go back in at the root
+for line in list(branch.objects.lines) + list(branch.objects.planes) + list(branch.objects.polylines) + [pc for pc in branch.objects.pointclouds if not pc.is_visible]:
+    branch.remove_object(line.guid)
+for pc in list(branch.objects.pointclouds):
+    if design != "-" or not pc.name.startswith(variant):
+        branch.remove_object(pc.guid)
+for element in list(branch.objects.elements):
+    if element.name in joints:
+        branch.remove_object(element.guid)
+for element in list(branch.objects.elements):
+    if element.name.startswith(variant) and is_part(element.name):
+        branch.remove_object(element.guid)
+        branch.add_element(element)
+kept = []
+for element in list(branch.objects.elements):
+    if not element.name.startswith(variant):
+        branch.remove_object(element.guid)
+        continue
+    element.set_features([])
+    world = branch.world_xform(element.guid)
+    if world is not None:
+        element.place(world)
+        branch.remove_xform(element.guid)
+    kept.append((element, element.aabb.get_corners(), is_part(element.name), branch.get_node(element.guid)))
 
 # the bounds of every frame, so all are drawn from one camera
 low, high = [1e18] * 3, [-1e18] * 3
 for frame in plan["frames"]:
-    drawn = frame_branch(frame, False)
-    for element in drawn.objects.elements:
-        for corner in element.aabb.get_corners():
+    for element, corners, _, _ in kept:
+        xf = placement(frame["moves"].get(element.name) or [])
+        for corner in corners:
+            p = corner.transformed(xf)
             for k in range(3):
-                low[k] = min(low[k], corner[k])
-                high[k] = max(high[k], corner[k])
-    for pc in drawn.objects.pointclouds:
-        coords = pc.coords()
-        for i in range(0, len(coords), 3):
-            for k in range(3):
-                low[k] = min(low[k], coords[i + k])
-                high[k] = max(high[k], coords[i + k])
+                low[k] = min(low[k], p[k])
+                high[k] = max(high[k], p[k])
+for pc in branch.objects.pointclouds:
+    coords = pc.coords()
+    for i in range(0, len(coords), 3):
+        for k in range(3):
+            low[k] = min(low[k], coords[i + k])
+            high[k] = max(high[k], coords[i + k])
 shift = [-(a + b) / 2 for a, b in zip(low, high)]
 low = [a + d for a, d in zip(low, shift)]
 high = [b + d for b, d in zip(high, shift)]
+shift_xf = Xform.translation(*shift)
+for pc in branch.objects.pointclouds:
+    pc.transform(shift_xf)
+for a, b in ((low, [low[0] + 0.5, low[1], low[2]]), (high, [high[0] - 0.5, high[1], high[2]])):
+    mark = Line.from_points(Point(*a), Point(*b))
+    mark.linecolor = Color(0.969, 0.969, 0.969, 1.0)
+    branch.add_line(mark, None)
+
+BROWN = Color(0.4196, 0.2667, 0.1373, 1.0)
+GREY = Color(0.55, 0.55, 0.55, 1.0)
 paths = []
 for n, frame in enumerate(plan["frames"]):
+    for element, _, _, _ in kept:
+        branch.set_xform(element.guid, shift_xf * placement(frame["moves"].get(element.name) or []))
     pair = []
     for solid in (False, True):
-        branch = frame_branch(frame, solid, shift)
-        for a, b in ((low, [low[0] + 0.5, low[1], low[2]]), (high, [high[0] - 0.5, high[1], high[2]])):
-            mark = Line.from_points(Point(*a), Point(*b))
-            mark.linecolor = Color(0.969, 0.969, 0.969, 1.0)
-            branch.add_line(mark, None)
+        for element, _, part, node in kept:
+            moving = element.name == frame["moving"]
+            colour = BROWN if part or moving else GREY if solid else None
+            branch.set_node_color(node, colour)
         path = "%s/frame_%03d%s.pb" % (out, n, "_solid" if solid else "")
         branch.pb_dump(path)
         pair.append(path)
@@ -178,13 +199,15 @@ def plan_frames(order: list, slides: int) -> list:
 def render(pb: str, target: list, opacity: str) -> Image.Image:
     """One pass drawn isometric at 3600 x 2400 in the Arctic look, aimed at target, the outline twice its width for the halving."""
     env = dict(
-        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY=opacity, VIEWER_W="3600", VIEWER_H="2400", VIEWER_DPR="2",
-        VIEWER_THICKNESS="1", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0", VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
+        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY=opacity,
+        VIEWER_W=os.environ.get("VIEWER_W", "3600"), VIEWER_H=os.environ.get("VIEWER_H", "2400"),
+        VIEWER_DPR="2", VIEWER_THICKNESS="1", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0",
+        VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
         VIEWER_TARGET=",".join(f"{value:.3f}" for value in target),
     )
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
-        subprocess.run([str(RENDERER), str(ppm), pb], env=env, check=True, capture_output=True)
+        subprocess.run([str(RENDERER), "render-pb", str(ppm), pb], env=env, check=True, capture_output=True)
         return Image.open(ppm).convert("RGB")
 
 

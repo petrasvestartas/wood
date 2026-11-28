@@ -134,6 +134,95 @@ int main() {
         }
     }
 
+    // 3. Top-to-top overlapping raw-log splice with surfaced lap seat and four vertical dowels (Thesis Fig. 5.3 D)
+    const std::shared_ptr<TreeNode> top_top_group = scene.group_named("top_top_dowels");
+    const Vector lap_shift(1260.0, -728.0, 460.0);
+    const std::shared_ptr<EdgeRawElement> lap_lower = EdgeRawElement::from_stock(
+        Line::from_points(Point(-560.0, 0.0, 0.0) + lap_shift, Point(175.0, 0.0, 0.0) + lap_shift),
+        54.0,
+        "raw_log_0",
+        25.0,
+        true,
+        "lap_lower"
+    );
+    lap_lower->cuts = {
+        Plane::from_point_normal(Point(-540.0, 0.0, 0.0) + lap_shift, {1.0, 0.0, 0.0}),
+        Plane::from_point_normal(Point(175.0, 0.0, 0.0) + lap_shift, {-1.0, 0.0, 0.0}),
+    };
+    const std::shared_ptr<EdgeRawElement> lap_upper = EdgeRawElement::from_stock(
+        Line::from_points(Point(-175.0, 0.0, 82.0) + lap_shift, Point(560.0, 0.0, 82.0) + lap_shift),
+        54.0,
+        "raw_log_1",
+        110.0,
+        true,
+        "lap_upper"
+    );
+    lap_upper->cuts = {
+        Plane::from_point_normal(Point(-175.0, 0.0, 82.0) + lap_shift, {1.0, 0.0, 0.0}),
+        Plane::from_point_normal(Point(540.0, 0.0, 82.0) + lap_shift, {-1.0, 0.0, 0.0}),
+    };
+    scene.add(lap_lower, top_top_group);
+    scene.add(lap_upper, top_top_group);
+
+    // Surfaced face-to-face contact saddle at z = 41 + lap_shift.z with vertical insertion for lap_upper
+    const auto make_box_mesh = [](const Point& c, double hx, double hy, double hz) {
+        const Polyline b({
+            Point(c[0] - hx, c[1] - hy, c[2] - hz),
+            Point(c[0] + hx, c[1] - hy, c[2] - hz),
+            Point(c[0] + hx, c[1] + hy, c[2] - hz),
+            Point(c[0] - hx, c[1] + hy, c[2] - hz),
+            Point(c[0] - hx, c[1] - hy, c[2] - hz),
+        });
+        return Mesh::loft({b}, {b.translated(Vector(0.0, 0.0, 2.0 * hz))}, true);
+    };
+    const Mesh cut_lower_top = make_box_mesh(Point(0.0, 0.0, 86.0) + lap_shift, 185.0, 95.0, 45.0);
+    const Mesh cut_upper_bot = make_box_mesh(Point(0.0, 0.0, -4.0) + lap_shift, 185.0, 95.0, 45.0);
+    const std::shared_ptr<JointBeamElement> lap_seat = std::make_shared<JointBeamElement>();
+    lap_seat->name = "lap_seat";
+    lap_seat->is_visible = false;
+    lap_seat->targets = {lap_lower->guid(), lap_upper->guid()};
+    lap_seat->target_insertions = {{{0.0, 0.0, 1.0}}, {{0.0, 0.0, -1.0}}};
+    JointCutStep lap_a;
+    lap_a.label = "A2";
+    lap_a.target = 0;
+    lap_a.removal = cut_lower_top;
+    JointCutStep lap_b;
+    lap_b.label = "B2";
+    lap_b.target = 1;
+    lap_b.removal = cut_upper_bot;
+    lap_seat->steps = {lap_a, lap_b};
+    scene.add(lap_seat, top_top_group);
+    scene.add_interaction(lap_seat, lap_lower, lap_seat->interaction(0));
+    scene.add_interaction(lap_seat, lap_upper, lap_seat->interaction(1));
+
+    const std::array<Point, 4> dowel_xy = {{
+        Point(-95.0, -17.0, 0.0),
+        Point(-95.0, 17.0, 0.0),
+        Point(95.0, -17.0, 0.0),
+        Point(95.0, 17.0, 0.0),
+    }};
+    for (size_t d = 0; d < dowel_xy.size(); d++) {
+        const Line d_axis = Line::from_points(
+            Point(dowel_xy[d][0], dowel_xy[d][1], -18.0) + lap_shift,
+            Point(dowel_xy[d][0], dowel_xy[d][1], 102.0) + lap_shift
+        );
+        const std::shared_ptr<JointPinElement> dowel =
+            std::make_shared<JointPinElement>(d_axis, 7.5, 0.05);
+        dowel->name = fmt::format("top_top_dowel_{}", d);
+        scene.add(dowel, top_top_group);
+
+        Line bore_axis = d_axis;
+        bore_axis.extend_equally(40.0);
+        for (size_t m = 0; m < 2; m++) {
+            const std::shared_ptr<EdgeRawElement>& member = m == 0 ? lap_lower : lap_upper;
+            const std::shared_ptr<JointElement> bore = JointElement::drill(bore_axis, 7.5);
+            bore->name = fmt::format("top_top_bore_{}_{}", d, m);
+            bore->is_visible = false;
+            scene.add(bore, top_top_group);
+            scene.add_interaction(bore, member, bore->interaction(0));
+        }
+    }
+
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;

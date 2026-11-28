@@ -188,6 +188,127 @@ std::shared_ptr<EdgeRawElement> EdgeRawElement::from_registered_stock(
     return edge;
 }
 
+std::shared_ptr<EdgeRawElement> EdgeRawElement::from_bent_stock(
+    const Polyline& curve_axis,
+    double radius,
+    const std::string& stock_name,
+    double roll_degrees,
+    const std::string& name
+) {
+
+    const std::vector<Point> pts = curve_axis.get_points();
+    if (pts.size() < 2)
+        throw std::invalid_argument("EdgeRawElement::from_bent_stock requires at least 2 axis points");
+    if (pts.size() == 2)
+        return from_stock(Line::from_points(pts[0], pts[1]), radius, stock_name, roll_degrees, true, name);
+
+    const StockData stock = load_stock_data(stock_name);
+    const size_t n_pts = pts.size();
+    const size_t n_seg = n_pts - 1;
+
+    std::vector<double> cum(n_pts, 0.0);
+    std::vector<Vector> seg_tan(n_seg);
+    for (size_t i = 0; i < n_seg; i++) {
+        const Vector d = pts[i + 1] - pts[i];
+        cum[i + 1] = cum[i] + d.magnitude();
+        seg_tan[i] = d.normalized();
+    }
+    const double curve_len = cum.back();
+
+    std::vector<Vector> vtx_tan(n_pts);
+    vtx_tan[0] = seg_tan[0];
+    vtx_tan[n_pts - 1] = seg_tan[n_seg - 1];
+    for (size_t i = 1; i + 1 < n_pts; i++)
+        vtx_tan[i] = (seg_tan[i - 1] + seg_tan[i]).normalized();
+
+    const Plane frame0 = Plane::from_point_normal(pts[0], vtx_tan[0]);
+    const double rad = roll_degrees * Tolerance::PI / 180.0;
+    Vector x0 = frame0.x_axis() * std::cos(rad) + frame0.y_axis() * std::sin(rad);
+    Vector y0 = vtx_tan[0].cross(x0).normalized();
+
+    std::vector<Vector> vtx_x(n_pts), vtx_y(n_pts);
+    vtx_x[0] = x0;
+    vtx_y[0] = y0;
+    for (size_t i = 1; i < n_pts; i++) {
+        Vector xi = vtx_x[i - 1] - vtx_tan[i] * vtx_x[i - 1].dot(vtx_tan[i]);
+        if (xi.magnitude() < 1e-9)
+            xi = Plane::from_point_normal(pts[i], vtx_tan[i]).x_axis();
+        else
+            xi = xi.normalized();
+        vtx_x[i] = xi;
+        vtx_y[i] = vtx_tan[i].cross(xi).normalized();
+    }
+
+    const auto [src_verts, src_faces] = stock.mesh.to_vertices_and_faces();
+    double z_low = std::numeric_limits<double>::max();
+    double z_high = std::numeric_limits<double>::lowest();
+    for (const Point& p : src_verts) {
+        z_low = std::min(z_low, p[2]);
+        z_high = std::max(z_high, p[2]);
+    }
+    const double z_mid = 0.5 * (z_low + z_high);
+
+    const auto warp_point = [&](const Point& p) -> Point {
+        const double s = 0.5 * curve_len + (p[2] - z_mid);
+        if (s <= 0.0)
+            return pts[0] + vtx_tan[0] * s + vtx_x[0] * p[0] + vtx_y[0] * p[1];
+        if (s >= curve_len)
+            return pts.back() + vtx_tan.back() * (s - curve_len) + vtx_x.back() * p[0]
+                   + vtx_y.back() * p[1];
+        const auto it = std::upper_bound(cum.begin(), cum.end(), s);
+        const size_t idx = std::min<size_t>(
+            n_seg - 1, static_cast<size_t>(std::max<std::ptrdiff_t>(0, (it - cum.begin()) - 1))
+        );
+        const double seg_len = std::max(1e-9, cum[idx + 1] - cum[idx]);
+        const double t = (s - cum[idx]) / seg_len;
+        const Point c = pts[idx] + (pts[idx + 1] - pts[idx]) * t;
+        const Vector tz = (vtx_tan[idx] * (1.0 - t) + vtx_tan[idx + 1] * t).normalized();
+        Vector tx = vtx_x[idx] * (1.0 - t) + vtx_x[idx + 1] * t;
+        tx = (tx - tz * tx.dot(tz)).normalized();
+        const Vector ty = tz.cross(tx).normalized();
+        return c + tx * p[0] + ty * p[1];
+    };
+
+    std::vector<Point> bent_verts;
+    bent_verts.reserve(src_verts.size());
+    for (const Point& p : src_verts)
+        bent_verts.push_back(warp_point(p));
+    std::vector<std::vector<size_t>> tri_faces;
+    tri_faces.reserve(src_faces.size() * 2);
+    for (const std::vector<size_t>& face : src_faces) {
+        for (size_t k = 1; k + 1 < face.size(); k++)
+            tri_faces.push_back({face[0], face[k], face[k + 1]});
+    }
+    const Mesh bent_mesh = Mesh::from_vertices_and_faces(bent_verts, tri_faces);
+
+    PointCloud bent_cloud;
+    if (!stock.cloud.is_empty()) {
+        std::vector<Point> cpts = stock.cloud.get_points();
+        for (Point& cp : cpts)
+            cp = warp_point(cp);
+        bent_cloud = PointCloud(cpts, stock.cloud.get_normals(), stock.cloud.get_colors());
+        bent_cloud.point_size = stock.cloud.point_size;
+    }
+
+    std::shared_ptr<EdgeRawElement> edge = std::make_shared<EdgeRawElement>();
+    edge->name = name;
+    edge->axis = curve_axis;
+    edge->radii.assign(n_seg, radius);
+    edge->directions.reserve(n_seg);
+    for (size_t i = 0; i < n_seg; i++) {
+        Vector dir = vtx_y[i] - seg_tan[i] * vtx_y[i].dot(seg_tan[i]);
+        edge->directions.push_back(
+            dir.magnitude() > 1e-9 ? dir.normalized()
+                                   : Plane::from_point_normal(pts[i], seg_tan[i]).y_axis()
+        );
+    }
+    edge->profile = {circle_ring(radius, 0.2)};
+    edge->round_radius = radius;
+    edge->attach_raw(bent_mesh, bent_cloud, Xform::identity());
+
+    return edge;
+}
+
 std::shared_ptr<EdgeRawElement> EdgeRawElement::from_element(Element element) {
 
     const std::string bytes = element.element_data_dumps();
@@ -279,6 +400,43 @@ std::shared_ptr<EdgeRawElement> EdgeRawElement::branch_proxy(
 
     const double limb_radius = branch_radius > 0.0 ? branch_radius : 0.85 * radius(0);
     std::shared_ptr<EdgeRawElement> proxy = round(line, limb_radius, 0.2, name);
+    proxy->guid() = guid();
+    proxy->raw_mesh = raw_mesh;
+    proxy->raw_xform = raw_xform;
+    proxy->use_raw_mesh = false;
+
+    return proxy;
+}
+
+std::shared_ptr<EdgeRawElement>
+EdgeRawElement::segment_proxy(const Point& near_point, double half_span) const {
+
+    const std::vector<Point> pts = axis.get_points();
+    if (pts.size() < 2)
+        throw std::out_of_range(name + ": axis has fewer than 2 points");
+
+    double best_d2 = std::numeric_limits<double>::max();
+    Point best_pt = pts[0];
+    Vector best_tan = (pts[1] - pts[0]).normalized();
+    for (size_t i = 0; i + 1 < pts.size(); i++) {
+        const Vector seg = pts[i + 1] - pts[i];
+        const double len2 = seg.dot(seg);
+        if (len2 < 1e-12)
+            continue;
+        const double t = std::clamp((near_point - pts[i]).dot(seg) / len2, 0.0, 1.0);
+        const Point proj = pts[i] + seg * t;
+        const Vector diff = near_point - proj;
+        const double d2 = diff.dot(diff);
+        if (d2 < best_d2) {
+            best_d2 = d2;
+            best_pt = proj;
+            best_tan = seg.normalized();
+        }
+    }
+
+    const Line local_line =
+        Line::from_points(best_pt - best_tan * half_span, best_pt + best_tan * half_span);
+    std::shared_ptr<EdgeRawElement> proxy = round(local_line, radius(0), 0.2, name);
     proxy->guid() = guid();
     proxy->raw_mesh = raw_mesh;
     proxy->raw_xform = raw_xform;

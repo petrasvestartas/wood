@@ -240,7 +240,7 @@ def render(pb: str, opacity: str) -> Image.Image:
     )
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
-        subprocess.run([str(library.RENDERER), str(ppm), pb], env=env, check=True, capture_output=True)
+        subprocess.run([str(library.RENDERER), "render-pb", str(ppm), pb], env=env, check=True, capture_output=True)
         return Image.open(ppm).convert("RGB")
 
 

@@ -16,10 +16,12 @@ import av
 import hero_moves
 from PIL import Image, ImageChops
 
-WOOD = pathlib.Path(__file__).resolve().parents[1]
-SESSION = WOOD.parent / "laika"
-PYTHON = SESSION / "laika_py/.venv/bin/python"
-RENDERER = SESSION / "laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+import render_joint_library_gifs as library
+
+WOOD = library.WOOD
+LAIKA = WOOD.parent / "laika"
+PYTHON = library.PYTHON
+RENDERER = library.RENDERER
 EXAMPLE = "templates_floor_7_contacts_cantilevers"
 WORK = WOOD / "build/hero"  # The scenes and the frames: too many for a temporary folder in memory.
 RENDERED = (8000, 6400)  # What is drawn, before the crop.
@@ -87,7 +89,7 @@ def render(scene: pathlib.Path) -> Image.Image:
         VIEWER_THICKNESS="0.5", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0", VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
     )
     picture = scene.with_suffix(".ppm")
-    subprocess.run([str(RENDERER), str(picture), str(scene)], env=env, check=True, capture_output=True)
+    subprocess.run([str(RENDERER), "render-pb", str(picture), str(scene)], env=env, check=True, capture_output=True)
     image = Image.open(picture).convert("RGB")
     picture.unlink()
     return image

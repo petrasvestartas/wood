@@ -68,6 +68,15 @@ public:
         const std::string& name = "edge_raw"
     );
 
+    /// A curved raw member whose stock `data/raw/<stock_name>` is bent smoothly along `curve_axis` by parallel-transport frames.
+    static std::shared_ptr<EdgeRawElement> from_bent_stock(
+        const Polyline& curve_axis,
+        double radius,
+        const std::string& stock_name,
+        double roll_degrees = 0.0,
+        const std::string& name = "edge_raw"
+    );
+
     /// The raw member an Element tagged "EdgeRawElement" describes, same guid.
     static std::shared_ptr<EdgeRawElement> from_element(Element element);
 
@@ -99,6 +108,10 @@ public:
         const std::optional<Line>& proxy_axis = std::nullopt,
         size_t branch_index = std::numeric_limits<size_t>::max()
     ) const;
+
+    /// A local straight tangent proxy of half-length `half_span` around the point on `axis` nearest `near_point`, sharing this member's guid and `raw_mesh` for curved cross-joints.
+    std::shared_ptr<EdgeRawElement>
+    segment_proxy(const Point& near_point, double half_span = 200.0) const;
 
     /// The matrix mapping `stock_plane` (origin at stock start, +z along stock axis) onto this member's `base_plane()`, rolled by `roll_degrees` and optionally centred for `stock_length` > 0.
     Xform align_stock(

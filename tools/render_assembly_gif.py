@@ -19,15 +19,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import render_template_docs as docs  # noqa: E402
 
 # The one picture tool that is not a viewer screenshot: the frames need one fixed camera, which the native headless renderer
-# of the viewer crate (examples/selftest) gives and the browser tool does not (it fits every shot to what it holds).
+# of laika_viewer (laika-viewer-cli render-pb) gives and the browser tool does not (it fits every shot to what it holds).
 WOOD = docs.WOOD
-RENDERER = (
-    WOOD.parent / "laika/laika_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
-    if docs.WINDOWS
-    else WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
-)
-if not RENDERER.exists():
-    RENDERER = WOOD.parent / "laika/laika_viewer/target/course-runtime" / RENDERER.name
+import render_joint_library_gifs as library  # noqa: E402
+RENDERER = library.RENDERER
 
 FRAMES = r"""
 import json, sys
@@ -113,7 +108,7 @@ def render_frame(
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
         subprocess.run(
-            [str(RENDERER), str(ppm), str(pb)],
+            [str(RENDERER), "render-pb", str(ppm), str(pb)],
             env=env,
             check=True,
             capture_output=True,

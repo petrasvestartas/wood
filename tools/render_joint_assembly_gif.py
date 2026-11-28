@@ -16,9 +16,11 @@ import tempfile
 
 from PIL import Image, ImageChops
 
-WOOD = pathlib.Path(__file__).resolve().parents[1]
-PYTHON = WOOD.parent / "laika/laika_py/.venv/bin/python"
-RENDERER = WOOD.parent / "laika/laika_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+import render_joint_library_gifs as library
+
+WOOD = library.WOOD
+PYTHON = library.PYTHON
+RENDERER = library.RENDERER
 
 # One frame per entry of the plan: where every part stands and which are coloured, written by laika_py.
 FRAMES = r"""
@@ -124,7 +126,7 @@ def render(pb: str, target: list, view: str, size: str) -> Image.Image:
     )
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
-        subprocess.run([str(RENDERER), str(ppm), pb], env=env, check=True, capture_output=True)
+        subprocess.run([str(RENDERER), "render-pb", str(ppm), pb], env=env, check=True, capture_output=True)
         return Image.open(ppm).convert("RGB")
 
 
